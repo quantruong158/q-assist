@@ -1,0 +1,13 @@
+@use '../auth.scss';
+
+:host {
+  @extend .auth-container;
+}
+
+.register-card {
+  @extend .auth-card;
+}
+
+.register-link {
+  @extend .auth-link;
+}

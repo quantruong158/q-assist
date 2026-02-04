@@ -1,0 +1,43 @@
+<mat-toolbar>
+  @if (showMenuButton()) {
+    <button matIconButton (click)="onMenuClick()" aria-label="Toggle sidebar" class="menu-button">
+      <mat-icon><ng-icon name="hugeSidebarLeft" /></mat-icon>
+    </button>
+  }
+
+  <span>Chat Template</span>
+  <span class="spacer"></span>
+
+  <button
+    matIconButton
+    (click)="themeService.toggleTheme()"
+    [attr.aria-label]="themeService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+    [matTooltip]="themeService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+  >
+    <mat-icon>
+      <ng-icon [name]="themeService.isDarkMode() ? 'hugeSun03' : 'hugeMoon02'" />
+    </mat-icon>
+  </button>
+
+  @if (authService.currentUser(); as user) {
+    <button matIconButton [matMenuTriggerFor]="userMenu" aria-label="User menu" class="user-button">
+      @if (user.photoURL) {
+        <img [src]="user.photoURL" alt="Profile" class="user-avatar" referrerPolicy="no-referrer" />
+      } @else {
+        <mat-icon><ng-icon name="hugeUserCircle" /></mat-icon>
+      }
+    </button>
+
+    <mat-menu #userMenu="matMenu" class="user-menu" style="padding: 8px">
+      <div class="user-info">
+        <span class="user-name">{{ user.displayName || 'User' }}</span>
+        <span class="user-email">{{ user.email }}</span>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onLogout()">
+        <mat-icon><ng-icon name="hugeLogout03" /></mat-icon>
+        <span>Sign out</span>
+      </button>
+    </mat-menu>
+  }
+</mat-toolbar>

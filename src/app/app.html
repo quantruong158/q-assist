@@ -1,0 +1,7 @@
+@if (authService.isLoading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="48" />
+  </div>
+} @else {
+  <router-outlet />
+}

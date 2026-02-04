@@ -1,0 +1,132 @@
+@use '@angular/material' as mat;
+
+:root {
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+  --safe-area-left: env(safe-area-inset-left);
+  --safe-area-right: env(safe-area-inset-right);
+}
+
+html {
+  height: 100%;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Google Sans Flex,
+      density: 0,
+    )
+  );
+
+  &.dark-theme {
+    @include mat.theme(
+      (
+        color: (
+          theme-type: dark,
+          primary: mat.$azure-palette,
+          tertiary: mat.$blue-palette,
+        ),
+        typography: Google Sans Flex,
+        density: 0,
+      )
+    );
+  }
+
+  --mat-sys-corner-xx-large-top: 36px 36px 0 0 !important;
+  --mat-sys-corner-xx-large: 36px !important;
+  --mat-toolbar-container-text-color: var(--mat-sys-on-surface-variant);
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+
+  margin: 0;
+  height: 100%;
+
+  p {
+    margin: 0;
+  }
+}
+
+html.dark-theme body {
+  color-scheme: dark;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+:root {
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: var(--mat-sys-corner-xx-large),
+    )
+  );
+}
+
+.mat-mdc-icon-button .mat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0 !important;
+  line-height: 1rem !important;
+}
+
+.mat-mdc-button .mat-icon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.mat-icon {
+  line-height: 1rem !important;
+}
+
+ng-icon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.mat-bottom-sheet-container {
+  border-top-right-radius: var(--mat-sys-corner-xx-large);
+  border-top-left-radius: var(--mat-sys-corner-xx-large);
+  padding-bottom: calc(8px + var(--safe-area-bottom)) !important;
+}
+
+.mat-mdc-select-panel {
+  border-radius: var(--mat-sys-corner-large) !important;
+}
+
+.mat-mdc-optgroup-label {
+  color: var(--mat-sys-on-primary-container);
+}
+
+ng-icon {
+  line-height: 1rem !important;
+}
+
+.gradient-spinner {
+  width: 44px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+
+  background: conic-gradient(#0000 20%, #ffbb00, #ea4335, #00a1f1);
+
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);
+
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}

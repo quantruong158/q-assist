@@ -1,0 +1,86 @@
+<mat-card class="login-card">
+  <mat-card-header>
+    <mat-card-title>Welcome</mat-card-title>
+    <mat-card-subtitle>Sign in to continue</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (errorMessage()) {
+      <div class="error-message" role="alert">
+        <mat-icon><ng-icon name="hugeAlert02" /></mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          placeholder="Email"
+          autocomplete="email"
+        />
+        <mat-icon matSuffix><ng-icon name="hugeMail01" /></mat-icon>
+
+        @if (loginForm.controls.email.hasError('required')) {
+          <mat-error>Email is required</mat-error>
+        } @else if (loginForm.controls.email.hasError('email')) {
+          <mat-error>Please enter a valid email</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          [type]="hidePassword() ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="Password"
+          autocomplete="current-password"
+        />
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          (click)="togglePasswordVisibility()"
+          [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+        >
+          <mat-icon>
+            <ng-icon [name]="hidePassword() ? 'hugeViewOffSlash' : 'hugeView'" />
+          </mat-icon>
+        </button>
+        @if (loginForm.controls.password.hasError('required')) {
+          <mat-error>Password is required</mat-error>
+        } @else if (loginForm.controls.password.hasError('minlength')) {
+          <mat-error>Password must be at least 6 characters</mat-error>
+        }
+      </mat-form-field>
+
+      <button
+        matButton="filled"
+        type="submit"
+        [disabled]="isLoading() || loginForm.invalid"
+        class="submit-button"
+      >
+        @if (isLoading()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          Sign In
+        }
+      </button>
+    </form>
+
+    <mat-divider></mat-divider>
+
+    <app-google-button [disabled]="isLoading()" (clicked)="signInWithGoogle()" />
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <span class="login-link">
+      Don't have an account?
+      <a routerLink="/register">Sign up</a>
+    </span>
+  </mat-card-actions>
+</mat-card>

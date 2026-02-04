@@ -1,0 +1,57 @@
+<div class="sidebar">
+  <div class="sidebar-header">
+    <button matButton="text" class="new-chat-button" (click)="onNewChat()">
+      <mat-icon><ng-icon name="hugeAdd01" /></mat-icon>
+      New Chat
+    </button>
+  </div>
+
+  <div class="conversations-list">
+    @if (conversations().length === 0) {
+      <div class="empty-state">
+        <mat-icon><ng-icon name="hugeBubbleChatCancel" /></mat-icon>
+        <p>No conversations yet</p>
+        <span>Start a new chat to begin</span>
+      </div>
+    } @else {
+      <mat-nav-list>
+        @for (conversation of conversations(); track conversation.id) {
+          <mat-list-item
+            [class.active]="activeConversationId() === conversation.id"
+            (click)="onSelect(conversation.id)"
+            appLongPress
+            (longPress)="onLongPress(conversation.id)"
+          >
+            <div matListItemTitle class="conversation-title">
+              {{ conversation.title }}
+            </div>
+            <div matListItemLine class="conversation-meta">
+              @if (conversation.updatedAt; as date) {
+                {{ date.toDate() | date: 'short' }}
+              }
+            </div>
+
+            <button
+              class="more-menu-trigger"
+              matIconButton
+              matListItemMeta
+              [matMenuTriggerFor]="inputActionsMenu"
+              #menuTrigger="matMenuTrigger"
+              [class.menu-open]="menuTrigger.menuOpen"
+              (click)="$event.stopPropagation()"
+              restoreFocus="false"
+            >
+              <mat-icon><ng-icon name="hugeMoreVerticalCircle01" /></mat-icon>
+            </button>
+            <mat-menu class="actions-menu" #inputActionsMenu="matMenu">
+              <button mat-menu-item (click)="onDelete($event, conversation.id)">
+                <mat-icon><ng-icon name="hugeDelete02" /></mat-icon>
+                Delete
+              </button>
+            </mat-menu>
+          </mat-list-item>
+        }
+      </mat-nav-list>
+    }
+  </div>
+</div>

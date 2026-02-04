@@ -1,0 +1,56 @@
+<div class="message" [class.user]="role() === 'user'" [class.assistant]="role() === 'assistant'">
+  @if (attachments()?.length) {
+    <div class="message-images">
+      @for (img of attachments(); track img.url) {
+        <img [src]="img.url" alt="Attached image" class="message-image" />
+      }
+    </div>
+  }
+  <div class="message-content">
+    <div class="avatar">
+      @if (role() === 'user') {
+        <span class="avatar-icon">U</span>
+      } @else {
+        <mat-icon class="avatar-icon">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"
+          >
+            <defs>
+              <linearGradient
+                id="ai_gradient"
+                x1="10"
+                y1="10"
+                x2="90"
+                y2="90"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="20%" stop-color="var(--mat-sys-primary)" />
+                <stop offset="100%" stop-color="var(--mat-sys-on-primary-fixed)" />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="M45 5C45 30 30 45 5 45C30 45 45 60 45 85C45 60 60 45 85 45C60 45 45 30 45 5Z"
+              fill="url(#ai_gradient)"
+            />
+
+            <path
+              d="M75 55C75 68 67 76 54 76C67 76 75 84 75 97C75 84 83 76 96 76C83 76 75 68 75 55Z"
+              fill="url(#ai_gradient)"
+            />
+          </svg>
+        </mat-icon>
+      }
+    </div>
+    @if (isStreaming()) {
+      <div class="gradient-spinner"></div>
+    }
+    <div class="content">
+      <div class="text" [innerHTML]="content() | markdown"></div>
+    </div>
+  </div>
+</div>

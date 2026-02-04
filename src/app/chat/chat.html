@@ -1,0 +1,166 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav
+    #sidenav
+    [mode]="layoutService.sidenavMode()"
+    [opened]="layoutService.sidenavOpened()"
+    (openedChange)="layoutService.setSidenav($event)"
+    class="sidenav"
+    autoFocus="false"
+  >
+    <app-sidebar
+      [conversations]="conversations()"
+      [activeConversationId]="activeConversationId()"
+      (newChat)="onNewChat()"
+      (selectConversation)="onSelectConversation($event)"
+      (deleteConversation)="onDeleteConversation($event)"
+    />
+  </mat-sidenav>
+
+  <mat-sidenav-content class="sidenav-content">
+    <div class="chat-container" [class.initial-state]="isInitialChat()">
+      <app-header (menuClick)="toggleSidenav()" [showMenuButton]="true" />
+
+      <div
+        class="messages-container"
+        [class.initial-state-messages]="isInitialChat()"
+        #messagesContainer
+      >
+        @if (isConversationLoading()) {
+          <div class="loading-indicator">
+            <mat-spinner diameter="24" />
+            <span>Loading conversation...</span>
+          </div>
+        }
+
+        @if (isInitialChat()) {
+          <div class="welcome-message">
+            <p class="greeting">Welcome, {{ currentUser()?.displayName }}</p>
+            <p class="message-text">How can I help you?</p>
+          </div>
+        }
+
+        @for (message of messages(); track $index) {
+          <app-message
+            [content]="message.content"
+            [role]="message.role"
+            [attachments]="message.attachments"
+          />
+        }
+
+        @if (isLoading()) {
+          <app-message [content]="streamingContent()" role="assistant" [isStreaming]="true" />
+        }
+      </div>
+
+      <div class="input-container" [class.initial-state-input]="isInitialChat() && !isNative">
+        <div class="input-wrapper">
+          @if (pendingAttachments().length > 0) {
+            <div class="attachment-previews">
+              @for (attachment of pendingAttachments(); track attachment.id) {
+                <div class="attachment-preview" [class.error]="attachment.error">
+                  <img [src]="attachment.previewUrl" [alt]="attachment.file.name" />
+                  @if (attachment.isUploading) {
+                    <div class="upload-overlay">
+                      <mat-spinner diameter="24" />
+                    </div>
+                  }
+                  @if (attachment.error) {
+                    <div class="error-overlay">
+                      <mat-icon><ng-icon name="hugeAlert02" /></mat-icon>
+                    </div>
+                  }
+                  <button
+                    matIconButton
+                    class="remove-btn"
+                    (click)="removeAttachment(attachment.id)"
+                    aria-label="Remove attachment"
+                  >
+                    <mat-icon><ng-icon name="hugeCancel01" size="18px" /></mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+          <mat-form-field appearance="outline" class="message-input" subscriptSizing="dynamic">
+            <textarea
+              matInput
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="1"
+              cdkAutosizeMaxRows="6"
+              [formControl]="inputText"
+              (keydown)="onKeydown($event)"
+              placeholder="Type a message..."
+              aria-label="Type your message"
+            ></textarea>
+          </mat-form-field>
+
+          <div class="input-actions">
+            <button matIconButton [matMenuTriggerFor]="inputActionsMenu">
+              <mat-icon><ng-icon name="hugeAdd01" /></mat-icon>
+            </button>
+            <mat-menu class="actions-menu" #inputActionsMenu="matMenu">
+              <input
+                type="file"
+                #fileInput
+                hidden
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                (change)="onFileSelect($event)"
+              />
+              @if (isNative) {
+                <button
+                  mat-menu-item
+                  class="camera-button"
+                  (click)="onTakePhoto()"
+                  [disabled]="isLoading() || pendingAttachments().length >= 4"
+                  aria-label="Take photo"
+                >
+                  <mat-icon><ng-icon name="hugeCamera02" /></mat-icon>
+                  Camera
+                </button>
+              }
+              <button
+                mat-menu-item
+                class="attachment-button"
+                (click)="fileInput.click()"
+                [disabled]="isLoading() || pendingAttachments().length >= 4"
+                aria-label="Attach images"
+              >
+                <mat-icon><ng-icon name="hugeImageUpload" /></mat-icon>
+                Upload images
+              </button>
+            </mat-menu>
+
+            <span class="spacer"></span>
+
+            <mat-form-field
+              class="model-selector fit-content"
+              appearance="outline"
+              subscriptSizing="dynamic"
+            >
+              <mat-select [formControl]="selectedModel" [compareWith]="compareModels">
+                @for (group of models | keyvalue; track group.key) {
+                  <mat-optgroup [label]="group.key">
+                    @for (model of group.value; track model.id) {
+                      <mat-option [value]="model">{{ model.label }}</mat-option>
+                    }
+                  </mat-optgroup>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <button
+              matMiniFab
+              class="send-button"
+              (click)="sendMessage()"
+              [disabled]="!canSend()"
+              aria-label="Send message"
+            >
+              <mat-icon><ng-icon name="hugeArrowUp02" /></mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

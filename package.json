@@ -1,0 +1,88 @@
+{
+  "name": "angular-chat-template",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:angular-chat-template": "node dist/angular-chat-template/server/server.mjs",
+    "lint": "ng lint",
+    "build:mobile": "ng build --configuration=mobile && node -e \"require('fs').copyFileSync('dist/angular-chat-template/browser/index.csr.html', 'dist/angular-chat-template/browser/index.html')\"",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios",
+    "mobile:android": "npm run build:mobile && npx cap sync android && npx cap open android",
+    "mobile:ios": "npm run build:mobile && npx cap sync ios && npx cap open ios"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@11.6.4",
+  "dependencies": {
+    "@angular/cdk": "~21.1.1",
+    "@angular/common": "^21.1.0",
+    "@angular/compiler": "^21.1.0",
+    "@angular/core": "^21.1.0",
+    "@angular/fire": "^21.0.0-rc.0",
+    "@angular/forms": "^21.1.0",
+    "@angular/material": "~21.1.1",
+    "@angular/platform-browser": "^21.1.0",
+    "@angular/platform-server": "^21.1.0",
+    "@angular/router": "^21.1.0",
+    "@angular/ssr": "^21.1.1",
+    "@capacitor-firebase/authentication": "^8.0.1",
+    "@capacitor/android": "^8.0.1",
+    "@capacitor/camera": "^8.0.0",
+    "@capacitor/cli": "^8.0.1",
+    "@capacitor/core": "^8.0.1",
+    "@capacitor/ios": "^8.0.1",
+    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
+    "@genkit-ai/express": "^1.28.0",
+    "@genkit-ai/google-genai": "^1.28.0",
+    "@google-cloud/firestore": "^7.11.6",
+    "@ng-icons/core": "^33.0.0",
+    "@ng-icons/huge-icons": "^33.0.0",
+    "@types/multer": "^2.0.0",
+    "@vercel/blob": "^2.0.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase": "^12.8.0",
+    "firebase-admin": "^13.6.0",
+    "genkit": "^1.28.0",
+    "marked": "^17.0.1",
+    "multer": "^2.0.2",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.1.1",
+    "@angular/cli": "^21.1.1",
+    "@angular/compiler-cli": "^21.1.0",
+    "@angular/material": "^21.1.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.1",
+    "@types/node": "^20.17.19",
+    "angular-eslint": "21.1.0",
+    "eslint": "^9.39.1",
+    "jsdom": "^27.1.0",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "8.47.0",
+    "vitest": "^4.0.8"
+  }
+}
