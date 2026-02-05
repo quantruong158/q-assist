@@ -48,7 +48,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:4200',
-      'https://angular-chat-template.vercel.app',
+      'https://q-assist.vercel.app',
       'capacitor://localhost',
       'http://localhost',
       'https://localhost',

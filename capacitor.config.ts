@@ -1,14 +1,14 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.chattemplate',
-  appName: 'Chat Template',
-  webDir: 'dist/angular-chat-template/browser',
+  appId: 'com.qtech.qassist',
+  appName: 'Qassist',
+  webDir: 'dist/q-assist/browser',
   android: {
     allowMixedContent: false,
   },
   ios: {
-    scheme: 'Chat Template',
+    scheme: 'Qassist',
   },
   plugins: {
     SplashScreen: {

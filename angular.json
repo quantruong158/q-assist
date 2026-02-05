@@ -8,7 +8,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "angular-chat-template": {
+    "q-assist": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -91,10 +91,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angular-chat-template:build:production"
+              "buildTarget": "q-assist:build:production"
             },
             "development": {
-              "buildTarget": "angular-chat-template:build:development"
+              "buildTarget": "q-assist:build:development"
             }
           },
           "defaultConfiguration": "development"
