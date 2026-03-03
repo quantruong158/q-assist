@@ -13,14 +13,6 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { CameraSource } from '@capacitor/camera';
 
@@ -37,7 +29,14 @@ import { CameraService } from '../services/camera.service';
 import { PlatformService } from '../services/platform.service';
 import { Conversation, Attachment } from '../models';
 import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from './model.config';
-import { MatMenuModule } from '@angular/material/menu';
+import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { KeyValuePipe, Location } from '@angular/common';
 import { StorageService } from '../services/storage.service';
 import { throttleTime } from 'rxjs';
@@ -50,6 +49,7 @@ import {
   hugeCancel01,
   hugeImageUpload,
 } from '@ng-icons/huge-icons';
+import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
 
 const CONTEXT_WINDOW_SIZE = 20;
 
@@ -66,15 +66,14 @@ interface PendingAttachment {
   selector: 'app-chat',
   imports: [
     ReactiveFormsModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTooltipModule,
-    MatSidenavModule,
+    BrnSelectImports,
+    HlmButtonImports,
+    HlmDropdownMenuImports,
+    HlmIconImports,
+    HlmInputGroupImports,
+    HlmSelectImports,
+    HlmSidebarImports,
+    HlmSpinnerImports,
     TextFieldModule,
     Header,
     Message,
@@ -93,7 +92,6 @@ interface PendingAttachment {
     }),
   ],
   templateUrl: './chat.html',
-  styleUrl: './chat.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(paste)': 'onPaste($event)',
@@ -110,6 +108,7 @@ export class Chat implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly storageService = inject(StorageService);
   protected readonly layoutService = inject(LayoutService);
+  protected readonly sidebarService = inject(HlmSidebarService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -439,7 +438,7 @@ export class Chat implements OnInit {
     }
 
     if (this.layoutService.isMobile()) {
-      this.layoutService.setSidenav(false);
+      this.sidebarService.setOpenMobile(false);
     }
   }
 
@@ -455,7 +454,7 @@ export class Chat implements OnInit {
     this.isConversationLoading.set(true);
 
     if (this.layoutService.isMobile()) {
-      this.layoutService.setSidenav(false);
+      this.sidebarService.setOpenMobile(false);
     }
 
     try {

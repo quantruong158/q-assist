@@ -4,14 +4,13 @@ import { MarkdownPipe } from './markdown.pipe';
 import { ChatAttachment } from './chat.service';
 import { provideIcons } from '@ng-icons/core';
 import { hugeAiChat02 } from '@ng-icons/huge-icons';
-import { MatIconModule } from '@angular/material/icon';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
 
 @Component({
   selector: 'app-message',
-  imports: [MarkdownPipe, MatIconModule],
+  imports: [MarkdownPipe, HlmIconImports],
   providers: [provideIcons({ hugeAiChat02 })],
   templateUrl: './message.html',
-  styleUrl: './message.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Message {

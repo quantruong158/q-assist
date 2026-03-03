@@ -1,43 +1,75 @@
-<mat-toolbar>
-  @if (showMenuButton()) {
-    <button matIconButton (click)="onMenuClick()" aria-label="Toggle sidebar" class="menu-button">
-      <mat-icon><ng-icon name="hugeSidebarLeft" /></mat-icon>
-    </button>
-  }
+<header
+  class="flex h-[calc(56px+var(--safe-area-top))] items-center bg-[color-mix(in_oklab,var(--background)_92%,transparent)] px-3 py-2 pt-[calc(8px+var(--safe-area-top))] font-medium outline outline-border backdrop-blur gap-1"
+>
+  <button hlmSidebarTrigger aria-label="Toggle sidebar" class="mr-1 md:hidden"></button>
 
-  <span>Qassist</span>
-  <span class="spacer"></span>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 256 256"
+    class="h-8 w-8"
+    role="img"
+    aria-label="App logo"
+  >
+    <path
+      d="m115 8.74-73.09 39.09c-9.73 5.38-9.51 17.08 0.21 22.25l74.62 39.83c8.47 4.3 18.55 1.87 24.11-1.38l73.25-39.09c9.55-5.18 9.28-16.33-0.13-21.61l-73.12-39.09c-8.53-4.67-18.01-4.08-25.85 0zm10.12 22.4c2.23-0.66 4.49-0.23 6.3 0.87l46.32 25.25c2.22 1.19 2.21 3.09-0.02 4.33l-46.07 25.15c-2.44 1.32-4.91 1.19-6.89 0.17l-46.32-25.25c-2.22-1.19-2.2-3.09 0.03-4.33l46.65-26.19z"
+      fill="oklch(51.741% 0.1355 247.407)"
+    />
+    <path
+      d="m235.9 68.71c-1.83 0.33-5.13 2.6-6.93 3.68l-82.08 45.23c-9.76 5.16-14.4 14.15-14.4 22.04v40.7c0 9.87 10.18 15.7 19.13 11.32l58.22-31c3.09-1.9 3.83 0 3.83 3.39v9.24c0 5.55-1.8 7.6-5.73 9.92l-72.17 39.49c-1.99 1.06-3.5 2.26-3.5 4.06v21.48c0 2.02 2.11 2.83 3.87 1.95l90.09-49.4c8.65-4.85 12.98-12.4 12.98-20.9v-40.35c0-11.39-11.12-16.72-19.44-12.24l-56.69 30.65c-4.5 2.41-6.4 1.51-6.4-2.35v-9.42c0-5.16 1.5-7.49 5.34-9.64l74.35-40.14c2.31-1.26 2.58-2.61 2.58-3.9v-20.4c0-2.3-1.03-3.77-3.05-3.41z"
+      fill="oklch(51.741% 0.1355 247.407)"
+    />
+    <path
+      d="m29.95 75.76c-7.79 0.55-13.46 6.31-13.46 14.43v87.52c0 11.1 4.32 19.28 14.25 24.18l43.17 23.5c6.57 3.6 13.06 3.97 19.98 2.54l10.02 17.9c2.32 3.22 4.95 2.95 7.2 1.48l8.95-5.39c2.86-2.02 2.69-6.11 0.56-9.5l-7.61-15.13c7.18-5.38 10.17-12.52 10.17-21.38v-54.8c0-10.7-5.43-20.18-13.62-24.05l-72.73-39.75c-2.37-1.2-4.6-1.69-6.88-1.55zm14.69 34.6c1.52 0 3.13 1.21 4.8 2.14l42.59 22.07c5.88 3.04 7.98 9.04 7.03 15.34v42.11l-0.64-0.34-10.99-19.26c-1.82-2.76-4.62-2.96-6.81-1.67l-10.71 6.26c-2.7 1.85-2.44 5.65-0.78 8.55l7.48 13.16-0.4 0.27-27.2-15.12c-5.32-3.16-7.54-7.03-7.54-13.66v-55.42c0-2.56 0.28-4.43 3.17-4.43z"
+      fill="oklch(0.6723 0.1606 244.9955)"
+    />
+  </svg>
+  <span class="flex-1"></span>
 
   <button
-    matIconButton
+    hlmBtn
+    size="icon"
+    variant="ghost"
     (click)="themeService.toggleTheme()"
     [attr.aria-label]="themeService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
-    [matTooltip]="themeService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
   >
-    <mat-icon>
-      <ng-icon [name]="themeService.isDarkMode() ? 'hugeSun03' : 'hugeMoon02'" />
-    </mat-icon>
+    <ng-icon hlm [name]="themeService.isDarkMode() ? 'hugeSun03' : 'hugeMoon02'" />
   </button>
 
   @if (authService.currentUser(); as user) {
-    <button matIconButton [matMenuTriggerFor]="userMenu" aria-label="User menu" class="user-button">
+    <button
+      hlmBtn
+      size="icon-lg"
+      variant="ghost"
+      [hlmDropdownMenuTrigger]="menu"
+      aria-label="User menu"
+      class="rounded-full"
+    >
       @if (user.photoURL) {
-        <img [src]="user.photoURL" alt="Profile" class="user-avatar" referrerPolicy="no-referrer" />
+        <img
+          [src]="user.photoURL"
+          alt="Profile"
+          class="h-8 w-8 rounded-full object-cover"
+          referrerPolicy="no-referrer"
+        />
       } @else {
-        <mat-icon><ng-icon name="hugeUserCircle" /></mat-icon>
+        <ng-icon hlm name="hugeUserCircle" />
       }
     </button>
 
-    <mat-menu #userMenu="matMenu" class="user-menu" style="padding: 8px">
-      <div class="user-info">
-        <span class="user-name">{{ user.displayName || 'User' }}</span>
-        <span class="user-email">{{ user.email }}</span>
-      </div>
-      <mat-divider></mat-divider>
-      <button mat-menu-item (click)="onLogout()">
-        <mat-icon><ng-icon name="hugeLogout03" /></mat-icon>
-        <span>Sign out</span>
-      </button>
-    </mat-menu>
+    <ng-template #menu>
+      <hlm-dropdown-menu class="p-2">
+        <div class="flex min-w-50 flex-col px-4 py-3">
+          <span class="font-medium text-foreground">{{ user.displayName || 'User' }}</span>
+          <span class="text-sm text-muted-foreground">{{ user.email }}</span>
+        </div>
+
+        <div hlmDropdownMenuSeparator></div>
+
+        <button hlmDropdownMenuItem (click)="onLogout()">
+          <ng-icon hlm name="hugeLogout03" />
+          <span>Sign out</span>
+        </button>
+      </hlm-dropdown-menu>
+    </ng-template>
   }
-</mat-toolbar>
+</header>

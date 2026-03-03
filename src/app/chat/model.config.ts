@@ -25,12 +25,6 @@ export const SUPPORTED_MODELS: AiModel[] = [
     provider: 'Gemini',
     supportSystemPrompt: true,
   },
-  {
-    id: 'gemini-3-pro-preview',
-    label: 'Gemini 3 Pro',
-    provider: 'Gemini',
-    supportSystemPrompt: true,
-  },
   { id: 'gemma-3-4b-it', label: 'Gemma 3 4B', provider: 'Gemma', supportSystemPrompt: false },
   { id: 'gemma-3-27b-it', label: 'Gemma 3 27B', provider: 'Gemma', supportSystemPrompt: false },
 ];

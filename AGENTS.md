@@ -8,23 +8,23 @@ This is a dermatology AI chat assistant built with Angular 21.1, GenKit, and Fir
 
 ```bash
 # Development
-npm start                    # Start dev server (ng serve)
-npm run build                # Production build
-npm run watch                # Development build with watch mode
+pnpm start                    # Start dev server (ng serve)
+pnpm run build                # Production build
+pnpm run watch                # Development build with watch mode
 
 # Linting & Formatting
-npm run lint                 # Run ESLint (Angular ESLint + TypeScript ESLint)
+pnpm run lint                 # Run ESLint (Angular ESLint + TypeScript ESLint)
 # Prettier is configured in package.json and should be run via IDE or git hooks
 
 # Testing (Vitest)
-npm test                     # Run all tests in watch mode
-npm test -- --run            # Run all tests once (CI mode)
-npm test -- app.spec.ts      # Run a single test file
-npm test -- --grep "should create"  # Run tests matching a specific pattern
+pnpm test                     # Run all tests in watch mode
+pnpm test -- --run            # Run all tests once (CI mode)
+pnpm test -- app.spec.ts      # Run a single test file
+pnpm test -- --grep "should create"  # Run tests matching a specific pattern
 
 # SSR & Mobile
-npm run serve:ssr:angular-chat-template  # Serve SSR build
-npm run build:mobile         # Build for Capacitor/Mobile
+pnpm run serve:ssr:angular-chat-template  # Serve SSR build
+pnpm run build:mobile         # Build for Capacitor/Mobile
 ```
 
 ## Project Structure

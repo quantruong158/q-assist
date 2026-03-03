@@ -1,23 +1,37 @@
-<div class="message" [class.user]="role() === 'user'" [class.assistant]="role() === 'assistant'">
+<div class="mx-auto flex max-w-225 pb-4" [class.flex-col]="role() === 'user'">
   @if (attachments()?.length) {
-    <div class="message-images">
+    <div
+      [class]="
+        role() === 'user'
+          ? 'mx-4 mb-1 flex flex-wrap justify-end gap-2'
+          : 'mx-4 mb-1 flex flex-wrap gap-2'
+      "
+    >
       @for (img of attachments(); track img.url) {
-        <img [src]="img.url" alt="Attached image" class="message-image" />
+        <img
+          [src]="img.url"
+          alt="Attached image"
+          class="max-h-50 max-w-50 rounded-lg object-cover"
+        />
       }
     </div>
   }
-  <div class="message-content">
-    <div class="avatar">
-      @if (role() === 'user') {
-        <span class="avatar-icon">U</span>
-      } @else {
-        <mat-icon class="avatar-icon">
+  <div
+    [class]="
+      role() === 'user'
+        ? 'relative mx-4 flex max-w-[70%] flex-row-reverse gap-3 self-end rounded-[calc(var(--radius)*3)_calc(var(--radius)/2)_calc(var(--radius)*3)_calc(var(--radius)*3)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] px-4 py-3'
+        : 'relative flex flex-col gap-3 px-4 py-3 sm:flex-row'
+    "
+  >
+    @if (role() === 'assistant') {
+      <div class="flex h-6 w-6 items-center justify-center">
+        <span>
           <svg
             width="24"
             height="24"
             viewBox="0 0 100 100"
             fill="none"
-            xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
               <linearGradient
@@ -28,8 +42,8 @@
                 y2="90"
                 gradientUnits="userSpaceOnUse"
               >
-                <stop offset="20%" stop-color="var(--mat-sys-primary)" />
-                <stop offset="100%" stop-color="var(--mat-sys-on-primary-fixed)" />
+                <stop offset="20%" stop-color="var(--primary)" />
+                <stop offset="100%" stop-color="var(--primary-foreground)" />
               </linearGradient>
             </defs>
 
@@ -43,14 +57,14 @@
               fill="url(#ai_gradient)"
             />
           </svg>
-        </mat-icon>
-      }
-    </div>
-    @if (isStreaming()) {
-      <div class="gradient-spinner"></div>
+        </span>
+      </div>
     }
-    <div class="content">
-      <div class="text" [innerHTML]="content() | markdown"></div>
+    @if (isStreaming()) {
+      <div class="gradient-spinner absolute left-2.5 top-1.5"></div>
+    }
+    <div class="min-w-0 flex-1">
+      <div class="wrap-break-word leading-7" [innerHTML]="content() | markdown"></div>
     </div>
   </div>
 </div>

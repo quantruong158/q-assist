@@ -1,34 +1,36 @@
 import { Component, inject } from '@angular/core';
-import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeDelete02 } from '@ng-icons/huge-icons';
+import { BrnDialogRef } from '@spartan-ng/brain/dialog';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'app-delete-sheet',
-  imports: [MatButtonModule, MatIconModule, MatListModule, NgIcon],
+  imports: [HlmButtonImports, HlmSheetImports, NgIcon],
   providers: [provideIcons({ hugeDelete02 })],
   template: `
-    <mat-nav-list autoFocus="false">
-      <a role="button" mat-list-item (click)="deleteConversation()" tabindex="0">
-        <mat-icon matListItemIcon><ng-icon name="hugeDelete02" /></mat-icon>
-        <span matListItemTitle>Delete</span>
-      </a>
-    </mat-nav-list>
+    <hlm-sheet>
+      <hlm-sheet-content>
+        <div class="flex flex-col gap-2">
+          <button hlmBtn variant="destructive" (click)="deleteConversation()">
+            <ng-icon hlm name="hugeDelete02" />
+            Delete
+          </button>
+        </div>
+      </hlm-sheet-content>
+    </hlm-sheet>
   `,
   styles: `
-    mat-nav-list {
-      padding-top: 0;
-      padding-bottom: 0;
+    :host {
+      display: block;
     }
   `,
 })
 export class DeleteSheet {
-  private readonly _bottomSheetRef = inject<MatBottomSheetRef<DeleteSheet>>(MatBottomSheetRef);
+  private readonly _dialogRef = inject(BrnDialogRef<unknown>);
 
   deleteConversation(): void {
-    this._bottomSheetRef.dismiss(true);
+    this._dialogRef.close(true);
   }
 }

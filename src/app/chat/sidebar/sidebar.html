@@ -1,57 +1,86 @@
-<div class="sidebar">
-  <div class="sidebar-header">
-    <button matButton="text" class="new-chat-button" (click)="onNewChat()">
-      <mat-icon><ng-icon name="hugeAdd01" /></mat-icon>
-      New Chat
-    </button>
+<div class="sidebar" hlmSidebarContent>
+  <div class="pt-[calc(8px+var(--safe-area-top))]" hlmSidebarHeader>
+    <button hlmSidebarTrigger aria-label="Toggle sidebar" class="ml-0.5"></button>
   </div>
+  <ul hlmSidebarMenu class="px-1">
+    <li hlmSidebarMenuItem class="flex ml-2">
+      <button hlmSidebarMenuButton class="w-full justify-start gap-2 px-2" (click)="onNewChat()">
+        <ng-icon hlm name="hugeAdd01" />
+        <span class="flex-1 text-left">New Chat</span>
+      </button>
+    </li>
+  </ul>
 
-  <div class="conversations-list">
-    @if (conversations().length === 0) {
-      <div class="empty-state">
-        <mat-icon><ng-icon name="hugeBubbleChatCancel" /></mat-icon>
-        <p>No conversations yet</p>
-        <span>Start a new chat to begin</span>
-      </div>
-    } @else {
-      <mat-nav-list>
-        @for (conversation of conversations(); track conversation.id) {
-          <mat-list-item
-            [class.active]="activeConversationId() === conversation.id"
-            (click)="onSelect(conversation.id)"
-            appLongPress
-            (longPress)="onLongPress(conversation.id)"
-          >
-            <div matListItemTitle class="conversation-title">
-              {{ conversation.title }}
-            </div>
-            <div matListItemLine class="conversation-meta">
-              @if (conversation.updatedAt; as date) {
-                {{ date.toDate() | date: 'short' }}
-              }
-            </div>
-
-            <button
-              class="more-menu-trigger"
-              matIconButton
-              matListItemMeta
-              [matMenuTriggerFor]="inputActionsMenu"
-              #menuTrigger="matMenuTrigger"
-              [class.menu-open]="menuTrigger.menuOpen"
-              (click)="$event.stopPropagation()"
-              restoreFocus="false"
+  <hlm-collapsible [expanded]="true" class="group/collapsible">
+    <div
+      hlmSidebarGroup
+      [class]="sidebarService.state() === 'collapsed' ? 'hidden invisible pointer-events-none' : ''"
+    >
+      <button
+        hlmCollapsibleTrigger
+        hlmSidebarGroupLabel
+        class="flex w-full items-center justify-between gap-2"
+      >
+        Conversations
+        <ng-icon
+          hlm
+          name="lucideChevronDown"
+          class="group-data-[state=open]/collapsible:rotate-180"
+        />
+      </button>
+      <hlm-collapsible-content>
+        <div hlmSidebarGroupContent class="max-h-full overflow-y-auto px-1 pb-3">
+          @if (conversations().length === 0) {
+            <div
+              class="flex flex-col items-center justify-center p-8 text-center text-muted-foreground"
             >
-              <mat-icon><ng-icon name="hugeMoreVerticalCircle01" /></mat-icon>
-            </button>
-            <mat-menu class="actions-menu" #inputActionsMenu="matMenu">
-              <button mat-menu-item (click)="onDelete($event, conversation.id)">
-                <mat-icon><ng-icon name="hugeDelete02" /></mat-icon>
-                Delete
-              </button>
-            </mat-menu>
-          </mat-list-item>
-        }
-      </mat-nav-list>
-    }
-  </div>
+              <ng-icon hlm name="hugeBubbleChatCancel" />
+              <p class="font-medium">No conversations yet</p>
+              <span class="mt-1 text-sm">Start a new chat to begin</span>
+            </div>
+          } @else {
+            <ul hlmSidebarMenu>
+              @for (conversation of conversations(); track conversation.id) {
+                <li hlmSidebarMenuItem class="group/conversation">
+                  <button
+                    hlmSidebarMenuButton
+                    size="lg"
+                    [isActive]="activeConversationId() === conversation.id"
+                    (click)="onSelect(conversation.id)"
+                    appLongPress
+                  >
+                    <div class="flex flex-col items-start w-full">
+                      <span class="w-full truncate">{{ conversation.title }}</span>
+                      <span class="text-xs text-muted-foreground">
+                        @if (conversation.updatedAt; as date) {
+                          {{ date.toDate() | date: 'short' }}
+                        }
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    hlmSidebarMenuAction
+                    [hlmDropdownMenuTrigger]="conversationMenu"
+                    (click)="$event.stopPropagation()"
+                    aria-label="Conversation actions"
+                    class="opacity-0 transition-opacity group-hover/conversation:opacity-100 aria-expanded:opacity-100"
+                  >
+                    <ng-icon hlm name="hugeMoreVerticalCircle01" />
+                  </button>
+                  <ng-template #conversationMenu>
+                    <hlm-dropdown-menu>
+                      <button hlmDropdownMenuItem (click)="onDelete($event, conversation.id)">
+                        <ng-icon hlm name="hugeDelete02" />
+                        Delete
+                      </button>
+                    </hlm-dropdown-menu>
+                  </ng-template>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </hlm-collapsible-content>
+    </div>
+  </hlm-collapsible>
 </div>
