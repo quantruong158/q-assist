@@ -1,41 +1,44 @@
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav
-    #sidenav
-    [mode]="layoutService.sidenavMode()"
-    [opened]="layoutService.sidenavOpened()"
-    (openedChange)="layoutService.setSidenav($event)"
-    class="sidenav"
-    autoFocus="false"
+<div hlmSidebarWrapper class="sidenav-container h-full" sidebarWidthIcon="calc(3.5rem + 1px)">
+  <hlm-sidebar
+    side="left"
+    [collapsible]="layoutService.isMobile() ? 'offcanvas' : 'icon'"
+    [variant]="'sidebar'"
   >
-    <app-sidebar
-      [conversations]="conversations()"
-      [activeConversationId]="activeConversationId()"
-      (newChat)="onNewChat()"
-      (selectConversation)="onSelectConversation($event)"
-      (deleteConversation)="onDeleteConversation($event)"
-    />
-  </mat-sidenav>
+    <div class="h-full">
+      <app-sidebar
+        [conversations]="conversations()"
+        [activeConversationId]="activeConversationId()"
+        (newChat)="onNewChat()"
+        (selectConversation)="onSelectConversation($event)"
+        (deleteConversation)="onDeleteConversation($event)"
+      />
+    </div>
+  </hlm-sidebar>
 
-  <mat-sidenav-content class="sidenav-content">
-    <div class="chat-container" [class.initial-state]="isInitialChat()">
-      <app-header (menuClick)="toggleSidenav()" [showMenuButton]="true" />
+  <main hlmSidebarInset class="sidenav-content flex flex-col">
+    <div class="flex h-full flex-col bg-background" [class.initial-state]="isInitialChat()">
+      <app-header />
 
       <div
-        class="messages-container"
-        [class.initial-state-messages]="isInitialChat()"
+        class="pt-4 flex-1 overflow-y-auto pb-[calc(150px+var(--safe-area-bottom))] max-[600px]:pb-[calc(140px+var(--safe-area-bottom))]"
+        [class]="isInitialChat() ? 'md:flex-none md:pb-0' : ''"
         #messagesContainer
       >
         @if (isConversationLoading()) {
-          <div class="loading-indicator">
-            <mat-spinner diameter="24" />
+          <div
+            class="relative mx-auto mb-4 flex max-w-225 items-center gap-3 py-3 text-muted-foreground"
+          >
+            <hlm-spinner class="text-lg" aria-label="Loading conversation" />
             <span>Loading conversation...</span>
           </div>
         }
 
         @if (isInitialChat()) {
-          <div class="welcome-message">
-            <p class="greeting">Welcome, {{ currentUser()?.displayName }}</p>
-            <p class="message-text">How can I help you?</p>
+          <div
+            class="mx-auto mt-25 h-[calc(32vh-var(--safe-area-bottom))] max-w-180 content-end px-4 py-4 text-foreground max-[600px]:mt-6 max-[600px]:px-4 max-[600px]:py-6"
+          >
+            <p class="text-2xl text-muted-foreground">Welcome, {{ currentUser()?.displayName }}</p>
+            <p class="text-[2.5rem] leading-[1.4]">How can I help you?</p>
           </div>
         }
 
@@ -52,115 +55,155 @@
         }
       </div>
 
-      <div class="input-container" [class.initial-state-input]="isInitialChat() && !isNative">
-        <div class="input-wrapper">
+      <div
+        class="fixed bottom-0 left-0 right-0 mx-4 rounded-t-[34px] bg-background pb-[calc(12px+var(--safe-area-bottom))] md:right-0 md:transition-[left] md:duration-200 md:ease-linear"
+        [class]="
+          isInitialChat() && !isNative
+            ? 'md:static md:left-0 md:right-0 md:pb-12'
+            : sidebarService.state() === 'collapsed'
+              ? 'md:left-(--sidebar-width-icon)'
+              : 'md:left-64'
+        "
+      >
+        <div
+          class="bg-card mx-auto flex max-w-225 flex-col gap-2 rounded-[34px] border border-border p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
+          [class.md:max-w-[720px]]="isInitialChat() && !isNative"
+        >
           @if (pendingAttachments().length > 0) {
-            <div class="attachment-previews">
+            <div class="flex flex-wrap gap-2">
               @for (attachment of pendingAttachments(); track attachment.id) {
-                <div class="attachment-preview" [class.error]="attachment.error">
-                  <img [src]="attachment.previewUrl" [alt]="attachment.file.name" />
+                <div
+                  class="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-transparent"
+                  [class.border-destructive]="attachment.error"
+                >
+                  <img
+                    [src]="attachment.previewUrl"
+                    [alt]="attachment.file.name"
+                    class="h-full w-full object-cover"
+                  />
                   @if (attachment.isUploading) {
-                    <div class="upload-overlay">
-                      <mat-spinner diameter="24" />
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <hlm-spinner class="text-lg" aria-label="Uploading" />
                     </div>
                   }
                   @if (attachment.error) {
-                    <div class="error-overlay">
-                      <mat-icon><ng-icon name="hugeAlert02" /></mat-icon>
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <ng-icon hlm name="hugeAlert02" />
                     </div>
                   }
                   <button
-                    matIconButton
-                    class="remove-btn"
+                    hlmBtn
+                    size="icon-xs"
+                    variant="ghost"
+                    class="absolute right-0.5 top-0.5 bg-black/60 text-white"
                     (click)="removeAttachment(attachment.id)"
                     aria-label="Remove attachment"
                   >
-                    <mat-icon><ng-icon name="hugeCancel01" size="18px" /></mat-icon>
+                    <ng-icon hlm name="hugeCancel01" size="18px" />
                   </button>
                 </div>
               }
             </div>
           }
-          <mat-form-field appearance="outline" class="message-input" subscriptSizing="dynamic">
+          <div
+            hlmInputGroup
+            class="w-full border-0 shadow-none outline-none focus-within:ring-0 focus-within:ring-offset-0 focus-within:border-transparent"
+          >
             <textarea
-              matInput
               cdkTextareaAutosize
               cdkAutosizeMinRows="1"
               cdkAutosizeMaxRows="6"
+              rows="1"
               [formControl]="inputText"
               (keydown)="onKeydown($event)"
               placeholder="Type a message..."
               aria-label="Type your message"
+              class="px-2 flex-1 resize-none rounded-none border-0 bg-transparent py-1 shadow-none focus-visible:ring-0 dark:bg-transparent min-h-12 leading-6 overflow-y-auto outline-none focus:outline-none focus-visible:outline-none"
             ></textarea>
-          </mat-form-field>
+          </div>
 
-          <div class="input-actions">
-            <button matIconButton [matMenuTriggerFor]="inputActionsMenu">
-              <mat-icon><ng-icon name="hugeAdd01" /></mat-icon>
-            </button>
-            <mat-menu class="actions-menu" #inputActionsMenu="matMenu">
-              <input
-                type="file"
-                #fileInput
-                hidden
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                (change)="onFileSelect($event)"
-              />
-              @if (isNative) {
-                <button
-                  mat-menu-item
-                  class="camera-button"
-                  (click)="onTakePhoto()"
-                  [disabled]="isLoading() || pendingAttachments().length >= 4"
-                  aria-label="Take photo"
-                >
-                  <mat-icon><ng-icon name="hugeCamera02" /></mat-icon>
-                  Camera
-                </button>
-              }
-              <button
-                mat-menu-item
-                class="attachment-button"
-                (click)="fileInput.click()"
-                [disabled]="isLoading() || pendingAttachments().length >= 4"
-                aria-label="Attach images"
-              >
-                <mat-icon><ng-icon name="hugeImageUpload" /></mat-icon>
-                Upload images
-              </button>
-            </mat-menu>
-
-            <span class="spacer"></span>
-
-            <mat-form-field
-              class="model-selector fit-content"
-              appearance="outline"
-              subscriptSizing="dynamic"
+          <div class="flex items-center gap-2">
+            <input
+              type="file"
+              #fileInput
+              hidden
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              (change)="onFileSelect($event)"
+            />
+            <button
+              hlmBtn
+              size="icon"
+              variant="ghost"
+              [hlmDropdownMenuTrigger]="inputActionsMenu"
+              aria-label="Add attachments"
+              class="rounded-full"
             >
-              <mat-select [formControl]="selectedModel" [compareWith]="compareModels">
-                @for (group of models | keyvalue; track group.key) {
-                  <mat-optgroup [label]="group.key">
-                    @for (model of group.value; track model.id) {
-                      <mat-option [value]="model">{{ model.label }}</mat-option>
-                    }
-                  </mat-optgroup>
+              <ng-icon hlm name="hugeAdd01" />
+            </button>
+            <ng-template #inputActionsMenu>
+              <hlm-dropdown-menu class="min-w-50">
+                @if (isNative) {
+                  <button
+                    hlmDropdownMenuItem
+                    class="camera-button"
+                    (click)="onTakePhoto()"
+                    [disabled]="isLoading() || pendingAttachments().length >= 4"
+                    aria-label="Take photo"
+                  >
+                    <ng-icon hlm name="hugeCamera02" />
+                    Camera
+                  </button>
                 }
-              </mat-select>
-            </mat-form-field>
+                <button
+                  hlmDropdownMenuItem
+                  (click)="fileInput.click()"
+                  [disabled]="isLoading() || pendingAttachments().length >= 4"
+                  aria-label="Attach images"
+                >
+                  <ng-icon hlm name="hugeImageUpload" />
+                  Upload images
+                </button>
+              </hlm-dropdown-menu>
+            </ng-template>
+
+            <span class="flex-1"></span>
+
+            <hlm-select
+              class="shrink-0"
+              [formControl]="selectedModel"
+              [compareWith]="compareModels"
+            >
+              <hlm-select-trigger
+                class="border-0 shadow-none dark:bg-transparent dark:hover:bg-transparent"
+              >
+                <hlm-select-value />
+              </hlm-select-trigger>
+              <hlm-select-content>
+                @for (group of models | keyvalue; track group.key) {
+                  <div hlmSelectGroup>
+                    <div hlmSelectLabel>{{ group.key }}</div>
+                    @for (model of group.value; track model.id) {
+                      <hlm-option [value]="model">{{ model.label }}</hlm-option>
+                    }
+                  </div>
+                }
+              </hlm-select-content>
+            </hlm-select>
 
             <button
-              matMiniFab
-              class="send-button"
+              hlmBtn
+              size="icon"
               (click)="sendMessage()"
               [disabled]="!canSend()"
               aria-label="Send message"
+              class="rounded-full"
             >
-              <mat-icon><ng-icon name="hugeArrowUp02" /></mat-icon>
+              <ng-icon hlm name="hugeArrowUp02" />
             </button>
           </div>
         </div>
       </div>
     </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </main>
+</div>

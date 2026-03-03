@@ -42,7 +42,7 @@ Before starting, ensure you have the following:
 2. **Install dependencies**:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Configure Environment Variables**:
@@ -60,7 +60,7 @@ Before starting, ensure you have the following:
 
 4. **Run the development server**:
    ```bash
-   npm start
+   pnpm start
    ```
 
 ## 📱 Mobile Development (Capacitor)
@@ -68,20 +68,20 @@ Before starting, ensure you have the following:
 1. **Build the mobile version**:
 
    ```bash
-   npm run build:mobile
+   pnpm run build:mobile
    ```
 
 2. **Sync with Capacitor**:
 
    ```bash
-   npm run cap:sync
+   pnpm run cap:sync
    ```
 
 3. **Open in IDE (Android Studio/Xcode)**:
    ```bash
-   npm run cap:android
+   pnpm run cap:android
    # or
-   npm run cap:ios
+   pnpm run cap:ios
    ```
 
 ## 🚀 Deployment

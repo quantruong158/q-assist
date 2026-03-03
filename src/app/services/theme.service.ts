@@ -52,7 +52,7 @@ export class ThemeService {
   }
 
   private applyTheme(isDark: boolean): void {
-    document.documentElement.classList.toggle('dark-theme', isDark);
+    document.documentElement.classList.toggle('dark', isDark);
   }
 
   private savePreference(isDark: boolean): void {

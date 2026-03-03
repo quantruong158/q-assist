@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/postcss";
+
+@theme {
+  --font-sans: "Google Sans Flex", "Inter", system-ui, -apple-system, sans-serif;
+}
+
+@custom-variant dark (&:where(.dark-theme, .dark-theme *));
+
+/* Keep Material density and typography overrides in SCSS; Tailwind is additive */

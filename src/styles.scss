@@ -1,4 +1,7 @@
-@use '@angular/material' as mat;
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
 
 :root {
   --safe-area-top: env(safe-area-inset-top);
@@ -9,43 +12,13 @@
 
 html {
   height: 100%;
-
-  @include mat.theme(
-    (
-      color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
-      ),
-      typography: Google Sans Flex,
-      density: 0,
-    )
-  );
-
-  &.dark-theme {
-    @include mat.theme(
-      (
-        color: (
-          theme-type: dark,
-          primary: mat.$azure-palette,
-          tertiary: mat.$blue-palette,
-        ),
-        typography: Google Sans Flex,
-        density: 0,
-      )
-    );
-  }
-
-  --mat-sys-corner-xx-large-top: 36px 36px 0 0 !important;
-  --mat-sys-corner-xx-large: 36px !important;
-  --mat-toolbar-container-text-color: var(--mat-sys-on-surface-variant);
 }
 
 body {
   color-scheme: light;
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-large);
-
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
   margin: 0;
   height: 100%;
 
@@ -54,66 +27,19 @@ body {
   }
 }
 
-html.dark-theme body {
-  color-scheme: dark;
-}
-
 .spacer {
   flex: 1 1 auto;
 }
 
-:root {
-  @include mat.form-field-overrides(
-    (
-      outlined-container-shape: var(--mat-sys-corner-xx-large),
-    )
-  );
-}
-
-.mat-mdc-icon-button .mat-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 0 !important;
-  line-height: 1rem !important;
-}
-
-.mat-mdc-button .mat-icon {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-.mat-icon {
-  line-height: 1rem !important;
-}
-
 ng-icon {
   display: flex !important;
   align-items: center;
   justify-content: center;
-}
-
-.mat-bottom-sheet-container {
-  border-top-right-radius: var(--mat-sys-corner-xx-large);
-  border-top-left-radius: var(--mat-sys-corner-xx-large);
-  padding-bottom: calc(8px + var(--safe-area-bottom)) !important;
-}
-
-.mat-mdc-select-panel {
-  border-radius: var(--mat-sys-corner-large) !important;
-}
-
-.mat-mdc-optgroup-label {
-  color: var(--mat-sys-on-primary-container);
-}
-
-ng-icon {
   line-height: 1rem !important;
 }
 
 .gradient-spinner {
-  width: 44px;
+  width: 36px;
   aspect-ratio: 1;
   border-radius: 50%;
 
@@ -128,5 +54,85 @@ ng-icon {
 @keyframes spin {
   to {
     transform: rotate(1turn);
+  }
+}
+
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+
+:root {
+  color-scheme: light;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.1884 0.0128 248.5103);
+  --card: oklch(0.9784 0.0011 197.1387);
+  --card-foreground: oklch(0.1884 0.0128 248.5103);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1884 0.0128 248.5103);
+  --primary: oklch(0.6723 0.1606 244.9955);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.1884 0.0128 248.5103);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.9222 0.0013 286.3737);
+  --muted-foreground: oklch(0.1884 0.0128 248.5103);
+  --accent: oklch(0.9392 0.0166 250.8453);
+  --accent-foreground: oklch(0.6723 0.1606 244.9955);
+  --destructive: oklch(0.6188 0.2376 25.7658);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9317 0.0118 231.6594);
+  --input: oklch(0.9809 0.0025 228.7836);
+  --ring: oklch(0.6818 0.1584 243.354);
+  --sidebar: oklch(0.9784 0.0011 197.1387);
+  --sidebar-foreground: oklch(0.1884 0.0128 248.5103);
+  --sidebar-primary: oklch(0.6723 0.1606 244.9955);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.9392 0.0166 250.8453);
+  --sidebar-accent-foreground: oklch(0.6723 0.1606 244.9955);
+  --sidebar-border: oklch(0.9271 0.0101 238.5177);
+  --sidebar-ring: oklch(0.6818 0.1584 243.354);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --background: oklch(0 0 0);
+  --foreground: oklch(0.9328 0.0025 228.7857);
+  --card: oklch(0.2097 0.008 274.5332);
+  --card-foreground: oklch(0.8853 0 0);
+  --popover: oklch(0 0 0);
+  --popover-foreground: oklch(0.9328 0.0025 228.7857);
+  --primary: oklch(0.6692 0.1607 245.011);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9622 0.0035 219.5331);
+  --secondary-foreground: oklch(0.1884 0.0128 248.5103);
+  --muted: oklch(0.209 0 0);
+  --muted-foreground: oklch(0.5637 0.0078 247.9662);
+  --accent: oklch(0.1928 0.0331 242.5459);
+  --accent-foreground: oklch(0.6692 0.1607 245.011);
+  --destructive: oklch(0.6188 0.2376 25.7658);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.2674 0.0047 248.0045);
+  --input: oklch(0.302 0.0288 244.8244);
+  --ring: oklch(0.6818 0.1584 243.354);
+  --sidebar: oklch(0.2097 0.008 274.5332);
+  --sidebar-foreground: oklch(0.8853 0 0);
+  --sidebar-primary: oklch(0.6818 0.1584 243.354);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.1928 0.0331 242.5459);
+  --sidebar-accent-foreground: oklch(0.6692 0.1607 245.011);
+  --sidebar-border: oklch(0.3795 0.022 240.5943);
+  --sidebar-ring: oklch(0.6818 0.1584 243.354);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

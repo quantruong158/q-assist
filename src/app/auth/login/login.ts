@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { GoogleButton } from '../google-button/google-button';
 
 import { AuthService } from '../../services/auth.service';
@@ -19,19 +21,20 @@ import { hugeAlert02, hugeMail01, hugeView, hugeViewOffSlash } from '@ng-icons/h
   imports: [
     ReactiveFormsModule,
     RouterLink,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatDividerModule,
+    HlmAlertImports,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmFormFieldImports,
+    HlmIconImports,
+    HlmInputGroupImports,
+    HlmLabelImports,
+    HlmSeparatorImports,
+    HlmSpinnerImports,
     GoogleButton,
     NgIcon,
   ],
   providers: [provideIcons({ hugeMail01, hugeView, hugeViewOffSlash, hugeAlert02 })],
   templateUrl: './login.html',
-  styleUrl: './login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login {
@@ -49,7 +52,10 @@ export class Login {
   });
 
   protected async onSubmit(): Promise<void> {
-    if (this.loginForm.invalid || this.isLoading()) return;
+    if (this.loginForm.invalid || this.isLoading()) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
 
     this.isLoading.set(true);
     this.errorMessage.set('');

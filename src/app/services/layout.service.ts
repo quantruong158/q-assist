@@ -1,7 +1,6 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { MatDrawerMode } from '@angular/material/sidenav';
 
 @Injectable({ providedIn: 'root' })
 export class LayoutService {
@@ -9,7 +8,6 @@ export class LayoutService {
 
   readonly sidenavOpened = signal(true);
   readonly isMobile = signal(false);
-  readonly sidenavMode = computed<MatDrawerMode>(() => (this.isMobile() ? 'over' : 'side'));
 
   constructor() {
     this.breakpointObserver
