@@ -39,7 +39,7 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { KeyValuePipe, Location } from '@angular/common';
 import { StorageService } from '../services/storage.service';
-import { throttleTime } from 'rxjs';
+import { animationFrameScheduler, throttleTime } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   hugeAdd01,
@@ -50,6 +50,7 @@ import {
   hugeImageUpload,
 } from '@ng-icons/huge-icons';
 import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
+import remend from 'remend';
 
 const CONTEXT_WINDOW_SIZE = 20;
 
@@ -175,6 +176,10 @@ export class Chat implements OnInit {
       if (content && this.isNearBottom()) {
         this.scrollToBottom();
       }
+    });
+
+    effect(() => {
+      console.log(remend('**`1. abcd'));
     });
 
     effect(() => {

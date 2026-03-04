@@ -19,8 +19,8 @@
   <div
     [class]="
       role() === 'user'
-        ? 'relative mx-4 flex max-w-[70%] flex-row-reverse gap-3 self-end rounded-[calc(var(--radius)*3)_calc(var(--radius)/2)_calc(var(--radius)*3)_calc(var(--radius)*3)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] px-4 py-3'
-        : 'relative flex flex-col gap-3 px-4 py-3 sm:flex-row'
+        ? 'relative mx-4 flex max-w-[70%] flex-row-reverse gap-3 self-end rounded-[calc(var(--radius)*3)_calc(var(--radius)/2)_calc(var(--radius)*3)_calc(var(--radius)*3)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] py-3 px-4'
+        : 'relative flex flex-col gap-3 px-4 py-3 sm:flex-row w-full max-w-full'
     "
   >
     @if (role() === 'assistant') {
@@ -43,7 +43,7 @@
                 gradientUnits="userSpaceOnUse"
               >
                 <stop offset="20%" stop-color="var(--primary)" />
-                <stop offset="100%" stop-color="var(--primary-foreground)" />
+                <stop offset="100%" stop-color="oklch(51.741% 0.1355 247.407)" />
               </linearGradient>
             </defs>
 
@@ -63,8 +63,12 @@
     @if (isStreaming()) {
       <div class="gradient-spinner absolute left-2.5 top-1.5"></div>
     }
-    <div class="min-w-0 flex-1">
-      <div class="wrap-break-word leading-7" [innerHTML]="content() | markdown"></div>
+    <div class="min-w-0 flex-1 w-full">
+      @if (role() === 'assistant') {
+        <markdown class="wrap-break-word leading-7" [data]="renderedContent()"></markdown>
+      } @else {
+        <p class="wrap-break-word leading-7">{{ renderedContent() }}</p>
+      }
     </div>
   </div>
 </div>
