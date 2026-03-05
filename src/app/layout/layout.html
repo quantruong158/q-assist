@@ -1,0 +1,18 @@
+<div hlmSidebarWrapper class="sidenav-container h-full" sidebarWidthIcon="calc(3.5rem + 1px)">
+  <hlm-sidebar
+    side="left"
+    [collapsible]="layoutService.isMobile() ? 'offcanvas' : 'icon'"
+    [variant]="'sidebar'"
+  >
+    <div class="h-full">
+      <app-sidebar />
+    </div>
+  </hlm-sidebar>
+
+  <main hlmSidebarInset class="sidenav-content flex flex-col min-w-0">
+    <div class="flex h-full flex-col bg-background">
+      <app-header />
+      <router-outlet />
+    </div>
+  </main>
+</div>

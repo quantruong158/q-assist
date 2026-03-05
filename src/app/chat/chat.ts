@@ -2,24 +2,21 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   effect,
   ElementRef,
   inject,
-  OnInit,
+  input,
+  resource,
   signal,
   viewChild,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { takeUntilDestroyed, toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { CameraSource } from '@capacitor/camera';
 
-import { Header } from '../header/header';
 import { ChatAttachment, ChatMessage, ChatService } from './chat.service';
 import { Message } from './message';
-import { Sidebar } from './sidebar/sidebar';
 import { AuthService } from '../services/auth.service';
 import { ConversationService } from '../services/conversation.service';
 import { MessageService } from '../services/message.service';
@@ -27,7 +24,8 @@ import { UploadService, UploadResult } from '../services/upload.service';
 import { LayoutService } from '../services/layout.service';
 import { CameraService } from '../services/camera.service';
 import { PlatformService } from '../services/platform.service';
-import { Conversation, Attachment } from '../models';
+import { SidebarStateService } from '../services/sidebar-state.service';
+import { Attachment } from '../models';
 import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from './model.config';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -35,11 +33,10 @@ import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
-import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { KeyValuePipe, Location } from '@angular/common';
 import { StorageService } from '../services/storage.service';
-import { animationFrameScheduler, throttleTime } from 'rxjs';
+import { throttleTime } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   hugeAdd01,
@@ -50,7 +47,6 @@ import {
   hugeImageUpload,
 } from '@ng-icons/huge-icons';
 import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
-import remend from 'remend';
 
 const CONTEXT_WINDOW_SIZE = 20;
 
@@ -73,12 +69,9 @@ interface PendingAttachment {
     HlmIconImports,
     HlmInputGroupImports,
     HlmSelectImports,
-    HlmSidebarImports,
     HlmSpinnerImports,
     TextFieldModule,
-    Header,
     Message,
-    Sidebar,
     KeyValuePipe,
     NgIcon,
   ],
@@ -96,9 +89,11 @@ interface PendingAttachment {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(paste)': 'onPaste($event)',
+    class:
+      'pt-4 flex-1 overflow-y-auto pb-[calc(220px+var(--safe-area-bottom))] max-[600px]:pb-[calc(190px+var(--safe-area-bottom))]',
   },
 })
-export class Chat implements OnInit {
+export class Chat {
   private readonly chatService = inject(ChatService);
   private readonly authService = inject(AuthService);
   private readonly conversationService = inject(ConversationService);
@@ -106,20 +101,41 @@ export class Chat implements OnInit {
   private readonly uploadService = inject(UploadService);
   private readonly cameraService = inject(CameraService);
   private readonly platformService = inject(PlatformService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly storageService = inject(StorageService);
+  private readonly sidebarState = inject(SidebarStateService);
   protected readonly layoutService = inject(LayoutService);
   protected readonly sidebarService = inject(HlmSidebarService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly location = inject(Location);
 
-  protected readonly conversations = signal<Conversation[]>([]);
-  protected readonly activeConversationId = signal<string | null>(null);
+  readonly id = input<string>();
+
   protected readonly messages = signal<ChatMessage[]>([]);
   protected readonly isLoading = signal(false);
-  protected readonly isConversationLoading = signal(false);
   protected readonly streamingContent = signal('');
+
+  private readonly conversationResource = resource({
+    params: () => {
+      const id = this.id();
+      const user = this.currentUser();
+      return id && user ? { id, uid: user.uid } : undefined;
+    },
+    loader: async ({ params }) => {
+      const messages = await this.messageService.getRecentMessages(params.uid, params.id, 100);
+
+      const chatMessages: ChatMessage[] = messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        attachments: msg.attachments?.map((a) => ({ url: a.url, mimeType: a.mimeType })),
+      }));
+
+      this.messages.set(chatMessages);
+      requestAnimationFrame(() => this.scrollToBottom());
+
+      return chatMessages;
+    },
+  });
+
+  protected readonly isConversationLoading = computed(() => this.conversationResource.isLoading());
 
   protected readonly inputText = new FormControl('');
   protected readonly selectedModel = new FormControl<AiModel>(DEFAULT_MODEL, {
@@ -158,8 +174,7 @@ export class Chat implements OnInit {
       this.messages().length === 0 &&
       !this.isLoading() &&
       !this.isConversationLoading() &&
-      !this.activeConversationId() &&
-      !this.route.snapshot.params['id']
+      !this.id()
     );
   });
 
@@ -179,29 +194,16 @@ export class Chat implements OnInit {
     });
 
     effect(() => {
-      console.log(remend('**`1. abcd'));
+      this.storageService.setItem(this.STORAGE_KEY, this.selectedModelValue().id);
     });
 
     effect(() => {
-      this.storageService.setItem(this.STORAGE_KEY, this.selectedModelValue().id);
-    });
-  }
-
-  ngOnInit(): void {
-    this.loadConversations();
-    this.initModel();
-    this.initRouteListener();
-  }
-
-  private initRouteListener(): void {
-    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const id = params['id'];
-      if (id && id !== this.activeConversationId()) {
-        this.onSelectConversation(id);
-      } else if (!id && this.activeConversationId()) {
-        this.onNewChat();
+      if (!this.id()) {
+        this.messages.set([]);
       }
     });
+
+    this.initModel();
   }
 
   private initModel(): void {
@@ -242,14 +244,13 @@ export class Chat implements OnInit {
     this.scrollToBottom();
 
     try {
-      let conversationId = this.activeConversationId();
+      let conversationId = this.conversationService.activeConversationId();
 
       if (!conversationId) {
         conversationId = await this.conversationService.createConversation(user.uid, {
           title: this.conversationService.generateTitle(text || 'Image'),
           lastMessage: text || '(Image attached)',
         });
-        this.activeConversationId.set(conversationId);
         this.location.go(`/chat/${conversationId}`);
       }
 
@@ -433,88 +434,6 @@ export class Chat implements OnInit {
     } catch (error) {
       console.error('Error taking photo:', error);
     }
-  }
-
-  protected onNewChat(): void {
-    if (this.activeConversationId() !== null) {
-      this.activeConversationId.set(null);
-      this.messages.set([]);
-      this.router.navigate(['/chat']);
-    }
-
-    if (this.layoutService.isMobile()) {
-      this.sidebarService.setOpenMobile(false);
-    }
-  }
-
-  protected async onSelectConversation(conversationId: string): Promise<void> {
-    const user = this.currentUser();
-    if (!user) return;
-
-    if (this.activeConversationId() !== conversationId) {
-      this.router.navigate(['/chat', conversationId]);
-    }
-
-    this.activeConversationId.set(conversationId);
-    this.isConversationLoading.set(true);
-
-    if (this.layoutService.isMobile()) {
-      this.sidebarService.setOpenMobile(false);
-    }
-
-    try {
-      const messages = await this.messageService.getRecentMessages(user.uid, conversationId, 100);
-
-      const chatMessages: ChatMessage[] = messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-        attachments: msg.attachments?.map((a) => ({ url: a.url, mimeType: a.mimeType })),
-      }));
-
-      this.messages.set(chatMessages);
-
-      requestAnimationFrame(() => this.scrollToBottom());
-    } catch (error) {
-      console.error('Error loading conversation:', error);
-    } finally {
-      this.isConversationLoading.set(false);
-    }
-  }
-
-  protected async onDeleteConversation(conversationId: string): Promise<void> {
-    const user = this.currentUser();
-    if (!user) return;
-
-    try {
-      await this.conversationService.deleteConversation(user.uid, conversationId);
-
-      if (this.activeConversationId() === conversationId) {
-        this.router.navigate(['/chat']);
-      }
-    } catch (error) {
-      console.error('Error deleting conversation:', error);
-    }
-  }
-
-  protected toggleSidenav(): void {
-    this.layoutService.toggleSidenav();
-  }
-
-  private loadConversations(): void {
-    const user = this.currentUser();
-    if (!user) return;
-
-    this.conversationService
-      .getConversations(user.uid)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (conversations) => {
-          this.conversations.set(conversations);
-        },
-        error: (error) => {
-          console.error('Error loading conversations:', error);
-        },
-      });
   }
 
   private scrollToBottom(): void {

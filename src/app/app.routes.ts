@@ -13,19 +13,26 @@ export const routes: Routes = [
     canActivate: [publicGuard],
   },
   {
-    path: 'chat',
-    loadComponent: () => import('./chat/chat').then((m) => m.Chat),
-    canActivate: [authGuard],
-  },
-  {
-    path: 'chat/:id',
-    loadComponent: () => import('./chat/chat').then((m) => m.Chat),
-    canActivate: [authGuard],
-  },
-  {
     path: '',
-    redirectTo: 'chat',
-    pathMatch: 'full',
+    loadComponent: () => import('./layout/layout').then((m) => m.Layout),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'chat/:id',
+        loadComponent: () => import('./chat/chat').then((m) => m.Chat),
+        data: { activeContext: 'chat' },
+      },
+      {
+        path: 'chat',
+        loadComponent: () => import('./chat/chat').then((m) => m.Chat),
+        data: { activeContext: 'chat' },
+      },
+      {
+        path: '',
+        redirectTo: 'chat',
+        pathMatch: 'full',
+      },
+    ],
   },
   {
     path: '**',
