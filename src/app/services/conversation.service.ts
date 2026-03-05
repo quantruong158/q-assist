@@ -12,13 +12,39 @@ import {
   onSnapshot,
   serverTimestamp,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { filter, map, Observable, startWith } from 'rxjs';
 import { Conversation, CreateConversationData } from '../models';
+import { NavigationEnd, Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Injectable({ providedIn: 'root' })
 export class ConversationService {
+  private readonly router = inject(Router);
   private readonly firestore = inject(Firestore);
   private readonly platformId = inject(PLATFORM_ID);
+
+  public readonly activeConversationId = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      startWith(null),
+      map(() => {
+        let route = this.router.routerState.snapshot.root;
+        let id: string | undefined = undefined;
+
+        while (route) {
+          if (route.data?.['activeContext'] === 'chat') {
+            const routeId = route.paramMap.get('id');
+            if (routeId) id = routeId;
+          }
+
+          route = route.firstChild!;
+        }
+
+        return id;
+      }),
+    ),
+    { initialValue: undefined },
+  );
 
   getConversations(userId: string): Observable<Conversation[]> {
     return new Observable((subscriber) => {

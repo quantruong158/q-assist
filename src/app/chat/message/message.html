@@ -65,7 +65,7 @@
     }
     <div class="min-w-0 flex-1 w-full">
       @if (role() === 'assistant') {
-        <markdown class="wrap-break-word leading-7" [data]="renderedContent()"></markdown>
+        <markdown class="wrap-break-word leading-7" [data]="renderedContent()" katex></markdown>
       } @else {
         <p class="wrap-break-word leading-7">{{ renderedContent() }}</p>
       }

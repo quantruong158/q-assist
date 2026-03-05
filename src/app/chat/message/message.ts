@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-import { ChatAttachment } from './chat.service';
-import { processStreamingMarkdown } from './streaming-markdown';
+import { ChatAttachment } from '../chat.service';
+import { processStreamingMarkdown } from '../streaming-markdown';
 import { provideIcons } from '@ng-icons/core';
 import { hugeAiChat02 } from '@ng-icons/huge-icons';
 import { HlmIconImports } from '@spartan-ng/helm/icon';

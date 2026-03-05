@@ -4,8 +4,8 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 
-import { ThemeService } from '../services/theme.service';
-import { AuthService } from '../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
+import { AuthService } from '../../services/auth.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeLogout03, hugeMoon02, hugeSun03, hugeUserCircle } from '@ng-icons/huge-icons';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';

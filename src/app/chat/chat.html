@@ -1,217 +1,185 @@
-<div hlmSidebarWrapper class="sidenav-container h-full" sidebarWidthIcon="calc(3.5rem + 1px)">
-  <hlm-sidebar
-    side="left"
-    [collapsible]="layoutService.isMobile() ? 'offcanvas' : 'icon'"
-    [variant]="'sidebar'"
-  >
-    <div class="h-full">
-      <app-sidebar
-        [conversations]="conversations()"
-        [activeConversationId]="activeConversationId()"
-        (newChat)="onNewChat()"
-        (selectConversation)="onSelectConversation($event)"
-        (deleteConversation)="onDeleteConversation($event)"
-      />
+<div [class]="isInitialChat() ? 'md:flex-none md:pb-0' : ''" #messagesContainer>
+  @if (isConversationLoading()) {
+    <div
+      class="relative mx-auto mb-4 flex items-center gap-3 py-3 text-muted-foreground justify-center"
+    >
+      <hlm-spinner class="text-lg" aria-label="Loading conversation" />
+      <span>Loading conversation...</span>
     </div>
-  </hlm-sidebar>
+  }
 
-  <main hlmSidebarInset class="sidenav-content flex flex-col min-w-0">
-    <div class="flex h-full flex-col bg-background" [class.initial-state]="isInitialChat()">
-      <app-header />
+  @if (isInitialChat()) {
+    <div
+      class="mx-auto mt-25 h-[calc(32vh-var(--safe-area-bottom))] max-w-180 content-end px-4 py-4 text-foreground max-[600px]:mt-6 max-[600px]:px-4 max-[600px]:py-6"
+    >
+      <p class="text-2xl text-muted-foreground">Welcome, {{ currentUser()?.displayName }}</p>
+      <p class="text-[2.5rem] leading-[1.4]">How can I help you?</p>
+    </div>
+  }
 
+  @for (message of messages(); track $index) {
+    <app-message
+      [content]="message.content"
+      [role]="message.role"
+      [attachments]="message.attachments"
+    />
+  }
+
+  @if (isLoading()) {
+    <app-message [content]="streamingContent()" role="assistant" [isStreaming]="true" />
+  }
+</div>
+<div
+  class="mx-4 fixed bottom-0 left-0 right-0 grid justify-items-center md:transition-[left] md:duration-200 md:ease-linear"
+  [class]="
+    isInitialChat() && !isNative
+      ? 'md:static md:left-0 md:right-0 md:pb-12'
+      : sidebarService.state() === 'collapsed'
+        ? 'md:left-(--sidebar-width-icon)'
+        : 'md:left-64'
+  "
+>
+  @if (!isInitialChat()) {
+    <div
+      class="pointer-events-none absolute bottom-20 left-1/2 h-40 w-full -translate-x-1/2 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] md:max-w-225"
+    ></div>
+  }
+  <div
+    class="z-2 w-full md:max-w-225 rounded-t-[34px] bg-background pb-[calc(12px+var(--safe-area-bottom))] md:right-0"
+  >
+    <div
+      class="bg-card mx-auto flex max-w-225 flex-col gap-2 rounded-[34px] border border-border dark:border-transparent p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
+      [class.md:max-w-[720px]]="isInitialChat() && !isNative"
+    >
+      @if (pendingAttachments().length > 0) {
+        <div class="flex flex-wrap gap-2">
+          @for (attachment of pendingAttachments(); track attachment.id) {
+            <div
+              class="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-transparent"
+              [class.border-destructive]="attachment.error"
+            >
+              <img
+                [src]="attachment.previewUrl"
+                [alt]="attachment.file.name"
+                class="h-full w-full object-cover"
+              />
+              @if (attachment.isUploading) {
+                <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <hlm-spinner class="text-lg" aria-label="Uploading" />
+                </div>
+              }
+              @if (attachment.error) {
+                <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <ng-icon hlm name="hugeAlert02" />
+                </div>
+              }
+              <button
+                hlmBtn
+                size="icon-xs"
+                variant="ghost"
+                class="absolute right-0.5 top-0.5 bg-black/60 text-white"
+                (click)="removeAttachment(attachment.id)"
+                aria-label="Remove attachment"
+              >
+                <ng-icon hlm name="hugeCancel01" size="18px" />
+              </button>
+            </div>
+          }
+        </div>
+      }
       <div
-        class="pt-4 flex-1 overflow-y-auto pb-[calc(220px+var(--safe-area-bottom))] max-[600px]:pb-[calc(190px+var(--safe-area-bottom))]"
-        [class]="isInitialChat() ? 'md:flex-none md:pb-0' : ''"
-        #messagesContainer
+        hlmInputGroup
+        class="w-full border-0 shadow-none outline-none focus-within:ring-0 focus-within:ring-offset-0 focus-within:border-transparent"
       >
-        @if (isConversationLoading()) {
-          <div
-            class="relative mx-auto mb-4 flex items-center gap-3 py-3 text-muted-foreground justify-center"
-          >
-            <hlm-spinner class="text-lg" aria-label="Loading conversation" />
-            <span>Loading conversation...</span>
-          </div>
-        }
-
-        @if (isInitialChat()) {
-          <div
-            class="mx-auto mt-25 h-[calc(32vh-var(--safe-area-bottom))] max-w-180 content-end px-4 py-4 text-foreground max-[600px]:mt-6 max-[600px]:px-4 max-[600px]:py-6"
-          >
-            <p class="text-2xl text-muted-foreground">Welcome, {{ currentUser()?.displayName }}</p>
-            <p class="text-[2.5rem] leading-[1.4]">How can I help you?</p>
-          </div>
-        }
-
-        @for (message of messages(); track $index) {
-          <app-message
-            [content]="message.content"
-            [role]="message.role"
-            [attachments]="message.attachments"
-          />
-        }
-
-        @if (isLoading()) {
-          <app-message [content]="streamingContent()" role="assistant" [isStreaming]="true" />
-        }
+        <textarea
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="1"
+          cdkAutosizeMaxRows="6"
+          rows="1"
+          [formControl]="inputText"
+          (keydown)="onKeydown($event)"
+          placeholder="Type a message..."
+          aria-label="Type your message"
+          class="px-2 flex-1 resize-none rounded-none border-0 bg-transparent py-1 shadow-none focus-visible:ring-0 dark:bg-transparent min-h-12 leading-6 overflow-y-auto outline-none focus:outline-none focus-visible:outline-none"
+        ></textarea>
       </div>
-      <div
-        class="mx-4 fixed bottom-0 left-0 right-0 grid justify-items-center md:transition-[left] md:duration-200 md:ease-linear"
-        [class]="
-          isInitialChat() && !isNative
-            ? 'md:static md:left-0 md:right-0 md:pb-12'
-            : sidebarService.state() === 'collapsed'
-              ? 'md:left-(--sidebar-width-icon)'
-              : 'md:left-64'
-        "
-      >
-        @if (!isInitialChat()) {
-          <div
-            class="pointer-events-none absolute bottom-20 left-1/2 h-40 w-full -translate-x-1/2 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] md:max-w-225"
-          ></div>
-        }
-        <div
-          class="z-2 w-full md:max-w-225 rounded-t-[34px] bg-background pb-[calc(12px+var(--safe-area-bottom))] md:right-0"
+
+      <div class="flex items-center gap-2">
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          (change)="onFileSelect($event)"
+        />
+        <button
+          hlmBtn
+          size="icon"
+          variant="ghost"
+          [hlmDropdownMenuTrigger]="inputActionsMenu"
+          aria-label="Add attachments"
+          class="rounded-full"
         >
-          <div
-            class="bg-card mx-auto flex max-w-225 flex-col gap-2 rounded-[34px] border border-border dark:border-transparent p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
-            [class.md:max-w-[720px]]="isInitialChat() && !isNative"
+          <ng-icon hlm name="hugeAdd01" />
+        </button>
+        <ng-template #inputActionsMenu>
+          <hlm-dropdown-menu class="min-w-50">
+            @if (isNative) {
+              <button
+                hlmDropdownMenuItem
+                class="camera-button"
+                (click)="onTakePhoto()"
+                [disabled]="isLoading() || pendingAttachments().length >= 4"
+                aria-label="Take photo"
+              >
+                <ng-icon hlm name="hugeCamera02" />
+                Camera
+              </button>
+            }
+            <button
+              hlmDropdownMenuItem
+              (click)="fileInput.click()"
+              [disabled]="isLoading() || pendingAttachments().length >= 4"
+              aria-label="Attach images"
+            >
+              <ng-icon hlm name="hugeImageUpload" />
+              Upload images
+            </button>
+          </hlm-dropdown-menu>
+        </ng-template>
+
+        <span class="flex-1"></span>
+
+        <hlm-select class="shrink-0" [formControl]="selectedModel" [compareWith]="compareModels">
+          <hlm-select-trigger
+            class="border-0 shadow-none dark:bg-transparent dark:hover:bg-transparent"
           >
-            @if (pendingAttachments().length > 0) {
-              <div class="flex flex-wrap gap-2">
-                @for (attachment of pendingAttachments(); track attachment.id) {
-                  <div
-                    class="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-transparent"
-                    [class.border-destructive]="attachment.error"
-                  >
-                    <img
-                      [src]="attachment.previewUrl"
-                      [alt]="attachment.file.name"
-                      class="h-full w-full object-cover"
-                    />
-                    @if (attachment.isUploading) {
-                      <div class="absolute inset-0 flex items-center justify-center bg-black/50">
-                        <hlm-spinner class="text-lg" aria-label="Uploading" />
-                      </div>
-                    }
-                    @if (attachment.error) {
-                      <div class="absolute inset-0 flex items-center justify-center bg-black/50">
-                        <ng-icon hlm name="hugeAlert02" />
-                      </div>
-                    }
-                    <button
-                      hlmBtn
-                      size="icon-xs"
-                      variant="ghost"
-                      class="absolute right-0.5 top-0.5 bg-black/60 text-white"
-                      (click)="removeAttachment(attachment.id)"
-                      aria-label="Remove attachment"
-                    >
-                      <ng-icon hlm name="hugeCancel01" size="18px" />
-                    </button>
-                  </div>
+            <hlm-select-value />
+          </hlm-select-trigger>
+          <hlm-select-content>
+            @for (group of models | keyvalue; track group.key) {
+              <div hlmSelectGroup>
+                <div hlmSelectLabel>{{ group.key }}</div>
+                @for (model of group.value; track model.id) {
+                  <hlm-option [value]="model">{{ model.label }}</hlm-option>
                 }
               </div>
             }
-            <div
-              hlmInputGroup
-              class="w-full border-0 shadow-none outline-none focus-within:ring-0 focus-within:ring-offset-0 focus-within:border-transparent"
-            >
-              <textarea
-                cdkTextareaAutosize
-                cdkAutosizeMinRows="1"
-                cdkAutosizeMaxRows="6"
-                rows="1"
-                [formControl]="inputText"
-                (keydown)="onKeydown($event)"
-                placeholder="Type a message..."
-                aria-label="Type your message"
-                class="px-2 flex-1 resize-none rounded-none border-0 bg-transparent py-1 shadow-none focus-visible:ring-0 dark:bg-transparent min-h-12 leading-6 overflow-y-auto outline-none focus:outline-none focus-visible:outline-none"
-              ></textarea>
-            </div>
+          </hlm-select-content>
+        </hlm-select>
 
-            <div class="flex items-center gap-2">
-              <input
-                type="file"
-                #fileInput
-                hidden
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                multiple
-                (change)="onFileSelect($event)"
-              />
-              <button
-                hlmBtn
-                size="icon"
-                variant="ghost"
-                [hlmDropdownMenuTrigger]="inputActionsMenu"
-                aria-label="Add attachments"
-                class="rounded-full"
-              >
-                <ng-icon hlm name="hugeAdd01" />
-              </button>
-              <ng-template #inputActionsMenu>
-                <hlm-dropdown-menu class="min-w-50">
-                  @if (isNative) {
-                    <button
-                      hlmDropdownMenuItem
-                      class="camera-button"
-                      (click)="onTakePhoto()"
-                      [disabled]="isLoading() || pendingAttachments().length >= 4"
-                      aria-label="Take photo"
-                    >
-                      <ng-icon hlm name="hugeCamera02" />
-                      Camera
-                    </button>
-                  }
-                  <button
-                    hlmDropdownMenuItem
-                    (click)="fileInput.click()"
-                    [disabled]="isLoading() || pendingAttachments().length >= 4"
-                    aria-label="Attach images"
-                  >
-                    <ng-icon hlm name="hugeImageUpload" />
-                    Upload images
-                  </button>
-                </hlm-dropdown-menu>
-              </ng-template>
-
-              <span class="flex-1"></span>
-
-              <hlm-select
-                class="shrink-0"
-                [formControl]="selectedModel"
-                [compareWith]="compareModels"
-              >
-                <hlm-select-trigger
-                  class="border-0 shadow-none dark:bg-transparent dark:hover:bg-transparent"
-                >
-                  <hlm-select-value />
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  @for (group of models | keyvalue; track group.key) {
-                    <div hlmSelectGroup>
-                      <div hlmSelectLabel>{{ group.key }}</div>
-                      @for (model of group.value; track model.id) {
-                        <hlm-option [value]="model">{{ model.label }}</hlm-option>
-                      }
-                    </div>
-                  }
-                </hlm-select-content>
-              </hlm-select>
-
-              <button
-                hlmBtn
-                size="icon"
-                (click)="sendMessage()"
-                [disabled]="!canSend()"
-                aria-label="Send message"
-                class="rounded-full"
-              >
-                <ng-icon hlm name="hugeArrowUp02" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <button
+          hlmBtn
+          size="icon"
+          (click)="sendMessage()"
+          [disabled]="!canSend()"
+          aria-label="Send message"
+          class="rounded-full"
+        >
+          <ng-icon hlm name="hugeArrowUp02" />
+        </button>
       </div>
     </div>
-  </main>
+  </div>
 </div>

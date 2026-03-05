@@ -8,20 +8,20 @@ export interface AiModel {
 
 export const SUPPORTED_MODELS: AiModel[] = [
   {
-    id: 'gemini-flash-lite-latest',
-    label: 'Gemini Flash Lite',
-    provider: 'Gemini',
-    supportSystemPrompt: true,
-  },
-  {
-    id: 'gemini-flash-latest',
-    label: 'Gemini Flash',
+    id: 'gemini-2.5-flash-lite',
+    label: 'Gemini 2.5 Flash Lite',
     provider: 'Gemini',
     supportSystemPrompt: true,
   },
   {
     id: 'gemini-3-flash-preview',
     label: 'Gemini 3 Flash',
+    provider: 'Gemini',
+    supportSystemPrompt: true,
+  },
+  {
+    id: 'gemini-3.1-flash-lite-preview',
+    label: 'Gemini 3.1 Flash Lite',
     provider: 'Gemini',
     supportSystemPrompt: true,
   },

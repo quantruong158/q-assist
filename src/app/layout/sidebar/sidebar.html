@@ -4,10 +4,16 @@
   </div>
   <ul hlmSidebarMenu class="px-1">
     <li hlmSidebarMenuItem class="flex ml-2">
-      <button hlmSidebarMenuButton class="w-full justify-start gap-2 px-2" (click)="onNewChat()">
-        <ng-icon hlm name="hugeAdd01" />
+      <a hlmSidebarMenuButton class="w-full justify-start gap-2">
+        <ng-icon hlm name="hugeMoneyBag02" />
+        <span class="flex-1 text-left">Finance</span>
+      </a>
+    </li>
+    <li hlmSidebarMenuItem class="flex ml-2">
+      <a routerLink="/chat" hlmSidebarMenuButton class="w-full justify-start gap-2">
+        <ng-icon hlm name="hugeAiChat02" />
         <span class="flex-1 text-left">New Chat</span>
-      </button>
+      </a>
     </li>
   </ul>
 
@@ -16,21 +22,17 @@
       hlmSidebarGroup
       [class]="sidebarService.state() === 'collapsed' ? 'hidden invisible pointer-events-none' : ''"
     >
-      <button
-        hlmCollapsibleTrigger
-        hlmSidebarGroupLabel
-        class="flex w-full items-center justify-between gap-2"
-      >
+      <button hlmCollapsibleTrigger hlmSidebarGroupLabel>
         Conversations
         <ng-icon
           hlm
           name="lucideChevronDown"
-          class="group-data-[state=open]/collapsible:rotate-180"
+          class="group-data-[state=open]/collapsible:rotate-180 ml-auto"
         />
       </button>
       <hlm-collapsible-content>
         <div hlmSidebarGroupContent class="max-h-full overflow-y-auto px-1 pb-3">
-          @if (conversations().length === 0) {
+          @if (sidebarState.conversations().length === 0) {
             <div
               class="flex flex-col items-center justify-center p-8 text-center text-muted-foreground"
             >
@@ -40,14 +42,13 @@
             </div>
           } @else {
             <ul hlmSidebarMenu>
-              @for (conversation of conversations(); track conversation.id) {
+              @for (conversation of sidebarState.conversations(); track conversation.id) {
                 <li hlmSidebarMenuItem class="group/conversation">
-                  <button
+                  <a
+                    [routerLink]="['/chat', conversation.id]"
                     hlmSidebarMenuButton
                     size="lg"
-                    [isActive]="activeConversationId() === conversation.id"
-                    (click)="onSelect(conversation.id)"
-                    appLongPress
+                    [isActive]="conversationService.activeConversationId() === conversation.id"
                   >
                     <div class="flex flex-col items-start w-full">
                       <span class="w-full truncate">{{ conversation.title }}</span>
@@ -57,11 +58,10 @@
                         }
                       </span>
                     </div>
-                  </button>
+                  </a>
                   <button
                     hlmSidebarMenuAction
                     [hlmDropdownMenuTrigger]="conversationMenu"
-                    (click)="$event.stopPropagation()"
                     aria-label="Conversation actions"
                     class="opacity-0 transition-opacity group-hover/conversation:opacity-100 aria-expanded:opacity-100"
                   >
@@ -69,7 +69,10 @@
                   </button>
                   <ng-template #conversationMenu>
                     <hlm-dropdown-menu>
-                      <button hlmDropdownMenuItem (click)="onDelete($event, conversation.id)">
+                      <button
+                        hlmDropdownMenuItem
+                        (click)="openDeleteConversationConfirmation($event, conversation.id)"
+                      >
                         <ng-icon hlm name="hugeDelete02" />
                         Delete
                       </button>
