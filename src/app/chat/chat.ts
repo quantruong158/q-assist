@@ -16,7 +16,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { CameraSource } from '@capacitor/camera';
 
 import { ChatAttachment, ChatMessage, ChatService } from './chat.service';
-import { Message } from './message';
+import { Message } from './message/message';
 import { AuthService } from '../services/auth.service';
 import { ConversationService } from '../services/conversation.service';
 import { MessageService } from '../services/message.service';
@@ -26,7 +26,7 @@ import { CameraService } from '../services/camera.service';
 import { PlatformService } from '../services/platform.service';
 import { SidebarStateService } from '../services/sidebar-state.service';
 import { Attachment } from '../models';
-import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from './model.config';
+import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from '../ai-model.config';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';

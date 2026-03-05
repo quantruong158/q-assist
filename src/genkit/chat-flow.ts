@@ -1,7 +1,7 @@
 import { googleAI } from '@genkit-ai/google-genai';
 import { genkit } from 'genkit';
 import { z } from 'zod';
-import { DEFAULT_MODEL, SUPPORTED_MODELS } from '../app/chat/model.config';
+import { DEFAULT_MODEL, SUPPORTED_MODELS } from '../app/ai-model.config';
 import * as admin from 'firebase-admin';
 
 const ai = genkit({

@@ -18,9 +18,9 @@ import {
   hugeMoreVerticalCircle01,
 } from '@ng-icons/huge-icons';
 
-import { SidebarStateService } from '../services/sidebar-state.service';
-import { ConversationService } from '../services/conversation.service';
-import { ConfirmationDialog } from '../shared/components/confirmation-dialog/confirmation-dialog';
+import { SidebarStateService } from '../../services/sidebar-state.service';
+import { ConversationService } from '../../services/conversation.service';
+import { ConfirmationDialog } from '../../shared/components/confirmation-dialog/confirmation-dialog';
 
 @Component({
   selector: 'app-sidebar',
