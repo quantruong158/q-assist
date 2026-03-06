@@ -6,10 +6,11 @@ import { Header } from './header/header';
 import { Sidebar } from './sidebar/sidebar';
 import { LayoutService } from '../services/layout.service';
 import { SidebarStateService } from '../services/sidebar-state.service';
+import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, HlmSidebarImports, Header, Sidebar],
+  imports: [RouterOutlet, HlmSidebarImports, Header, Sidebar, HlmToasterImports],
   templateUrl: './layout.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

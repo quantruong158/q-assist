@@ -6,16 +6,17 @@ import {
   ElementRef,
   inject,
   input,
+  model,
   resource,
   signal,
   viewChild,
 } from '@angular/core';
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { CameraSource } from '@capacitor/camera';
 
-import { ChatAttachment, ChatMessage, ChatService } from './chat.service';
+import { ChatService } from './chat.service';
 import { Message } from './message/message';
 import { AuthService } from '../services/auth.service';
 import { ConversationService } from '../services/conversation.service';
@@ -24,7 +25,6 @@ import { UploadService, UploadResult } from '../services/upload.service';
 import { LayoutService } from '../services/layout.service';
 import { CameraService } from '../services/camera.service';
 import { PlatformService } from '../services/platform.service';
-import { SidebarStateService } from '../services/sidebar-state.service';
 import { Attachment } from '../models';
 import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from '../ai-model.config';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
@@ -34,7 +34,7 @@ import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import { KeyValuePipe, Location } from '@angular/common';
+import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { StorageService } from '../services/storage.service';
 import { throttleTime } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -47,8 +47,12 @@ import {
   hugeImageUpload,
 } from '@ng-icons/huge-icons';
 import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
+import { Router } from '@angular/router';
+import { ChatAttachment, ChatMessage } from './chat.model';
+import { ChatStateService } from './chat-state.service';
 
 const CONTEXT_WINDOW_SIZE = 20;
+const DRAFT_CHAT_KEY = '__draft__';
 
 interface PendingAttachment {
   id: string;
@@ -73,6 +77,7 @@ interface PendingAttachment {
     TextFieldModule,
     Message,
     KeyValuePipe,
+    NgTemplateOutlet,
     NgIcon,
   ],
   providers: [
@@ -95,6 +100,7 @@ interface PendingAttachment {
 })
 export class Chat {
   private readonly chatService = inject(ChatService);
+  private readonly chatStateService = inject(ChatStateService);
   private readonly authService = inject(AuthService);
   private readonly conversationService = inject(ConversationService);
   private readonly messageService = inject(MessageService);
@@ -102,40 +108,80 @@ export class Chat {
   private readonly cameraService = inject(CameraService);
   private readonly platformService = inject(PlatformService);
   private readonly storageService = inject(StorageService);
-  private readonly sidebarState = inject(SidebarStateService);
   protected readonly layoutService = inject(LayoutService);
   protected readonly sidebarService = inject(HlmSidebarService);
-  private readonly location = inject(Location);
+  private readonly router = inject(Router);
 
-  readonly id = input<string>();
+  readonly id = model<string>();
 
-  protected readonly messages = signal<ChatMessage[]>([]);
-  protected readonly isLoading = signal(false);
-  protected readonly streamingContent = signal('');
+  protected readonly currentChatKey = computed(() => this.id() ?? DRAFT_CHAT_KEY);
+  private readonly currentChatSession = computed(() => {
+    const chatKey = this.currentChatKey();
 
-  private readonly conversationResource = resource({
+    return this.chatStateService.sessions()[chatKey];
+  });
+  protected readonly messages = computed(() => this.currentChatSession()?.messages ?? []);
+  protected readonly isStreaming = computed(() => this.currentChatSession()?.isStreaming ?? false);
+  protected readonly streamingContent = computed(
+    () => this.currentChatSession()?.streamingContent ?? '',
+  );
+
+  private readonly _ = resource({
     params: () => {
-      const id = this.id();
+      const conversationId = this.id();
       const user = this.currentUser();
-      return id && user ? { id, uid: user.uid } : undefined;
+      const session = conversationId ? this.chatStateService.sessions()[conversationId] : undefined;
+
+      if (!conversationId || !user || session?.isLoaded || session?.isLoading) {
+        return undefined;
+      }
+
+      return {
+        chatKey: conversationId,
+        conversationId,
+        userId: user.uid,
+      };
     },
     loader: async ({ params }) => {
-      const messages = await this.messageService.getRecentMessages(params.uid, params.id, 100);
+      const requestId = crypto.randomUUID();
+      this.chatStateService.setLoading(params.chatKey, requestId);
 
-      const chatMessages: ChatMessage[] = messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-        attachments: msg.attachments?.map((a) => ({ url: a.url, mimeType: a.mimeType })),
-      }));
+      try {
+        const messages = await this.messageService.getRecentMessages(
+          params.userId,
+          params.conversationId,
+          100,
+        );
 
-      this.messages.set(chatMessages);
-      requestAnimationFrame(() => this.scrollToBottom());
+        const chatMessages: ChatMessage[] = messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+          attachments: msg.attachments?.map((a: Attachment) => ({
+            url: a.url,
+            mimeType: a.mimeType,
+          })),
+        }));
+        this.messages();
+        this.chatStateService.setMessages(params.chatKey, chatMessages, requestId);
+        requestAnimationFrame(() => this.scrollToBottom());
 
-      return chatMessages;
+        return chatMessages;
+      } catch (error) {
+        console.error('Error loading conversation:', error);
+        this.chatStateService.setLoadError(
+          params.chatKey,
+          'Failed to load conversation.',
+          requestId,
+        );
+        return [];
+      }
     },
+    defaultValue: [],
   });
 
-  protected readonly isConversationLoading = computed(() => this.conversationResource.isLoading());
+  protected readonly isConversationLoading = computed(
+    () => !!this.currentChatSession()?.isLoading && this.messages().length === 0,
+  );
 
   protected readonly inputText = new FormControl('');
   protected readonly selectedModel = new FormControl<AiModel>(DEFAULT_MODEL, {
@@ -162,20 +208,15 @@ export class Chat {
 
   protected readonly canSend = computed(() => {
     const hasContent = this.userPrompt()?.trim() || this.pendingAttachments().length > 0;
-    const notLoading = !this.isLoading();
-    const notUploading = !this.pendingAttachments().some((a) => a.isUploading);
-    const noErrors = !this.pendingAttachments().some((a) => a.error);
+    const notLoading = !this.isStreaming();
+    const notUploading = !this.pendingAttachments().some((a: PendingAttachment) => a.isUploading);
+    const noErrors = !this.pendingAttachments().some((a: PendingAttachment) => a.error);
 
     return hasContent && notLoading && notUploading && noErrors;
   });
 
   protected readonly isInitialChat = computed(() => {
-    return (
-      this.messages().length === 0 &&
-      !this.isLoading() &&
-      !this.isConversationLoading() &&
-      !this.id()
-    );
+    return this.messages().length === 0 && !this.isConversationLoading() && !this.id();
   });
 
   private readonly messagesContainer = viewChild<ElementRef<HTMLElement>>('messagesContainer');
@@ -197,12 +238,6 @@ export class Chat {
       this.storageService.setItem(this.STORAGE_KEY, this.selectedModelValue().id);
     });
 
-    effect(() => {
-      if (!this.id()) {
-        this.messages.set([]);
-      }
-    });
-
     this.initModel();
   }
 
@@ -220,11 +255,13 @@ export class Chat {
   protected async sendMessage(): Promise<void> {
     const text = (this.inputText.value ?? '').trim();
     const user = this.currentUser();
+    const initialChatKey = this.currentChatKey();
+    const currentSession = this.chatStateService.getSession(initialChatKey);
     const attachments = this.pendingAttachments()
-      .filter((a) => a.uploadResult && !a.error)
-      .map((a) => a.uploadResult!);
+      .filter((a: PendingAttachment) => a.uploadResult && !a.error)
+      .map((a: PendingAttachment) => a.uploadResult!);
 
-    if ((!text && attachments.length === 0) || this.isLoading() || !user) return;
+    if ((!text && attachments.length === 0) || currentSession.isStreaming || !user) return;
 
     const chatAttachments: ChatAttachment[] = attachments.map((a) => ({
       url: a.url,
@@ -236,12 +273,15 @@ export class Chat {
       content: text || '(Image attached)',
       attachments: chatAttachments.length > 0 ? chatAttachments : undefined,
     };
-    this.messages.update((msgs) => [...msgs, userMessage]);
+    this.chatStateService.appendMessage(initialChatKey, userMessage);
     this.inputText.setValue('');
     this.clearAttachments();
-    this.isLoading.set(true);
-    this.streamingContent.set('');
+
+    const streamRequestId = crypto.randomUUID();
+    this.chatStateService.startStreaming(initialChatKey, streamRequestId);
     this.scrollToBottom();
+
+    let chatKey = initialChatKey;
 
     try {
       let conversationId = this.conversationService.activeConversationId();
@@ -251,10 +291,15 @@ export class Chat {
           title: this.conversationService.generateTitle(text || 'Image'),
           lastMessage: text || '(Image attached)',
         });
-        this.location.go(`/chat/${conversationId}`);
+
+        this.chatStateService.moveSession(initialChatKey, conversationId);
+        chatKey = conversationId;
+        this.id.set(conversationId);
+
+        this.router.navigate(['/chat', conversationId], { replaceUrl: true });
       }
 
-      const firestoreAttachments: Attachment[] = attachments.map((a) => ({
+      const firestoreAttachments: Attachment[] = attachments.map((a: UploadResult) => ({
         url: a.url,
         mimeType: a.mimeType,
         filename: a.filename,
@@ -277,7 +322,10 @@ export class Chat {
       const contextMessages: ChatMessage[] = recentMessages.map((msg) => ({
         role: msg.role,
         content: msg.content,
-        attachments: msg.attachments?.map((a) => ({ url: a.url, mimeType: a.mimeType })),
+        attachments: msg.attachments?.map((a: Attachment) => ({
+          url: a.url,
+          mimeType: a.mimeType,
+        })),
       }));
 
       const { stream, output } = await this.chatService.sendMessage(
@@ -287,21 +335,13 @@ export class Chat {
       );
 
       for await (const chunk of stream) {
-        this.streamingContent.update((content) => content + chunk);
+        if (typeof chunk === 'string') {
+          this.chatStateService.appendStreamingChunk(chatKey, chunk, streamRequestId);
+        }
       }
 
       await output;
-      const finalContent = this.streamingContent();
-
-      if (finalContent) {
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: finalContent,
-        };
-        this.messages.update((msgs) => [...msgs, assistantMessage]);
-        this.isLoading.set(false);
-        this.streamingContent.set('');
-      }
+      this.chatStateService.finishStreaming(chatKey, streamRequestId);
     } catch (error) {
       console.error('Error sending message:', error);
 
@@ -309,10 +349,9 @@ export class Chat {
         role: 'assistant',
         content: 'Sorry, an error occurred while processing your request.',
       };
-      this.messages.update((msgs) => [...msgs, errorMessage]);
+      this.chatStateService.appendMessage(chatKey, errorMessage);
     } finally {
-      this.isLoading.set(false);
-      this.streamingContent.set('');
+      this.chatStateService.stopStreaming(chatKey, streamRequestId);
       this.scrollToBottom();
     }
   }
@@ -361,11 +400,13 @@ export class Chat {
   }
 
   protected removeAttachment(id: string): void {
-    const attachment = this.pendingAttachments().find((a) => a.id === id);
+    const attachment = this.pendingAttachments().find((a: PendingAttachment) => a.id === id);
     if (attachment) {
       URL.revokeObjectURL(attachment.previewUrl);
     }
-    this.pendingAttachments.update((attachments) => attachments.filter((a) => a.id !== id));
+    this.pendingAttachments.update((attachments: PendingAttachment[]) =>
+      attachments.filter((a: PendingAttachment) => a.id !== id),
+    );
   }
 
   private addAttachment(file: File): void {
@@ -385,15 +426,22 @@ export class Chat {
       isUploading: true,
     };
 
-    this.pendingAttachments.update((attachments) => [...attachments, attachment]);
+    this.pendingAttachments.update((attachments: PendingAttachment[]) => [
+      ...attachments,
+      attachment,
+    ]);
     this.uploadAttachment(attachment);
   }
 
   private uploadAttachment(attachment: PendingAttachment): void {
-    this.uploadService.uploadFile(attachment.file).subscribe({
+    const userId = this.currentUser()?.uid;
+    if (!userId) {
+      return;
+    }
+    this.uploadService.uploadFile(attachment.file, userId).subscribe({
       next: (result) => {
-        this.pendingAttachments.update((attachments) =>
-          attachments.map((a) =>
+        this.pendingAttachments.update((attachments: PendingAttachment[]) =>
+          attachments.map((a: PendingAttachment) =>
             a.id === attachment.id ? { ...a, uploadResult: result, isUploading: false } : a,
           ),
         );
@@ -407,8 +455,8 @@ export class Chat {
           errorMsg += ` (${err.status})`;
         }
 
-        this.pendingAttachments.update((attachments) =>
-          attachments.map((a) =>
+        this.pendingAttachments.update((attachments: PendingAttachment[]) =>
+          attachments.map((a: PendingAttachment) =>
             a.id === attachment.id ? { ...a, isUploading: false, error: errorMsg } : a,
           ),
         );

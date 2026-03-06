@@ -1,15 +1,14 @@
 # Angular Chat Template
 
-A full-stack, modern chat application template built with Angular 21, Genkit AI, and Firebase. This template supports SSR, mobile (via Capacitor), and is ready for deployment on Vercel.
+A full-stack, modern chat application built with Angular 21, Genkit AI, and Firebase. Supports mobile via Capacitor and deploys to Firebase Hosting.
 
 ## 🚀 Key Features
 
-- **Angular 21 (SSR)**: High-performance server-side rendering.
+- **Angular 21**: Modern frontend framework with signals.
 - **Genkit AI**: Integrated AI flows using Google GenAI (Gemini).
-- **Firebase**: Authentication and Firestore for real-time chat persistence.
+- **Firebase**: Authentication, Firestore, Storage, and Cloud Functions.
 - **Capacitor**: Cross-platform mobile support (iOS/Android).
-- **Vercel Blob**: Fast and secure image/file uploads.
-- **Angular Material**: Modern and responsive UI components.
+- **Firebase Storage**: Secure image/file uploads.
 - **Dark Mode**: Built-in theme support.
 
 ## 🛠️ Technology Stack
@@ -17,10 +16,10 @@ A full-stack, modern chat application template built with Angular 21, Genkit AI,
 - **Framework**: Angular 21
 - **AI Backend**: Genkit AI + Google GenAI
 - **Database/Auth**: Firebase Firestore & Firebase Auth
-- **File Storage**: Vercel Blob
-- **Styling**: Angular Material + Scss
+- **File Storage**: Firebase Storage
+- **Styling**: SCSS + Tailwind
 - **Mobile**: Capacitor 8
-- **Hosting**: Vercel
+- **Hosting**: Firebase Hosting
 
 ## ⚙️ Prerequisites
 
@@ -28,7 +27,7 @@ Before starting, ensure you have the following:
 
 1. **Firebase Project**: Create a project at [Firebase Console](https://console.firebase.google.com/).
 2. **Google AI API Key**: Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/).
-3. **Vercel Account**: For hosting and Vercel Blob storage.
+3. **Firebase CLI**: Install with `npm install -g firebase-tools` and log in with `firebase login`.
 
 ## 📥 Getting Started
 
@@ -36,7 +35,7 @@ Before starting, ensure you have the following:
 
    ```bash
    git clone <your-repo-url>
-   cd angular-chat-template
+   cd q-assist
    ```
 
 2. **Install dependencies**:
@@ -45,20 +44,23 @@ Before starting, ensure you have the following:
    pnpm install
    ```
 
-3. **Configure Environment Variables**:
+3. **Configure Firebase secrets**:
 
-   Create a `.env` file in the root directory:
+   Set the Gemini API key as a Firebase secret:
 
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key
-   BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+   ```bash
+   cd functions
+   firebase functions:secrets:set GEMINI_API_KEY
    ```
 
-   Configure Angular environment files:
-   - Copy `src/environments/environment.example.ts` to `src/environments/environment.ts` (and `.prod.ts`, `.mobile.ts`).
-   - Fill in your Firebase configuration keys.
+   Or use the interactive prompt when deploying.
 
-4. **Run the development server**:
+4. **Configure Environment Files**:
+
+   - Copy `src/environments/environment.example.ts` to `src/environments/environment.ts` (and `.prod.ts`, `.mobile.ts`).
+   - Fill in your Firebase configuration keys from the Firebase Console.
+
+5. **Run the development server**:
    ```bash
    pnpm start
    ```
@@ -86,11 +88,45 @@ Before starting, ensure you have the following:
 
 ## 🚀 Deployment
 
-### Vercel (Web / SSR)
+### Firebase Hosting + Cloud Functions
 
-- Connect your repository to Vercel.
-- The `vercel.json` file is pre-configured for Angular SSR.
-- Ensure you set the `GEMINI_API_KEY` and `BLOB_READ_WRITE_TOKEN` in the Vercel dashboard env variables.
+1. **Build the Angular app**:
+
+   ```bash
+   pnpm run build
+   ```
+
+2. **Deploy to Firebase**:
+
+   ```bash
+   firebase deploy
+   ```
+
+   This deploys:
+   - Hosting: `dist/q-assist/browser`
+   - Functions: `functions/`
+   - Firestore rules: `firestore.rules`
+   - Storage rules: `storage.rules`
+
+3. **Set secrets for production**:
+
+   ```bash
+   firebase functions:secrets:set GEMINI_API_KEY --production
+   ```
+
+### Running Emulators (Local Development)
+
+Start all emulators:
+
+```bash
+firebase emulators:start
+```
+
+Start only functions emulator:
+
+```bash
+cd functions && pnpm run serve
+```
 
 ## 📝 License
 

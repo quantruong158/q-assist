@@ -25,25 +25,30 @@
     />
   }
 
-  @if (isLoading()) {
+  @if (isStreaming()) {
     <app-message [content]="streamingContent()" role="assistant" [isStreaming]="true" />
   }
 </div>
-<div
-  class="mx-4 fixed bottom-0 left-0 right-0 grid justify-items-center md:transition-[left] md:duration-200 md:ease-linear"
-  [class]="
-    isInitialChat() && !isNative
-      ? 'md:static md:left-0 md:right-0 md:pb-12'
-      : sidebarService.state() === 'collapsed'
-        ? 'md:left-(--sidebar-width-icon)'
-        : 'md:left-64'
-  "
->
-  @if (!isInitialChat()) {
+
+@if (isInitialChat() && !isNative) {
+  <div class="mx-4 grid justify-items-center md:pb-12">
+    <ng-container [ngTemplateOutlet]="chatComposer" />
+  </div>
+} @else {
+  <div
+    class="mx-4 fixed bottom-0 left-0 right-0 grid justify-items-center md:transition-[left] md:duration-200 md:ease-linear"
+    [class]="
+      sidebarService.state() === 'collapsed' ? 'md:left-(--sidebar-width-icon)' : 'md:left-64'
+    "
+  >
     <div
-      class="pointer-events-none absolute bottom-20 left-1/2 h-40 w-full -translate-x-1/2 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] md:max-w-225"
+      class="pointer-events-none absolute bottom-20 left-1/2 h-40 w-full -translate-x-1/2 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] md:max-w-230"
     ></div>
-  }
+    <ng-container [ngTemplateOutlet]="chatComposer" />
+  </div>
+}
+
+<ng-template #chatComposer>
   <div
     class="z-2 w-full md:max-w-225 rounded-t-[34px] bg-background pb-[calc(12px+var(--safe-area-bottom))] md:right-0"
   >
@@ -130,7 +135,7 @@
                 hlmDropdownMenuItem
                 class="camera-button"
                 (click)="onTakePhoto()"
-                [disabled]="isLoading() || pendingAttachments().length >= 4"
+                [disabled]="isStreaming() || pendingAttachments().length >= 4"
                 aria-label="Take photo"
               >
                 <ng-icon hlm name="hugeCamera02" />
@@ -140,7 +145,7 @@
             <button
               hlmDropdownMenuItem
               (click)="fileInput.click()"
-              [disabled]="isLoading() || pendingAttachments().length >= 4"
+              [disabled]="isStreaming() || pendingAttachments().length >= 4"
               aria-label="Attach images"
             >
               <ng-icon hlm name="hugeImageUpload" />
@@ -182,4 +187,4 @@
       </div>
     </div>
   </div>
-</div>
+</ng-template>

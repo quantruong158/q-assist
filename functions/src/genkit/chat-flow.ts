@@ -1,8 +1,7 @@
 import { googleAI } from '@genkit-ai/google-genai';
-import { genkit } from 'genkit';
-import { z } from 'zod';
-import { DEFAULT_MODEL, SUPPORTED_MODELS } from '../app/ai-model.config';
-import * as admin from 'firebase-admin';
+import { genkit, z } from 'genkit';
+import { DEFAULT_MODEL, SUPPORTED_MODELS } from '../ai-model.config';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 const ai = genkit({
   plugins: [googleAI()],
@@ -16,7 +15,7 @@ const AttachmentSchema = z.object({
 const MessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
-  attachments: z.array(AttachmentSchema).optional(),
+  attachments: z.array(AttachmentSchema).optional().nullable(),
 });
 
 const ChatInputSchema = z.object({
@@ -56,15 +55,28 @@ export const chatFlow = ai.defineFlow(
       (m) => m.id === selectedModel,
     )!.supportSystemPrompt;
 
-    const genkitMessages = messages.map((msg) => ({
-      role: (msg.role === 'assistant' ? 'model' : 'user') as 'user' | 'model',
-      content: [
-        { text: msg.content },
-        ...(msg.attachments || []).map((att) => ({
-          media: { url: att.url, contentType: att.mimeType },
-        })),
-      ],
-    }));
+    const genkitMessages = await Promise.all(
+      messages.map(async (msg) => {
+        const contentParts: any[] = [{ text: msg.content }];
+
+        if (msg.attachments && msg.attachments.length > 0) {
+          for (const att of msg.attachments) {
+            const base64Data = await fetchImageAsBase64(att.url);
+            contentParts.push({
+              media: {
+                url: `data:${att.mimeType};base64,${base64Data}`,
+                mimeType: att.mimeType,
+              },
+            });
+          }
+        }
+
+        return {
+          role: (msg.role === 'assistant' ? 'model' : 'user') as 'user' | 'model',
+          content: contentParts,
+        };
+      }),
+    );
 
     if (!isModelSupportSystemPrompt) {
       genkitMessages.unshift({ role: 'user', content: [{ text: SYSTEM_PROMPT }] });
@@ -86,9 +98,8 @@ export const chatFlow = ai.defineFlow(
     const { text } = await response;
 
     if (text && conversationId && context?.auth) {
-      const userId = context.auth['user_id'];
-      const db = admin.firestore();
-
+      const userId = context.auth.uid;
+      const db = getFirestore();
       try {
         const messagesRef = db.collection(
           `users/${userId}/conversations/${conversationId}/messages`,
@@ -102,14 +113,17 @@ export const chatFlow = ai.defineFlow(
           role: 'assistant',
           content: text,
           order,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
         });
 
         const conversationRef = db.doc(`users/${userId}/conversations/${conversationId}`);
-        await conversationRef.update({
-          lastMessage: text.substring(0, 100),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        await conversationRef.set(
+          {
+            lastMessage: text.substring(0, 100),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
       } catch (error) {
         console.error('Error saving assistant message to Firestore:', error);
       }
@@ -118,3 +132,12 @@ export const chatFlow = ai.defineFlow(
     return { response: text };
   },
 );
+
+async function fetchImageAsBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.statusText}`);
+  }
+  const buffer = await response.arrayBuffer();
+  return Buffer.from(buffer).toString('base64');
+}
