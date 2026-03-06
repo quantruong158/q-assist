@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { API_BASE_URL } from '../core/tokens/api-base-url.token';
+import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
+import { Observable, from } from 'rxjs';
 
 export interface UploadResult {
   url: string;
@@ -11,11 +10,10 @@ export interface UploadResult {
 
 @Injectable({ providedIn: 'root' })
 export class UploadService {
-  private readonly http = inject(HttpClient);
-  private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly storage = inject(Storage);
 
   readonly MAX_FILES = 4;
-  readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
   validateFile(file: File): string | null {
@@ -23,17 +21,31 @@ export class UploadService {
       return 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.';
     }
     if (file.size > this.MAX_FILE_SIZE) {
-      return 'File too large. Maximum size is 5MB.';
+      return 'File too large. Maximum size is 10MB.';
     }
     return null;
   }
 
-  uploadFile(file: File): Observable<UploadResult> {
-    const formData = new FormData();
-    formData.append('file', file);
+  uploadFile(file: File, userId: string): Observable<UploadResult> {
+    return from(
+      (async () => {
+        const uniqueId = crypto.randomUUID();
+        const filePath = `users/${userId}/uploads/${uniqueId}-${file.name}`;
 
-    return this.http.post<UploadResult>(`${this.apiBaseUrl}/api/upload`, formData, {
-      withCredentials: true,
-    });
+        const storageRef = ref(this.storage, filePath);
+
+        await uploadBytes(storageRef, file, {
+          contentType: file.type,
+        });
+
+        const url = await getDownloadURL(storageRef);
+
+        return {
+          url,
+          mimeType: file.type,
+          filename: file.name,
+        };
+      })(),
+    );
   }
 }

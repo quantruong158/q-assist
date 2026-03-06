@@ -1,55 +1,32 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Auth } from '@angular/fire/auth';
-import { streamFlow } from 'genkit/beta/client';
-import { API_BASE_URL } from '../core/tokens/api-base-url.token';
-
-export interface ChatAttachment {
-  url: string;
-  mimeType: string;
-}
-
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  attachments?: ChatAttachment[];
-}
-
-export interface ChatResponse {
-  response: string;
-}
+import { Functions } from '@angular/fire/functions';
+import { httpsCallable } from 'firebase/functions';
+import { ChatMessage, ChatRequest, ChatResponse } from './chat.model';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
-  private readonly auth = inject(Auth);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly functions = inject(Functions);
 
   async sendMessage(messages: ChatMessage[], modelId?: string, conversationId?: string) {
     if (!isPlatformBrowser(this.platformId)) {
       return {
-        stream: (async function* () {
-          // Intentionally empty
-        })(),
+        stream: (async function* () {})(),
         output: Promise.resolve({ response: '' } as ChatResponse),
       };
     }
 
-    const token = await this.auth.currentUser?.getIdToken();
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const result = streamFlow<ChatResponse, string>({
-      url: `${this.apiBaseUrl}/api/chat`,
-      input: { messages, model: modelId, conversationId },
-      headers,
+    const chatEndpoint = httpsCallable<ChatRequest, ChatResponse>(this.functions, 'chat');
+    const callResult = await chatEndpoint.stream({
+      messages,
+      model: modelId,
+      conversationId,
     });
 
     return {
-      stream: result.stream,
-      output: result.output,
+      stream: callResult.stream,
+      output: callResult.data,
     };
   }
 }

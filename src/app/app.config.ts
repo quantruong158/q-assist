@@ -3,13 +3,13 @@ import {
   provideBrowserGlobalErrorListeners,
   provideAppInitializer,
   inject,
+  isDevMode,
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
+import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
 import { provideMarkdown } from 'ngx-markdown';
 
 import { environment } from '../environments/environment';
@@ -17,16 +17,48 @@ import { routes } from './app.routes';
 import { ThemeService } from './services/theme.service';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideNgIconsConfig } from '@ng-icons/core';
+import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
+import { connectStorageEmulator, getStorage, provideStorage } from '@angular/fire/storage';
+import { RouteReuseStrategy } from '@angular/router';
+import { CustomRouteReuseStrategy } from './custom-route-reuse';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy },
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-    provideClientHydration(withEventReplay()),
+
     provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore()),
+    provideAuth(() => {
+      const auth = getAuth();
+      if (isDevMode()) {
+        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+      }
+      return auth;
+    }),
+    provideFunctions(() => {
+      const functions = getFunctions();
+      if (isDevMode()) {
+        connectFunctionsEmulator(functions, 'localhost', 5001);
+      }
+      return functions;
+    }),
+    provideStorage(() => {
+      const storage = getStorage();
+      if (isDevMode()) {
+        connectStorageEmulator(storage, 'localhost', 9199);
+      }
+      return storage;
+    }),
+    provideFirestore(() => {
+      const firestore = getFirestore();
+      if (isDevMode()) {
+        connectFirestoreEmulator(firestore, 'localhost', 8080);
+      }
+      return firestore;
+    }),
+
     provideMarkdown(),
     provideAppInitializer(() => {
       inject(ThemeService);

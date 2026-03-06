@@ -46,6 +46,7 @@ firebase-admin-service-account.json
 testem.log
 /typings
 __screenshots__/
+.firebase/
 
 # System files
 .DS_Store

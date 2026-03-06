@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { ConversationService } from './conversation.service';
 import { Conversation } from '../models';
+import { toast } from 'ngx-sonner';
 
 @Injectable({ providedIn: 'root' })
 export class SidebarStateService {
@@ -34,11 +35,13 @@ export class SidebarStateService {
 
     try {
       await this.conversationService.deleteConversation(user.uid, conversationId);
+      toast.success('Conversation deleted successfully');
 
       if (this.conversationService.activeConversationId() === conversationId) {
         this.router.navigate(['/chat']);
       }
     } catch (error) {
+      toast.error('Error deleting conversation');
       console.error('Error deleting conversation:', error);
     }
   }
