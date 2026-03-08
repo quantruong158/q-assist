@@ -1,0 +1,66 @@
+<div class="p-4 space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold">Finance</h1>
+    <p class="text-muted-foreground">Track your spending and savings</p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div class="flex h-12 w-12 text-xl items-center justify-center rounded-full bg-primary/10">
+          <ng-icon hlm name="hugeMoneyBag02" class="text-primary" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Total Balance</p>
+          <p class="text-2xl font-medium">{{ mockTotalBalance | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-xl"
+        >
+          <ng-icon hlm name="hugeArrowUpRight01" class="text-green-600 dark:text-green-400" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Monthly Income</p>
+          <p class="text-2xl font-medium text-green-600 dark:text-green-400">
+            +{{ mockMonthlyIncome | number }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-xl"
+        >
+          <ng-icon hlm name="hugeArrowDownRight01" class="text-red-600 dark:text-red-400" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Monthly Expenses</p>
+          <p class="text-2xl font-medium">-{{ mockMonthlyExpenses | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-xl"
+        >
+          <ng-icon hlm name="hugeTransaction" class="text-blue-600 dark:text-blue-400" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Transactions</p>
+          <p class="text-2xl font-medium">{{ mockTransactionCount }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-finance-transactions />
+</div>

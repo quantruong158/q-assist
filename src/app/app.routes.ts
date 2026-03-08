@@ -18,6 +18,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
+        path: 'finance',
+        loadComponent: () => import('./finance/finance').then((m) => m.Finance),
+        data: { activeContext: 'finance' },
+      },
+      {
         path: 'chat/:id',
         loadComponent: () => import('./chat/chat').then((m) => m.Chat),
         data: { activeContext: 'chat' },

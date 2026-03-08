@@ -14,7 +14,8 @@
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
     "mobile:android": "pnpm run build:mobile && npx cap sync android && npx cap open android",
-    "mobile:ios": "pnpm run build:mobile && npx cap sync ios && npx cap open ios"
+    "mobile:ios": "pnpm run build:mobile && npx cap sync ios && npx cap open ios",
+    "firebase:emu:start": "firebase emulators:start --import .firebase/emu-data --export-on-exit .firebase/emu-data"
   },
   "prettier": {
     "printWidth": 100,
