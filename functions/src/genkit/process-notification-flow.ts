@@ -6,7 +6,7 @@ const ai = genkit({
 });
 
 export const NotificationParsedResult = z.object({
-  type: z.enum(['INCOMING', 'OUTGOING', 'NON_TRANSACTION']),
+  type: z.enum(['income', 'expense', 'non_transaction']),
   amount: z.number(),
   currency: z.string().default('VND'),
   merchant: z.string(),
@@ -24,10 +24,11 @@ export const processNotificationFlow = ai.defineFlow(
       model: googleAI.model('gemma-3-27b-it'),
       prompt: `Act as a precise data extraction engine. Your task is to parse a mobile notification into a specific JSON schema.
 ### SCHEMA:
-- type: "INCOMING" (positive raw amount), "OUTGOING" (negative raw amount), or "NON_TRANSACTION" (OTPs, ads, alerts).
-- amount: Number. Always positive. 0 if NON_TRANSACTION.
+- type: "income" (positive raw amount), "expense" (negative raw amount), or "non_transaction" (OTPs, ads, alerts).
+- amount: Number. Always positive. 0 if non_transaction.
 - currency: 3-letter ISO code. Default is "VND".
 - merchant: The name of the platform, bank, or person (e.g., Momo, ZaloPay, ShopeePay).
+- timestamp: ISO 8601 string in the format: YYYY-MM-DDTHH:mm:ssZ (e.g., 2026-03-07T14:30:00Z).
 ### CONSTRAINTS:
 1. Return ONLY the raw JSON string.
 2. Do NOT include Markdown code blocks (e.g., no \`\`\`json).

@@ -2,8 +2,14 @@ import { logger } from 'firebase-functions';
 import { Request } from 'firebase-functions/v2/https';
 import { Response } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
-import { processNotificationFlow } from '../genkit/process-notification-flow';
-import { InboundNotification, MoneyTransaction } from './models/transaction.model';
+import { processNotificationFlow } from '../../genkit/process-notification-flow';
+import { MoneyTransaction } from '../schemas/finance.schema';
+
+interface InboundNotification {
+  userId: string;
+  content: string;
+  sourceId: string;
+}
 
 export const notificationHandler = async (req: Request, res: Response): Promise<void> => {
   const clientSecret = req.get('Authorization');
@@ -24,14 +30,14 @@ export const notificationHandler = async (req: Request, res: Response): Promise<
 
   const parsedResult = await processNotificationFlow(req.body.message);
 
-  if (parsedResult && parsedResult.type !== 'NON_TRANSACTION') {
+  if (parsedResult && parsedResult.type !== 'non_transaction') {
     const db = getFirestore();
     const transaction: MoneyTransaction = {
       userId: notification.userId,
       type: parsedResult.type,
       amount: parsedResult.amount,
       currency: parsedResult.currency,
-      source: notification.source,
+      sourceId: notification.sourceId,
       merchant: parsedResult.merchant,
       timestamp: parsedResult.timestamp,
     };

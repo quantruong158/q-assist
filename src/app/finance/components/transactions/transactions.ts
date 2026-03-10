@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
-import { TransactionService } from '../../services/transaction.service';
-import { MoneyTransaction } from '../../models/transaction.model';
+import { TransactionService, TransactionWithSource } from '../../services/transaction.service';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -27,7 +26,7 @@ export class Transactions {
 
   protected readonly currentUser = computed(() => this.authService.currentUser());
 
-  readonly transactions = resource<MoneyTransaction[], { userId: string } | undefined>({
+  readonly transactions = resource<TransactionWithSource[], { userId: string } | undefined>({
     params: () => {
       const user = this.currentUser();
       return user ? { userId: user.uid } : undefined;
