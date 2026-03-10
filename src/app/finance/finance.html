@@ -1,7 +1,9 @@
-<div class="p-4 space-y-6">
-  <div>
-    <h1 class="text-2xl font-bold">Finance</h1>
-    <p class="text-muted-foreground">Track your spending and savings</p>
+<div class="p-4 space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Finance</h1>
+      <p class="text-muted-foreground">Track your spending and savings</p>
+    </div>
   </div>
 
   <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -12,7 +14,7 @@
         </div>
         <div>
           <p class="text-sm text-muted-foreground">Total Balance</p>
-          <p class="text-2xl font-medium">{{ mockTotalBalance | number }}</p>
+          <p class="text-2xl font-medium">{{ totalBalance() | number }}</p>
         </div>
       </div>
     </div>
@@ -61,6 +63,38 @@
       </div>
     </div>
   </div>
+
+  @if (sources().length > 0) {
+  <div class="flex gap-4 flex-wrap items-center">
+    @for (source of sources(); track source.id) {
+    <div class="rounded-xl border bg-card p-4 group w-full sm:w-50">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center rounded-full">
+          <ng-icon hlm [name]="getSourceIcon(source.type)" />
+        </div>
+        <div class="flex-1">
+          <p class="font-medium">{{ source.name }}</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-lg font-medium">{{ source.balance | number }}</p>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          (click)="openEditBalance(source)"
+          class="opacity-0 group-hover:opacity-100 rounded-full transition-opacity duration-200 ease-linear"
+        >
+          <ng-icon hlm name="hugeEdit02" />
+        </button>
+      </div>
+    </div>
+    }
+    <div>
+      <app-add-money-source-dialog />
+    </div>
+  </div>
+  }
 
   <app-finance-transactions />
 </div>
