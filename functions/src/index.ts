@@ -30,7 +30,7 @@ export const chat = onCallGenkit(
 );
 
 export const processNotification = onRequest(
-  { secrets: [notificationGatewayKey] },
+  { secrets: [notificationGatewayKey, geminiApiKey] },
   notificationHandler,
 );
 
