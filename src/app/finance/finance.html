@@ -67,7 +67,7 @@
   @if (sources().length > 0) {
   <div class="flex gap-4 flex-wrap items-center">
     @for (source of sources(); track source.id) {
-    <div class="rounded-xl border bg-card p-4 group w-full sm:w-50">
+    <div class="rounded-xl border bg-card p-4 group sm:w-50">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center rounded-full">
           <ng-icon hlm [name]="getSourceIcon(source.type)" />
@@ -90,11 +90,25 @@
       </div>
     </div>
     }
-    <div>
-      <app-add-money-source-dialog />
-    </div>
+    <app-add-money-source-dialog />
+  </div>
+  } @else {
+  <div class="flex flex-col items-center gap-4 bg-card border rounded-xl p-4">
+    <p class="text-center">No money sources added yet</p>
+    <app-add-money-source-dialog />
   </div>
   }
 
   <app-finance-transactions />
 </div>
+
+<button
+  hlmBtn
+  size="lg"
+  class="fixed right-6 bottom-6 z-20 rounded-full px-4 shadow-lg w-10 sm:w-fit"
+  aria-label="Add new transaction"
+  (click)="openAddTransaction()"
+>
+  <ng-icon hlm name="hugeTransaction" class="text-base" />
+  <span class="ml-2 hidden sm:inline">New transaction</span>
+</button>
