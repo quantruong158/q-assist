@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, resource, computed } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -8,20 +8,32 @@ import {
   addDoc,
   updateDoc,
   serverTimestamp,
-  Timestamp,
   doc,
 } from '@angular/fire/firestore';
-import { MoneySource, MoneySourceType } from '../models/money-source.model';
+import { MoneySource } from '../models/money-source.model';
+import { AuthService } from '../../services/auth.service';
+import { convertTimestamp } from '../../shared/utils/time.utils';
 
 @Injectable({ providedIn: 'root' })
 export class MoneySourceService {
   private readonly firestore = inject(Firestore);
+  private readonly authService = inject(AuthService);
 
-  readonly sources = signal<MoneySource[]>([]);
-  readonly isLoading = signal(false);
+  readonly sourcesResource = resource({
+    params: () => {
+      return this.authService.currentUser()?.uid;
+    },
+    loader: async ({ params }) => {
+      const userId = params;
+      if (!userId) return [];
+      return await this.getSources(userId);
+    },
+    defaultValue: [],
+  });
+  readonly sources = computed<MoneySource[]>(() => this.sourcesResource.value());
+  readonly isLoading = computed(() => this.sourcesResource.isLoading());
 
   async getSources(userId: string): Promise<MoneySource[]> {
-    this.isLoading.set(true);
     const sourcesRef = collection(this.firestore, `users/${userId}/money-sources`);
     const q = query(sourcesRef, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -29,18 +41,16 @@ export class MoneySourceService {
     const sources = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      createdAt: this.convertTimestamp(doc.data()['createdAt']),
-      updatedAt: this.convertTimestamp(doc.data()['updatedAt']),
+      createdAt: convertTimestamp(doc.data()['createdAt']),
+      updatedAt: convertTimestamp(doc.data()['updatedAt']),
     })) as MoneySource[];
 
-    this.sources.set(sources);
-    this.isLoading.set(false);
     return sources;
   }
 
   async addSource(
     userId: string,
-    data: Omit<MoneySource, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+    data: Omit<MoneySource, 'id' | 'userId' | 'createdAt' | 'updatedAt'>,
   ): Promise<string> {
     const sourcesRef = collection(this.firestore, `users/${userId}/money-sources`);
     const docRef = await addDoc(sourcesRef, {
@@ -61,15 +71,5 @@ export class MoneySourceService {
     });
 
     await this.getSources(userId);
-  }
-
-  private convertTimestamp(timestamp: unknown): string {
-    if (timestamp instanceof Timestamp) {
-      return timestamp.toDate().toISOString();
-    }
-    if (timestamp instanceof Date) {
-      return timestamp.toISOString();
-    }
-    return String(timestamp);
   }
 }

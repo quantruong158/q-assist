@@ -1,6 +1,21 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { Firestore, collection, query, orderBy, getDocs, getDoc, addDoc, serverTimestamp, Timestamp, doc, limit } from '@angular/fire/firestore';
-import { MoneyTransaction, TransactionType } from '../models/transaction.model';
+import { computed, Injectable, inject, resource } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+  limit,
+} from '@angular/fire/firestore';
+import { AuthService } from '../../services/auth.service';
+import { MoneyTransaction } from '../models/transaction.model';
+import { MoneySource } from '../models/money-source.model';
+import { MoneySourceService } from './money-source.service';
+import { convertTimestamp } from '../../shared/utils/time.utils';
+
+const RECENT_TRANSACTIONS_LIMIT = 4;
 
 export interface TransactionWithSource extends MoneyTransaction {
   sourceName: string;
@@ -9,51 +24,48 @@ export interface TransactionWithSource extends MoneyTransaction {
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
   private readonly firestore = inject(Firestore);
+  private readonly authService = inject(AuthService);
+  private readonly moneySourceService = inject(MoneySourceService);
+  private readonly currentUser = computed(() => this.authService.currentUser());
 
-  readonly transactions = signal<TransactionWithSource[]>([]);
-  readonly isLoading = signal(false);
+  private readonly transactionsResource = resource<
+    MoneyTransaction[],
+    { userId: string } | undefined
+  >({
+    params: () => {
+      const user = this.currentUser();
+      return user ? { userId: user.uid } : undefined;
+    },
+    loader: async ({ params }) => {
+      const transactionsRef = collection(this.firestore, `users/${params.userId}/transactions`);
+      const q = query(
+        transactionsRef,
+        orderBy('timestamp', 'desc'),
+        limit(RECENT_TRANSACTIONS_LIMIT),
+      );
+      const snapshot = await getDocs(q);
 
-  async getTransactions(userId: string): Promise<TransactionWithSource[]> {
-    this.isLoading.set(true);
-    const transactionsRef = collection(this.firestore, `users/${userId}/transactions`);
-    const q = query(transactionsRef, orderBy('timestamp', 'desc'), limit(4));
-    const snapshot = await getDocs(q);
-
-    const transactions = await Promise.all(
-      snapshot.docs.map(async (docSnap) => {
+      return snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
-        const sourceName = await this.getSourceName(userId, data['sourceId']);
         return {
           id: docSnap.id,
           ...data,
-          timestamp: this.convertTimestamp(data['timestamp']),
-          sourceName,
-        } as TransactionWithSource;
-      })
-    );
+          timestamp: convertTimestamp(data['timestamp']),
+        } as MoneyTransaction;
+      });
+    },
+    defaultValue: [],
+  });
 
-    this.transactions.set(transactions);
-    this.isLoading.set(false);
-    return transactions;
-  }
+  readonly transactions = computed<TransactionWithSource[]>(() =>
+    this.mapTransactions(this.transactionsResource.value(), this.moneySourceService.sources()),
+  );
 
-  private async getSourceName(userId: string, sourceId: string): Promise<string> {
-    if (!sourceId) return 'Unknown';
-    try {
-      const sourceRef = doc(this.firestore, `users/${userId}/money-sources/${sourceId}`);
-      const sourceSnap = await getDoc(sourceRef);
-      if (sourceSnap.exists()) {
-        return sourceSnap.data()['name'] || 'Unknown';
-      }
-      return 'Unknown';
-    } catch {
-      return 'Unknown';
-    }
-  }
+  readonly isLoading = computed(() => this.transactionsResource.isLoading());
 
   async addTransaction(
     userId: string,
-    data: Omit<MoneyTransaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+    data: Omit<MoneyTransaction, 'id' | 'userId' | 'timestamp' | 'createdAt' | 'updatedAt'>,
   ): Promise<string> {
     const transactionsRef = collection(this.firestore, `users/${userId}/transactions`);
     const docRef = await addDoc(transactionsRef, {
@@ -62,17 +74,29 @@ export class TransactionService {
       timestamp: serverTimestamp(),
     });
 
-    await this.getTransactions(userId);
+    this.transactionsResource.reload();
     return docRef.id;
   }
 
-  private convertTimestamp(timestamp: unknown): string {
-    if (timestamp instanceof Timestamp) {
-      return timestamp.toDate().toISOString();
+  reload(): void {
+    this.transactionsResource.reload();
+  }
+
+  private getSourceName(sourceId: string, sources: MoneySource[]): string {
+    if (!sourceId || sources.length === 0) {
+      return 'Unknown';
     }
-    if (timestamp instanceof Date) {
-      return timestamp.toISOString();
-    }
-    return String(timestamp);
+
+    return sources.find((source) => source.id === sourceId)?.name || 'Unknown';
+  }
+
+  private mapTransactions(
+    transactions: MoneyTransaction[],
+    sources: MoneySource[],
+  ): TransactionWithSource[] {
+    return transactions.map((transaction) => ({
+      ...transaction,
+      sourceName: this.getSourceName(transaction.sourceId, sources),
+    }));
   }
 }

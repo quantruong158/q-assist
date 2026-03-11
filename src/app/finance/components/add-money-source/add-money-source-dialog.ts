@@ -11,6 +11,7 @@ import { AuthService } from '../../../services/auth.service';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeWalletAdd02 } from '@ng-icons/huge-icons';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 
 @Component({
   selector: 'app-add-money-source-dialog',
@@ -22,6 +23,7 @@ import { hugeWalletAdd02 } from '@ng-icons/huge-icons';
     HlmLabelImports,
     BrnSelectImports,
     HlmSelectImports,
+    HlmTooltipImports,
     NgIcon,
   ],
   providers: [
@@ -31,7 +33,16 @@ import { hugeWalletAdd02 } from '@ng-icons/huge-icons';
   ],
   template: `
     <hlm-dialog>
-      <button hlmDialogTrigger hlmBtn variant="outline" size="icon" class="rounded-full">
+      <button
+        hlmDialogTrigger
+        hlmBtn
+        variant="outline"
+        size="icon"
+        hlmTooltip="Add money source"
+        [showDelay]="300"
+        position="bottom"
+        class="rounded-full"
+      >
         <ng-icon hlm name="hugeWalletAdd02" />
       </button>
       <hlm-dialog-content *hlmDialogPortal="let ctx" class="sm:max-w-106.25">
@@ -125,7 +136,7 @@ export class AddMoneySourceDialogComponent {
         currency: 'USD',
         isActive: true,
       });
-      this.form.reset();
+      this.form.reset({ type: 'bank' });
     } finally {
       this.isSubmitting.set(false);
     }

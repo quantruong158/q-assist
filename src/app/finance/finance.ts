@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Transactions } from './components/transactions/transactions';
 import { AddMoneySourceDialogComponent } from './components/add-money-source/add-money-source-dialog';
+import { AddTransactionDialogComponent } from './components/add-transaction/add-transaction-dialog';
 import { EditBalanceDialogComponent } from './components/edit-balance/edit-balance-dialog';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -17,7 +18,6 @@ import {
   hugeEdit02,
 } from '@ng-icons/huge-icons';
 import { MoneySourceService } from './services/money-source.service';
-import { AuthService } from '../services/auth.service';
 import { MoneySource } from './models/money-source.model';
 
 @Component({
@@ -41,9 +41,8 @@ import { MoneySource } from './models/money-source.model';
     class: 'flex-1 overflow-y-auto pb-4',
   },
 })
-export class Finance implements OnInit {
+export class Finance {
   private readonly moneySourceService = inject(MoneySourceService);
-  private readonly authService = inject(AuthService);
   private readonly dialogService = inject(HlmDialogService);
 
   readonly sources = this.moneySourceService.sources;
@@ -52,13 +51,6 @@ export class Finance implements OnInit {
   readonly mockMonthlyIncome = 3500000;
   readonly mockMonthlyExpenses = 2100000;
   readonly mockTransactionCount = 24;
-
-  ngOnInit(): void {
-    const userId = this.authService.currentUser()?.uid;
-    if (userId) {
-      this.moneySourceService.getSources(userId);
-    }
-  }
 
   getSourceIcon(type: string): string {
     switch (type) {
@@ -77,5 +69,9 @@ export class Finance implements OnInit {
     this.dialogService.open(EditBalanceDialogComponent, {
       context: { source },
     });
+  }
+
+  openAddTransaction(): void {
+    this.dialogService.open(AddTransactionDialogComponent);
   }
 }
