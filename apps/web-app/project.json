@@ -1,20 +1,20 @@
 {
-  "$schema": "node_modules/nx/schemas/project-schema.json",
-  "name": "q-assist",
+  "name": "web-app",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
+  "sourceRoot": "apps/web-app/src",
+  "prefix": "app",
   "generators": {
     "@schematics/angular:component": {
       "style": "scss"
     }
   },
-  "sourceRoot": "src",
-  "prefix": "app",
   "targets": {
     "build": {
       "executor": "@angular/build:application",
       "options": {
-        "browser": "src/main.ts",
-        "tsConfig": "tsconfig.app.json",
+        "browser": "apps/web-app/src/main.ts",
+        "tsConfig": "apps/web-app/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
           {
@@ -23,8 +23,8 @@
           }
         ],
         "styles": [
-          "src/tailwind.css",
-          "src/styles.scss",
+          "apps/web-app/src/tailwind.css",
+          "apps/web-app/src/styles.scss",
           "node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css",
           "node_modules/katex/dist/katex.min.css"
         ],
@@ -46,7 +46,7 @@
           "node_modules/katex/dist/katex.min.js",
           "node_modules/katex/dist/contrib/auto-render.min.js"
         ],
-        "outputPath": "dist/q-assist"
+        "outputPath": "dist/web-app"
       },
       "configurations": {
         "production": {
@@ -64,8 +64,8 @@
           ],
           "fileReplacements": [
             {
-              "replace": "src/environments/environment.ts",
-              "with": "src/environments/environment.prod.ts"
+              "replace": "apps/web-app/src/environments/environment.ts",
+              "with": "apps/web-app/src/environments/environment.prod.ts"
             }
           ],
           "outputHashing": "all"
@@ -81,8 +81,8 @@
           "prerender": false,
           "fileReplacements": [
             {
-              "replace": "src/environments/environment.ts",
-              "with": "src/environments/environment.mobile.ts"
+              "replace": "apps/web-app/src/environments/environment.ts",
+              "with": "apps/web-app/src/environments/environment.mobile.ts"
             }
           ],
           "budgets": [
@@ -96,18 +96,16 @@
         }
       },
       "defaultConfiguration": "production",
-      "outputs": [
-        "{options.outputPath}"
-      ]
+      "outputs": ["{options.outputPath}"]
     },
     "serve": {
       "executor": "@angular/build:dev-server",
       "configurations": {
         "production": {
-          "buildTarget": "q-assist:build:production"
+          "buildTarget": "web-app:build:production"
         },
         "development": {
-          "buildTarget": "q-assist:build:development"
+          "buildTarget": "web-app:build:development"
         }
       },
       "defaultConfiguration": "development"
@@ -118,14 +116,9 @@
     "lint": {
       "executor": "@angular-eslint/builder:lint",
       "options": {
-        "lintFilePatterns": [
-          "src/**/*.ts",
-          "src/**/*.html"
-        ]
+        "lintFilePatterns": ["apps/web-app/src/**/*.ts", "apps/web-app/src/**/*.html"]
       },
-      "outputs": [
-        "{options.outputFile}"
-      ]
+      "outputs": ["{options.outputFile}"]
     }
   }
 }

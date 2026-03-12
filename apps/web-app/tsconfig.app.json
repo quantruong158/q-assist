@@ -3,7 +3,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./out-tsc/app",
+    "outDir": "../../out-tsc/app",
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "functions/src/ai-model.config.ts"],

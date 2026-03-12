@@ -1,15 +1,14 @@
 {
-  "name": "q-assist",
+  "name": "qos",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "nx serve",
-    "build": "nx build",
-    "watch": "nx build --watch --configuration development",
-    "test": "nx test",
-    "serve:ssr:q-assist": "node dist/q-assist/server/server.mjs",
-    "lint": "nx lint",
-    "build:mobile": "nx build --configuration=mobile",
+    "start": "nx serve web-app",
+    "build": "nx build web-app",
+    "watch": "nx build web-app --watch --configuration development",
+    "test": "nx test web-app",
+    "lint": "nx lint web-app",
+    "build:mobile": "nx build web-app --configuration=mobile",
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
@@ -74,7 +73,9 @@
     "@angular/build": "^21.1.1",
     "@angular/cli": "^21.1.1",
     "@angular/compiler-cli": "^21.1.0",
+    "@eslint/js": "~8.57.0",
     "@nx/angular": "22.5.4",
+    "@nx/eslint-plugin": "22.5.4",
     "@nx/workspace": "22.5.4",
     "@schematics/angular": "^21.1.1",
     "@spartan-ng/cli": "0.0.1-alpha.644",
@@ -89,5 +90,6 @@
     "typescript": "~5.9.2",
     "typescript-eslint": "8.47.0",
     "vitest": "^4.0.8"
-  }
+  },
+  "nx": {}
 }
