@@ -10,8 +10,8 @@ import {
   limit,
 } from '@angular/fire/firestore';
 import { AuthService } from '../../services/auth.service';
-import { MoneyTransaction } from '../models/transaction.model';
-import { MoneySource } from '../models/money-source.model';
+import { MoneyTransaction } from '@qos/shared/models';
+import { MoneySource } from '@qos/shared/models';
 import { MoneySourceService } from './money-source.service';
 import { convertTimestamp } from '../../shared/utils/time.utils';
 

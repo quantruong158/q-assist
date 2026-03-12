@@ -15,7 +15,7 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { AuthService } from '../../../services/auth.service';
-import { TransactionType } from '../../models/transaction.model';
+import { TransactionType } from '@qos/shared/models';
 import { MoneySourceService } from '../../services/money-source.service';
 import { TransactionService } from '../../services/transaction.service';
 

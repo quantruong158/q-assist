@@ -5,7 +5,6 @@ import {
   effect,
   ElementRef,
   inject,
-  input,
   model,
   resource,
   signal,
@@ -26,7 +25,7 @@ import { LayoutService } from '../services/layout.service';
 import { CameraService } from '../services/camera.service';
 import { PlatformService } from '../services/platform.service';
 import { Attachment } from '../models';
-import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from '../ai-model.config';
+import { DEFAULT_MODEL, SUPPORTED_MODELS, AiModel } from '@qos/shared/models';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';

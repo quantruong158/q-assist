@@ -5,7 +5,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
-import { MoneySource } from '../../models/money-source.model';
+import { MoneySource } from '@qos/shared/models';
 import { MoneySourceService } from '../../services/money-source.service';
 
 export interface EditBalanceDialogData {

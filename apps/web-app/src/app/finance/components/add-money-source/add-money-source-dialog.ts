@@ -5,7 +5,7 @@ import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
-import { MoneySourceType } from '../../models/money-source.model';
+import { MoneySourceType } from '@qos/shared/models';
 import { MoneySourceService } from '../../services/money-source.service';
 import { AuthService } from '../../../services/auth.service';
 import { BrnSelectImports } from '@spartan-ng/brain/select';

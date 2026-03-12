@@ -3,7 +3,7 @@ import { Request } from 'firebase-functions/v2/https';
 import { Response } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
 import { processNotificationFlow } from '../../genkit/process-notification-flow';
-import { MoneyTransaction } from '../schemas/finance.schema';
+import { MoneyTransactionData } from '@qos/shared/models';
 
 interface InboundNotification {
   userId: string;
@@ -28,11 +28,11 @@ export const notificationHandler = async (req: Request, res: Response): Promise<
     timestamp: new Date().toISOString(),
   });
 
-  const parsedResult = await processNotificationFlow(req.body.message);
+  const parsedResult = await processNotificationFlow(notification.content);
 
   if (parsedResult && parsedResult.type !== 'non_transaction') {
     const db = getFirestore();
-    const transaction: MoneyTransaction = {
+    const transaction: MoneyTransactionData = {
       userId: notification.userId,
       type: parsedResult.type,
       amount: parsedResult.amount,

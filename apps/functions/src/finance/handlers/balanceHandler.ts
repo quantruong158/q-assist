@@ -1,6 +1,6 @@
 import { logger } from 'firebase-functions';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { Balance, MoneySourceType } from '../schemas/finance.schema';
+import { BalanceData, MoneySourceType } from '@qos/shared/models';
 import { onDocumentWritten } from 'firebase-functions/firestore';
 
 interface TransactionData {
@@ -35,7 +35,7 @@ async function updateBalanceOnTransaction(
       newTotal += delta;
     }
 
-    const newBalance: Balance = {
+    const newBalance: BalanceData = {
       ...balance,
       total: newTotal,
       byType: newByType,
@@ -52,7 +52,7 @@ async function updateBalanceOnTransaction(
   });
 }
 
-function createInitialBalance(userId: string): Balance {
+function createInitialBalance(userId: string): BalanceData {
   return {
     userId,
     total: 0,
@@ -146,7 +146,7 @@ export const onMoneySourceWrite = onDocumentWritten(
         const userData = userDoc.exists ? userDoc.data() : null;
         const balance = userData?.balance || createInitialBalance(userId);
 
-        const newBalance: Balance = {
+        const newBalance: BalanceData = {
           ...balance,
           total: balance.total + balanceDelta,
           byType: {

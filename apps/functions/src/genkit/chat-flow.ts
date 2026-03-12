@@ -1,6 +1,6 @@
 import { googleAI } from '@genkit-ai/google-genai';
 import { genkit, z } from 'genkit';
-import { DEFAULT_MODEL, SUPPORTED_MODELS } from '../ai-model.config';
+import { DEFAULT_MODEL, SUPPORTED_MODELS } from '@qos/shared/models';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 const ai = genkit({

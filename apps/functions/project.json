@@ -22,7 +22,8 @@
           "outExtension": {
             ".js": ".js"
           }
-        }
+        },
+        "external": ["@google-cloud/functions-framework"]
       },
       "configurations": {
         "development": {},

@@ -10,9 +10,9 @@ import {
   serverTimestamp,
   doc,
 } from '@angular/fire/firestore';
-import { MoneySource } from '../models/money-source.model';
 import { AuthService } from '../../services/auth.service';
 import { convertTimestamp } from '../../shared/utils/time.utils';
+import { MoneySource } from '@qos/shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class MoneySourceService {
@@ -60,6 +60,7 @@ export class MoneySourceService {
     });
 
     await this.getSources(userId);
+    this.sourcesResource.reload();
     return docRef.id;
   }
 

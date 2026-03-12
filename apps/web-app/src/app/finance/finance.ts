@@ -18,7 +18,7 @@ import {
   hugeEdit02,
 } from '@ng-icons/huge-icons';
 import { MoneySourceService } from './services/money-source.service';
-import { MoneySource } from './models/money-source.model';
+import { MoneySource } from '@qos/shared/models';
 
 @Component({
   selector: 'app-finance',

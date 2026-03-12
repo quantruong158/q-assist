@@ -1,30 +1,23 @@
-import { Timestamp } from 'firebase-admin/firestore';
-
 export type TransactionType = 'income' | 'expense';
 export type MoneySourceType = 'bank' | 'ewallet' | 'cash';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'paused';
 export type BillingCycle = 'monthly' | 'yearly';
 
-/**
- * Firestore Path Structure:
- * users/{userId}/transactions/{transactionId}
- * users/{userId}/balance
- * users/{userId}/subscriptions/{subscriptionId}
- * users/{userId}/transaction-categories/{categoryId}
- * users/{userId}/money-sources/{sourceId}
- */
-
-export interface TransactionCategory {
+export interface TransactionCategoryData {
   userId: string;
   name: string;
   icon?: string;
   type: TransactionType;
   color?: string;
-  createdAt: Timestamp | string;
-  updatedAt?: Timestamp | string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
-export interface MoneySource {
+export interface TransactionCategory extends TransactionCategoryData {
+  id: string;
+}
+
+export interface MoneySourceData {
   userId: string;
   name: string;
   type: MoneySourceType;
@@ -32,11 +25,15 @@ export interface MoneySource {
   currency: string;
   isActive: boolean;
   accountNumber?: string;
-  createdAt: Timestamp | string;
-  updatedAt?: Timestamp | string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
-export interface MoneyTransaction {
+export interface MoneySource extends MoneySourceData {
+  id: string;
+}
+
+export interface MoneyTransactionData {
   userId: string;
   amount: number;
   currency: string;
@@ -48,11 +45,15 @@ export interface MoneyTransaction {
   notes?: string;
   tags?: string[];
   receiptUrl?: string;
-  timestamp: Timestamp | string;
-  updatedAt?: Timestamp | string;
+  timestamp: string;
+  updatedAt?: string;
 }
 
-export interface Balance {
+export interface MoneyTransaction extends MoneyTransactionData {
+  id: string;
+}
+
+export interface BalanceData {
   userId: string;
   total: number;
   byType: {
@@ -61,20 +62,28 @@ export interface Balance {
     cash: number;
   };
   sourceIds: string[];
-  lastUpdated: Timestamp | string;
+  lastUpdated: string;
 }
 
-export interface Subscription {
+export interface Balance extends BalanceData {
+  id: string;
+}
+
+export interface SubscriptionData {
   userId: string;
   service: string;
   amount: number;
   currency: string;
   billingCycle: BillingCycle;
-  nextBillingDate: Timestamp | string;
+  nextBillingDate: string;
   category?: string;
   status: SubscriptionStatus;
   logoUrl?: string;
-  createdAt: Timestamp | string;
-  updatedAt?: Timestamp | string;
-  cancelledAt?: Timestamp | string;
+  createdAt: string;
+  updatedAt?: string;
+  cancelledAt?: string;
+}
+
+export interface Subscription extends SubscriptionData {
+  id: string;
 }
