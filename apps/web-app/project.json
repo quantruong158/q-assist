@@ -1,0 +1,124 @@
+{
+  "name": "web-app",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/web-app/src",
+  "prefix": "app",
+  "generators": {
+    "@schematics/angular:component": {
+      "style": "scss"
+    }
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "options": {
+        "browser": "apps/web-app/src/main.ts",
+        "tsConfig": "apps/web-app/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "public"
+          }
+        ],
+        "styles": [
+          "apps/web-app/src/tailwind.css",
+          "apps/web-app/src/styles.scss",
+          "node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css",
+          "node_modules/katex/dist/katex.min.css"
+        ],
+        "scripts": [
+          "node_modules/prismjs/prism.js",
+          "node_modules/prismjs/components/prism-markup.min.js",
+          "node_modules/prismjs/components/prism-css.min.js",
+          "node_modules/prismjs/components/prism-clike.min.js",
+          "node_modules/prismjs/components/prism-javascript.min.js",
+          "node_modules/prismjs/components/prism-typescript.min.js",
+          "node_modules/prismjs/components/prism-json.min.js",
+          "node_modules/prismjs/components/prism-bash.min.js",
+          "node_modules/prismjs/components/prism-python.min.js",
+          "node_modules/prismjs/components/prism-csharp.min.js",
+          "node_modules/prismjs/plugins/toolbar/prism-toolbar.min.js",
+          "node_modules/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js",
+          "node_modules/prismjs/plugins/show-language/prism-show-language.min.js",
+          "node_modules/prismjs/plugins/line-numbers/prism-line-numbers.min.js",
+          "node_modules/katex/dist/katex.min.js",
+          "node_modules/katex/dist/contrib/auto-render.min.js"
+        ],
+        "outputPath": "dist/apps/web-app"
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1500kB",
+              "maximumError": "2MB"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kB",
+              "maximumError": "8kB"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/web-app/src/environments/environment.ts",
+              "with": "apps/web-app/src/environments/environment.prod.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        },
+        "mobile": {
+          "outputMode": "static",
+          "ssr": false,
+          "prerender": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/web-app/src/environments/environment.ts",
+              "with": "apps/web-app/src/environments/environment.mobile.ts"
+            }
+          ],
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1500kB",
+              "maximumError": "2MB"
+            }
+          ],
+          "outputHashing": "all"
+        }
+      },
+      "defaultConfiguration": "production",
+      "outputs": ["{options.outputPath}"]
+    },
+    "serve": {
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "web-app:build:production"
+        },
+        "development": {
+          "buildTarget": "web-app:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test"
+    },
+    "lint": {
+      "executor": "@angular-eslint/builder:lint",
+      "options": {
+        "lintFilePatterns": ["apps/web-app/src/**/*.ts", "apps/web-app/src/**/*.html"]
+      },
+      "outputs": ["{options.outputFile}"]
+    }
+  }
+}

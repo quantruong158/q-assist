@@ -1,13 +1,12 @@
 {
   "functions": [
     {
-      "source": "functions",
+      "source": "dist/apps/functions",
+      "runtime": "nodejs24",
       "codebase": "default",
       "disallowLegacyRuntimeConfig": true,
       "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log", "*.local"],
-      "predeploy": [
-        "cd \"$RESOURCE_DIR\" && pnpm run build"
-      ]
+      "predeploy": ["npx nx build functions"]
     }
   ],
   "storage": {
@@ -17,7 +16,8 @@
     "rules": "firestore.rules"
   },
   "hosting": {
-    "public": "dist/q-assist/browser",
+    "public": "dist/apps/web-app/browser",
+    "predeploy": ["npx nx build web-app --configuration=production"],
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
