@@ -64,3 +64,8 @@ ios/
 .firebase/
 firebase-debug.log
 firestore-debug.log
+
+
+
+.nx/cache
+.nx/workspace-data
