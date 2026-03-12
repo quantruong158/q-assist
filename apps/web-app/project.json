@@ -46,7 +46,7 @@
           "node_modules/katex/dist/katex.min.js",
           "node_modules/katex/dist/contrib/auto-render.min.js"
         ],
-        "outputPath": "dist/web-app"
+        "outputPath": "dist/apps/web-app"
       },
       "configurations": {
         "production": {

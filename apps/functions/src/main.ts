@@ -4,7 +4,7 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 admin.firestore();
 
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({ maxInstances: 3 });
 
 import { onCallGenkit, onRequest } from 'firebase-functions/https';
 import { chatFlow } from './genkit/chat-flow';

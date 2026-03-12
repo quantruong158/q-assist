@@ -3,8 +3,6 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { Balance, MoneySourceType } from '../schemas/finance.schema';
 import { onDocumentWritten } from 'firebase-functions/firestore';
 
-const firestore = getFirestore();
-
 interface TransactionData {
   amount: number;
   type: 'income' | 'expense';
@@ -16,6 +14,7 @@ async function updateBalanceOnTransaction(
   sourceId: string,
   delta: number,
 ): Promise<void> {
+  const firestore = getFirestore();
   const userRef = firestore.doc(`users/${userId}`);
   const sourceRef = firestore.doc(`users/${userId}/money-sources/${sourceId}`);
 
@@ -125,6 +124,8 @@ export const onTransactionWrite = onDocumentWritten(
 export const onMoneySourceWrite = onDocumentWritten(
   'users/{userId}/money-sources/{sourceId}',
   async (event: any) => {
+    const firestore = getFirestore();
+
     const { userId } = event.params;
     const beforeData = event.data?.before?.data();
     const afterData = event.data?.after?.data();

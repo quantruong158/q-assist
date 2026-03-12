@@ -15,8 +15,6 @@ yarn-error.log
 .env
 .env.local
 .env.*.local
-/src/environments/*.ts
-!/src/environments/environment.example.ts
 firebase-admin-service-account.json
 
 # IDEs and editors
