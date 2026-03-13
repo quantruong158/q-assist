@@ -66,7 +66,13 @@
       "@spartan-ng/helm/tooltip": ["libs/shared/ui/tooltip/src/index.ts"],
       "@spartan-ng/helm/typography": ["libs/shared/ui/typography/src/index.ts"],
       "@spartan-ng/helm/utils": ["libs/shared/ui/utils/src/index.ts"],
-      "@qos/shared/models": ["libs/shared/models/src/index.ts"]
-    }
-  }
+      "@qos/shared/models": ["libs/shared/models/src/index.ts"],
+      "@qos/finance/feat-dashboard": ["libs/finance/feat-dashboard/src/index.ts"],
+      "@qos/finance/ui": ["libs/finance/ui/src/index.ts"],
+      "@qos/finance/shared-models": ["libs/finance/shared-models/src/index.ts"],
+      "@qos/shared/auth/data-access": ["libs/shared/auth/data-access/src/index.ts"],
+      "@qos/shared/util-angular": ["libs/shared/util-angular/src/index.ts"],
+      "@qos/finance/data-access": ["libs/finance/data-access/src/index.ts"],
+    },
+  },
 }

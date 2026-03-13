@@ -67,3 +67,6 @@ firestore-debug.log
 
 .nx/cache
 .nx/workspace-data
+.angular
+
+vitest.config.*.timestamp*

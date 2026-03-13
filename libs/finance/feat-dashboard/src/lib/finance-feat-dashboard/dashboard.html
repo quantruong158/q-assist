@@ -1,0 +1,117 @@
+<div class="p-4 space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Finance</h1>
+      <p class="text-muted-foreground">Track your spending and savings</p>
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div class="flex h-12 w-12 text-xl items-center justify-center rounded-full bg-primary/10">
+          <ng-icon hlm name="hugeMoneyBag02" class="text-primary" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Total Balance</p>
+          <p class="text-2xl font-medium">{{ totalBalance() | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-xl"
+        >
+          <ng-icon hlm name="hugeArrowUpRight01" class="text-green-600 dark:text-green-400" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Monthly Income</p>
+          <p class="text-2xl font-medium text-green-600 dark:text-green-400">
+            +{{ mockMonthlyIncome | number }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-xl"
+        >
+          <ng-icon hlm name="hugeArrowDownRight01" class="text-red-600 dark:text-red-400" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Monthly Expenses</p>
+          <p class="text-2xl font-medium">-{{ mockMonthlyExpenses | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-xl"
+        >
+          <ng-icon hlm name="hugeTransaction" class="text-blue-600 dark:text-blue-400" />
+        </div>
+        <div>
+          <p class="text-sm text-muted-foreground">Transactions</p>
+          <p class="text-2xl font-medium">{{ mockTransactionCount }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (sources().length > 0) {
+    <div class="flex gap-4 flex-wrap items-center">
+      @for (source of sources(); track source.id) {
+        <div class="rounded-xl border bg-card p-4 group sm:w-50">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center rounded-full">
+              <ng-icon hlm [name]="getSourceIcon(source.type)" />
+            </div>
+            <div class="flex-1">
+              <p class="font-medium">{{ source.name }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <p class="text-lg font-medium">{{ source.balance | number }}</p>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              (click)="openEditBalance(source)"
+              class="opacity-0 group-hover:opacity-100 rounded-full transition-opacity duration-200 ease-linear"
+            >
+              <ng-icon hlm name="hugeEdit02" />
+            </button>
+          </div>
+        </div>
+      }
+      <finance-add-money-source-dialog />
+    </div>
+  } @else {
+    <div class="flex flex-col items-center gap-4 bg-card border rounded-xl p-4">
+      <p class="text-center">No money sources added yet</p>
+      <finance-add-money-source-dialog />
+    </div>
+  }
+
+  <finance-transaction-list
+    [transactions]="transactionStore.transactions()"
+    [isLoading]="transactionStore.isLoading()"
+  />
+</div>
+
+<button
+  hlmBtn
+  size="lg"
+  class="fixed right-6 bottom-6 z-20 rounded-full px-4 shadow-lg w-10 sm:w-fit"
+  aria-label="Add new transaction"
+  (click)="openAddTransaction()"
+>
+  <ng-icon hlm name="hugeTransaction" class="text-base" />
+  <span class="ml-2 hidden sm:inline">New transaction</span>
+</button>

@@ -1,0 +1,51 @@
+<div>
+  <div class="rounded-2xl border bg-card max-w-md">
+    <p class="p-4 text-lg font-medium">Recent Transactions</p>
+    @if (isLoading()) {
+      <div class="flex items-center justify-center gap-3 py-8 text-muted-foreground">
+        <hlm-spinner class="text-lg" aria-label="Loading transactions" />
+        <span>Loading transactions...</span>
+      </div>
+    } @else if (transactions().length === 0) {
+      <div class="flex flex-col items-center justify-center pb-8 text-center text-muted-foreground">
+        <ng-icon hlm name="hugeWallet03" class="mb-4 h-12 w-12" />
+        <p class="text-lg font-medium">No transactions yet</p>
+        <p class="text-sm">Your transaction history will appear here</p>
+      </div>
+    }
+    @for (transaction of transactions(); track transaction.id) {
+      <div class="flex items-center gap-4 px-4 py-2 transition-colors">
+        <div
+          class="flex h-10 w-10 items-center justify-center rounded-full"
+          [class]="
+            transaction.type === 'income'
+              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+              : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+          "
+        >
+          <ng-icon
+            hlm
+            [name]="transaction.type === 'income' ? 'hugeArrowUpRight01' : 'hugeArrowDownRight01'"
+            class="h-5 w-5"
+          />
+        </div>
+        <div class="flex-1">
+          <p class="font-medium">
+            {{ transaction.sourceName }}
+            @if (transaction.merchant !== transaction.sourceName) {
+              <span class="text-sm text-muted-foreground">{{ transaction.merchant }}</span>
+            }
+          </p>
+          <p class="text-sm text-muted-foreground">{{ transaction.timestamp | date: 'medium' }}</p>
+        </div>
+        <p
+          class="text-lg font-medium"
+          [class]="transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : ''"
+        >
+          {{ transaction.type === 'income' ? '+' : '-' }}{{ transaction.amount | number }}
+          <span class="text-xs font-normal">{{ transaction.currency }}</span>
+        </p>
+      </div>
+    }
+  </div>
+</div>

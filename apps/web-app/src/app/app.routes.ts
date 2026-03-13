@@ -19,7 +19,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'finance',
-        loadComponent: () => import('./finance/finance').then((m) => m.Finance),
+        loadComponent: () => import('@qos/finance/feat-dashboard').then((m) => m.FinanceDashboard),
         data: { activeContext: 'finance' },
       },
       {

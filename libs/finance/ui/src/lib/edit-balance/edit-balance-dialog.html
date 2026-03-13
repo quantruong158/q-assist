@@ -1,0 +1,26 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Update Balance</h3>
+  <p hlmDialogDescription>Update the balance for {{ data.source.name }}</p>
+</hlm-dialog-header>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="grid gap-4 py-4">
+    <div class="grid grid-cols-4 items-center gap-4">
+      <label hlmLabel for="balance" class="text-right">New Balance</label>
+      <input
+        hlmInput
+        id="balance"
+        type="number"
+        formControlName="balance"
+        placeholder="0.00"
+        class="col-span-3"
+      />
+    </div>
+  </div>
+
+  <hlm-dialog-footer>
+    <button hlmBtn type="submit" [disabled]="isSubmitting() || form.invalid">
+      {{ isSubmitting() ? 'Updating...' : 'Update Balance' }}
+    </button>
+  </hlm-dialog-footer>
+</form>
