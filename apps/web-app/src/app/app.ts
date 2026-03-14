@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 
-import { AuthService } from './services/auth.service';
+import { AuthStore } from '@qos/shared/auth/data-access';
 
 @Component({
   selector: 'app-root',
@@ -11,5 +11,5 @@ import { AuthService } from './services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-  protected readonly authService = inject(AuthService);
+  protected readonly authStore = inject(AuthStore);
 }

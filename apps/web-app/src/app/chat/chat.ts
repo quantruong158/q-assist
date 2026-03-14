@@ -17,7 +17,7 @@ import { CameraSource } from '@capacitor/camera';
 
 import { ChatService } from './chat.service';
 import { Message } from './message/message';
-import { AuthService } from '../services/auth.service';
+import { AuthStore } from '@qos/shared/auth/data-access';
 import { ConversationService } from '../services/conversation.service';
 import { MessageService } from '../services/message.service';
 import { UploadService, UploadResult } from '../services/upload.service';
@@ -100,7 +100,7 @@ interface PendingAttachment {
 export class Chat {
   private readonly chatService = inject(ChatService);
   private readonly chatStateService = inject(ChatStateService);
-  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
   private readonly conversationService = inject(ConversationService);
   private readonly messageService = inject(MessageService);
   private readonly uploadService = inject(UploadService);
@@ -203,7 +203,7 @@ export class Chat {
     },
   );
 
-  protected readonly currentUser = computed(() => this.authService.currentUser());
+  protected readonly currentUser = computed(() => this.authStore.currentUser());
 
   protected readonly canSend = computed(() => {
     const hasContent = this.userPrompt()?.trim() || this.pendingAttachments().length > 0;

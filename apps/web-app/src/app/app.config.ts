@@ -15,7 +15,7 @@ import { provideMarkdown } from 'ngx-markdown';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { ThemeService } from './services/theme.service';
-import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { authInterceptor } from '@qos/shared/auth/util';
 import { provideNgIconsConfig } from '@ng-icons/core';
 import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
 import { connectStorageEmulator, getStorage, provideStorage } from '@angular/fire/storage';

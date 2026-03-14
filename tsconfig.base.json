@@ -73,6 +73,9 @@
       "@qos/shared/auth/data-access": ["libs/shared/auth/data-access/src/index.ts"],
       "@qos/shared/util-angular": ["libs/shared/util-angular/src/index.ts"],
       "@qos/finance/data-access": ["libs/finance/data-access/src/index.ts"],
+      "@qos/shared/auth/util": ["libs/shared/auth/util/src/index.ts"],
+      "@qos/shared/auth/ui": ["libs/shared/auth/ui/src/index.ts"],
+      "@qos/shared/auth/feat-auth": ["libs/shared/auth/feat-auth/src/index.ts"],
     },
   },
 }

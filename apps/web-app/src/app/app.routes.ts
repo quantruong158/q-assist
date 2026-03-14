@@ -1,15 +1,15 @@
 import { Routes } from '@angular/router';
-import { authGuard, publicGuard } from './guards/auth.guard';
+import { authGuard, publicGuard } from '@qos/shared/auth/util';
 
 export const routes: Routes = [
   {
     path: 'login',
-    loadComponent: () => import('./auth/login/login').then((m) => m.Login),
+    loadComponent: () => import('@qos/shared/auth/feat-auth').then((m) => m.AuthLogin),
     canActivate: [publicGuard],
   },
   {
     path: 'register',
-    loadComponent: () => import('./auth/register/register').then((m) => m.Register),
+    loadComponent: () => import('@qos/shared/auth/feat-auth').then((m) => m.AuthRegister),
     canActivate: [publicGuard],
   },
   {
