@@ -1,0 +1,145 @@
+<div class="flex min-h-screen items-center justify-center p-4">
+  <section hlmCard class="w-full max-w-100 rounded-(--radius)" aria-labelledby="register-title">
+    <header hlmCardHeader>
+      <h1 hlmCardTitle id="register-title">Create Account</h1>
+      <p hlmCardDescription>Join us today!</p>
+    </header>
+
+    <div hlmCardContent>
+      @if (errorMessage()) {
+        <div hlmAlert variant="destructive" class="flex items-center gap-3 px-4 py-3">
+          <ng-icon hlmAlertIcon name="hugeAlert02" />
+          <p hlmAlertDescription>{{ errorMessage() }}</p>
+        </div>
+      }
+
+      <form [formGroup]="form()" (ngSubmit)="submitted.emit()" class="flex flex-col gap-3">
+        <hlm-form-field>
+          <label hlmLabel for="register-display-name">Display Name</label>
+          <div hlmInputGroup>
+            <input
+              id="register-display-name"
+              hlmInputGroupInput
+              type="text"
+              formControlName="displayName"
+              placeholder="Enter your name"
+              autocomplete="name"
+            />
+            <span hlmInputGroupAddon align="inline-end">
+              <ng-icon hlm name="hugeUser" />
+            </span>
+          </div>
+          @if (form().controls.displayName.hasError('required')) {
+            <hlm-error>Name is required</hlm-error>
+          } @else if (form().controls.displayName.hasError('minlength')) {
+            <hlm-error>Name must be at least 2 characters</hlm-error>
+          }
+        </hlm-form-field>
+
+        <hlm-form-field>
+          <label hlmLabel for="register-email">Email</label>
+          <div hlmInputGroup>
+            <input
+              id="register-email"
+              hlmInputGroupInput
+              type="email"
+              formControlName="email"
+              placeholder="Enter your email"
+              autocomplete="email"
+            />
+            <span hlmInputGroupAddon align="inline-end">
+              <ng-icon hlm name="hugeMail01" />
+            </span>
+          </div>
+          @if (form().controls.email.hasError('required')) {
+            <hlm-error>Email is required</hlm-error>
+          } @else if (form().controls.email.hasError('email')) {
+            <hlm-error>Please enter a valid email</hlm-error>
+          }
+        </hlm-form-field>
+
+        <hlm-form-field>
+          <label hlmLabel for="register-password">Password</label>
+          <div hlmInputGroup>
+            <input
+              id="register-password"
+              hlmInputGroupInput
+              [type]="hidePassword() ? 'password' : 'text'"
+              formControlName="password"
+              placeholder="Create a password"
+              autocomplete="new-password"
+            />
+            <span hlmInputGroupAddon align="inline-end">
+              <button
+                hlmInputGroupButton
+                type="button"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+              >
+                <ng-icon hlm [name]="hidePassword() ? 'hugeViewOffSlash' : 'hugeView'" />
+              </button>
+            </span>
+          </div>
+          @if (form().controls.password.hasError('required')) {
+            <hlm-error>Password is required</hlm-error>
+          } @else if (form().controls.password.hasError('minlength')) {
+            <hlm-error>Password must be at least 6 characters</hlm-error>
+          }
+        </hlm-form-field>
+
+        <hlm-form-field>
+          <label hlmLabel for="register-confirm-password">Confirm Password</label>
+          <div hlmInputGroup>
+            <input
+              id="register-confirm-password"
+              hlmInputGroupInput
+              [type]="hideConfirmPassword() ? 'password' : 'text'"
+              formControlName="confirmPassword"
+              placeholder="Confirm your password"
+              autocomplete="new-password"
+            />
+            <span hlmInputGroupAddon align="inline-end">
+              <button
+                hlmInputGroupButton
+                type="button"
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="hideConfirmPassword() ? 'Show password' : 'Hide password'"
+              >
+                <ng-icon hlm [name]="hideConfirmPassword() ? 'hugeViewOffSlash' : 'hugeView'" />
+              </button>
+            </span>
+          </div>
+          @if (form().controls.confirmPassword.hasError('required')) {
+            <hlm-error>Please confirm your password</hlm-error>
+          } @else if (form().controls.confirmPassword.hasError('passwordMismatch')) {
+            <hlm-error>Passwords do not match</hlm-error>
+          }
+        </hlm-form-field>
+
+        <button
+          hlmBtn
+          type="submit"
+          [disabled]="isLoading() || form().invalid"
+          class="mt-2 h-12 text-base"
+        >
+          @if (isLoading()) {
+            <hlm-spinner class="text-base" aria-label="Creating account" />
+          } @else {
+            Create Account
+          }
+        </button>
+      </form>
+
+      <div hlmSeparator class="my-4"></div>
+
+      <auth-google-button [disabled]="isLoading()" (clicked)="googleClick.emit()" />
+    </div>
+
+    <footer hlmCardFooter class="justify-end">
+      <span class="text-sm text-muted-foreground">
+        Already have an account?
+        <a routerLink="/login" class="font-medium text-primary hover:underline">Sign in</a>
+      </span>
+    </footer>
+  </section>
+</div>

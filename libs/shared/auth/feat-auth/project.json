@@ -1,0 +1,13 @@
+{
+  "name": "auth-feat-auth",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/auth/feat-auth/src",
+  "prefix": "auth",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
