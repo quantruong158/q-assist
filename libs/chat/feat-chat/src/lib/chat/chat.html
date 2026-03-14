@@ -1,0 +1,27 @@
+<div #messagesContainer>
+  <chat-message-list
+    [messages]="messages()"
+    [streamingContent]="streamingContent()"
+    [isStreaming]="isStreaming()"
+    [isConversationLoading]="isConversationLoading()"
+    [isInitialChat]="isInitialChat()"
+    [currentUserDisplayName]="currentUser()?.displayName ?? undefined"
+  />
+</div>
+
+<chat-composer
+  [inputText]="inputText"
+  [selectedModel]="selectedModel"
+  [models]="models"
+  [compareModels]="compareModels"
+  [pendingAttachments]="composerAttachments()"
+  [canSend]="canSend()"
+  [isStreaming]="isStreaming()"
+  [isInitialChat]="isInitialChat()"
+  [maxFiles]="maxFiles"
+  (send)="sendMessage()"
+  (sendShortcut)="sendMessage()"
+  (filesSelected)="onFilesSelected($event)"
+  (removeAttachment)="removeAttachment($event)"
+  (takePhoto)="onTakePhoto()"
+/>

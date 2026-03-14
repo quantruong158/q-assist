@@ -14,7 +14,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    loadComponent: () => import('./layout/layout').then((m) => m.Layout),
+    loadComponent: () => import('@qos/shared/ui-shell').then((m) => m.ShellLayout),
     canActivate: [authGuard],
     children: [
       {
@@ -24,12 +24,12 @@ export const routes: Routes = [
       },
       {
         path: 'chat/:id',
-        loadComponent: () => import('./chat/chat').then((m) => m.Chat),
+        loadComponent: () => import('@qos/chat/feat-chat').then((m) => m.Chat),
         data: { activeContext: 'chat' },
       },
       {
         path: 'chat',
-        loadComponent: () => import('./chat/chat').then((m) => m.Chat),
+        loadComponent: () => import('@qos/chat/feat-chat').then((m) => m.Chat),
         data: { activeContext: 'chat' },
       },
       {
