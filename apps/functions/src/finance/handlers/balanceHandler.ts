@@ -1,6 +1,6 @@
 import { logger } from 'firebase-functions';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { BalanceData, MoneySourceType } from '@qos/shared/models';
+import { BalanceData, MoneySourceType } from '@qos/finance/shared-models';
 import { onDocumentWritten } from 'firebase-functions/firestore';
 
 interface TransactionData {
@@ -28,7 +28,7 @@ async function updateBalanceOnTransaction(
       : null;
 
     let newTotal = balance.total;
-    let newByType = { ...balance.byType };
+    const newByType = { ...balance.byType };
 
     if (source) {
       newByType[source.type] = (newByType[source.type] || 0) + delta;
@@ -83,7 +83,7 @@ function getTransactionDelta(
 
 export const onTransactionWrite = onDocumentWritten(
   'users/{userId}/transactions/{transactionId}',
-  async (event: any) => {
+  async (event) => {
     const { userId } = event.params;
     const beforeData = event.data?.before?.data() as TransactionData | undefined;
     const afterData = event.data?.after?.data() as TransactionData | undefined;
@@ -123,7 +123,7 @@ export const onTransactionWrite = onDocumentWritten(
 
 export const onMoneySourceWrite = onDocumentWritten(
   'users/{userId}/money-sources/{sourceId}',
-  async (event: any) => {
+  async (event) => {
     const firestore = getFirestore();
 
     const { userId } = event.params;

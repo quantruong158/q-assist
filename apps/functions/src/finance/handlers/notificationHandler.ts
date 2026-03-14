@@ -3,7 +3,7 @@ import { Request } from 'firebase-functions/v2/https';
 import { Response } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
 import { processNotificationFlow } from '../../genkit/process-notification-flow';
-import { MoneyTransactionData } from '@qos/shared/models';
+import { MoneyTransactionData } from '@qos/finance/shared-models';
 
 interface InboundNotification {
   userId: string;

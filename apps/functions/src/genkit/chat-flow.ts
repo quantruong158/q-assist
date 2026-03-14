@@ -1,5 +1,5 @@
 import { googleAI } from '@genkit-ai/google-genai';
-import { genkit, z } from 'genkit';
+import { genkit, Part, z } from 'genkit';
 import { DEFAULT_MODEL, SUPPORTED_MODELS } from '@qos/shared/models';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
@@ -53,11 +53,11 @@ export const chatFlow = ai.defineFlow(
 
     const isModelSupportSystemPrompt = SUPPORTED_MODELS.find(
       (m) => m.id === selectedModel,
-    )!.supportSystemPrompt;
+    ).supportSystemPrompt;
 
     const genkitMessages = await Promise.all(
       messages.map(async (msg) => {
-        const contentParts: any[] = [{ text: msg.content }];
+        const contentParts: Part[] = [{ text: msg.content }];
 
         if (msg.attachments && msg.attachments.length > 0) {
           for (const att of msg.attachments) {
@@ -65,7 +65,7 @@ export const chatFlow = ai.defineFlow(
             contentParts.push({
               media: {
                 url: `data:${att.mimeType};base64,${base64Data}`,
-                mimeType: att.mimeType,
+                contentType: att.mimeType,
               },
             });
           }
