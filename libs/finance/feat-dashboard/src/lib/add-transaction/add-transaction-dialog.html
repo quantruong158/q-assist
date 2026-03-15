@@ -1,0 +1,24 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Add Transaction</h3>
+  <p hlmDialogDescription>Log a new income or expense entry for one of your money sources.</p>
+</hlm-dialog-header>
+
+<finance-add-transaction-form
+  [form]="form"
+  [formId]="formId"
+  [sources]="sources()"
+  [hasNoSources]="hasNoSources()"
+  (submitted)="submit()"
+/>
+
+<hlm-dialog-footer>
+  <button hlmBtn type="button" variant="ghost" (click)="close()">Cancel</button>
+  <button
+    hlmBtn
+    type="submit"
+    form="add-transaction-form"
+    [disabled]="isSubmitting() || form.invalid || hasNoSources()"
+  >
+    {{ isSubmitting() ? 'Saving...' : 'Add Transaction' }}
+  </button>
+</hlm-dialog-footer>

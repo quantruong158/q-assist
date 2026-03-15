@@ -1,0 +1,15 @@
+<form [id]="formId()" [formGroup]="form()" (ngSubmit)="submitted.emit()">
+  <div class="grid gap-4 py-4">
+    <div class="grid grid-cols-4 items-center gap-4">
+      <label hlmLabel for="balance" class="text-right">New Balance</label>
+      <input
+        hlmInput
+        id="balance"
+        type="number"
+        formControlName="balance"
+        placeholder="0.00"
+        class="col-span-3"
+      />
+    </div>
+  </div>
+</form>

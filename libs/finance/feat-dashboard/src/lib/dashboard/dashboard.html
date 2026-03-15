@@ -65,38 +65,50 @@
   </div>
 
   @if (sources().length > 0) {
-    <div class="flex gap-4 flex-wrap items-center">
-      @for (source of sources(); track source.id) {
-        <div class="rounded-xl border bg-card p-4 group sm:w-50">
-          <div class="flex items-center gap-3">
-            <div class="flex items-center justify-center rounded-full">
-              <ng-icon hlm [name]="getSourceIcon(source.type)" />
-            </div>
-            <div class="flex-1">
-              <p class="font-medium">{{ source.name }}</p>
-            </div>
-          </div>
-          <div class="flex items-center justify-between">
-            <p class="text-lg font-medium">{{ source.balance | number }}</p>
-            <button
-              hlmBtn
-              variant="ghost"
-              size="icon"
-              (click)="openEditBalance(source)"
-              class="opacity-0 group-hover:opacity-100 rounded-full transition-opacity duration-200 ease-linear"
-            >
-              <ng-icon hlm name="hugeEdit02" />
-            </button>
-          </div>
+  <div class="flex gap-4 flex-wrap items-center">
+    @for (source of sources(); track source.id) {
+    <div class="rounded-xl border bg-card p-4 group sm:w-50">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center rounded-full">
+          <ng-icon hlm [name]="getSourceIcon(source.type)" />
         </div>
-      }
-      <finance-add-money-source-dialog />
+        <div class="flex-1">
+          <p class="font-medium">{{ source.name }}</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-lg font-medium">{{ source.balance | number }}</p>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          (click)="openEditBalance(source)"
+          class="opacity-0 group-hover:opacity-100 rounded-full transition-opacity duration-200 ease-linear"
+        >
+          <ng-icon hlm name="hugeEdit02" />
+        </button>
+      </div>
     </div>
+    }
+    <button
+      hlmDialogTrigger
+      hlmBtn
+      variant="outline"
+      size="icon"
+      hlmTooltip="Add money source"
+      [showDelay]="300"
+      position="bottom"
+      class="rounded-full"
+      (click)="openAddMoneySource()"
+    >
+      <ng-icon hlm name="hugeWalletAdd02" />
+    </button>
+  </div>
   } @else {
-    <div class="flex flex-col items-center gap-4 bg-card border rounded-xl p-4">
-      <p class="text-center">No money sources added yet</p>
-      <finance-add-money-source-dialog />
-    </div>
+  <div class="flex flex-col items-center gap-4 bg-card border rounded-xl p-4">
+    <p class="text-center">No money sources added yet</p>
+    <button hlmBtn (click)="openAddMoneySource()">Add money source</button>
+  </div>
   }
 
   <finance-transaction-list

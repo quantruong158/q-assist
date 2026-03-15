@@ -1,0 +1,18 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Add Money Source</h3>
+  <p hlmDialogDescription>Add a new bank account, e-wallet, or cash to track your finances.</p>
+</hlm-dialog-header>
+
+<finance-add-money-source-form [form]="form" [formId]="formId" (submitted)="submit()" />
+
+<hlm-dialog-footer>
+  <button hlmBtn type="button" variant="ghost" (click)="close()">Cancel</button>
+  <button
+    hlmBtn
+    type="submit"
+    form="add-money-source-form"
+    [disabled]="isSubmitting() || form.invalid"
+  >
+    {{ isSubmitting() ? 'Adding...' : 'Add Source' }}
+  </button>
+</hlm-dialog-footer>

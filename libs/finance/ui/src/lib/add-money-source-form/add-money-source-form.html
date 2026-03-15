@@ -1,0 +1,43 @@
+<form [id]="formId()" [formGroup]="form()" (ngSubmit)="submitted.emit()">
+  <div class="grid gap-4 py-4">
+    <div class="grid grid-cols-4 items-center gap-4">
+      <label hlmLabel for="name" class="text-right">Name</label>
+      <input
+        hlmInput
+        id="name"
+        formControlName="name"
+        placeholder="e.g., Chase Bank"
+        class="col-span-3"
+      />
+    </div>
+
+    <div class="grid grid-cols-4 items-center gap-4">
+      <label hlmLabel for="type" class="text-right">Type</label>
+      <hlm-select class="col-span-3" formControlName="type">
+        <hlm-select-trigger id="type">
+          <hlm-select-value placeholder="Select type" />
+        </hlm-select-trigger>
+        <hlm-select-content>
+          <hlm-select-group>
+            <hlm-select-label>Source Type</hlm-select-label>
+            <hlm-option value="bank">Bank</hlm-option>
+            <hlm-option value="ewallet">E-Wallet</hlm-option>
+            <hlm-option value="cash">Cash</hlm-option>
+          </hlm-select-group>
+        </hlm-select-content>
+      </hlm-select>
+    </div>
+
+    <div class="grid grid-cols-4 items-center gap-4">
+      <label hlmLabel for="balance" class="text-right">Balance</label>
+      <input
+        hlmInput
+        id="balance"
+        type="number"
+        formControlName="balance"
+        placeholder="0.00"
+        class="col-span-3"
+      />
+    </div>
+  </div>
+</form>

@@ -20,4 +20,8 @@ export class MoneySourceStore {
   });
   readonly sources = computed<MoneySource[]>(() => this.sourcesResource.value());
   readonly isLoading = computed(() => this.sourcesResource.isLoading());
+
+  reload(): void {
+    this.sourcesResource.reload();
+  }
 }

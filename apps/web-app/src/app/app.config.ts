@@ -7,9 +7,13 @@ import {
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
-import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
+import {
+  provideFirestore,
+  connectFirestoreEmulator,
+  initializeFirestore,
+} from '@angular/fire/firestore';
 import { provideMarkdown } from 'ngx-markdown';
 
 import { environment } from '../environments/environment';
@@ -32,30 +36,41 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => {
       const auth = getAuth();
+
       if (isDevMode()) {
         connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
       }
+
       return auth;
     }),
     provideFunctions(() => {
       const functions = getFunctions();
+
       if (isDevMode()) {
         connectFunctionsEmulator(functions, 'localhost', 5001);
       }
+
       return functions;
     }),
     provideStorage(() => {
       const storage = getStorage();
+
       if (isDevMode()) {
         connectStorageEmulator(storage, 'localhost', 9199);
       }
+
       return storage;
     }),
     provideFirestore(() => {
-      const firestore = getFirestore();
+      const app = getApp();
+      const firestore = initializeFirestore(app, {
+        ignoreUndefinedProperties: true,
+      });
+
       if (isDevMode()) {
         connectFirestoreEmulator(firestore, 'localhost', 8080);
       }
+
       return firestore;
     }),
 
