@@ -1,0 +1,83 @@
+@if (isOpen()) {
+<div
+  class="fixed right-18 bottom-22 sm:right-36 z-30 w-80 sm:w-96 max-w-[calc(100vw-3rem)] bg-background border rounded-2xl shadow-lg overflow-hidden"
+>
+  <div class="flex items-center justify-between p-3">
+    <div class="flex items-center gap-2">
+      <ng-icon hlm name="hugeAiChat02" class="text-primary" />
+      <span class="font-medium">Finance AI</span>
+    </div>
+    <button
+      hlmBtn
+      size="icon"
+      variant="ghost"
+      class="h-8 w-8"
+      (click)="toggle()"
+      aria-label="Close AI chat"
+    >
+      <ng-icon hlm name="hugeCancel01" />
+    </button>
+  </div>
+
+  <div class="h-80 overflow-y-auto p-3 space-y-2">
+    @if (messages().length === 0) {
+    <div class="text-center text-muted-foreground py-8">
+      <p class="text-sm">Hi! I can help you:</p>
+      <ul class="text-xs mt-2 space-y-1">
+        <li>• Add a transaction</li>
+        <li>• Categorize your latest transaction</li>
+      </ul>
+      <p class="text-xs mt-4 text-muted-foreground/70">
+        Try: "Add 50k coffee" or "Mark last one as food"
+      </p>
+    </div>
+    } @for (message of messages(); track $index) {
+    <div
+      class="p-2 rounded-lg text-sm"
+      [class]="message.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-muted mr-8'"
+    >
+      {{ message.content }}
+    </div>
+    } @if (isLoading()) {
+    <div class="bg-muted mr-8 p-2 rounded-lg">
+      <div class="flex items-center gap-2 text-muted-foreground text-sm">
+        <span class="animate-pulse">Thinking...</span>
+      </div>
+    </div>
+    }
+  </div>
+
+  <div class="p-3">
+    <div class="flex gap-2">
+      <input
+        type="text"
+        [formControl]="inputControl"
+        (keydown)="onKeydown($event)"
+        placeholder="Type a message..."
+        class="flex-1 h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+      />
+      <button
+        hlmBtn
+        size="icon"
+        class="h-10 w-10 shrink-0"
+        [disabled]="!canSend()"
+        (click)="sendMessage()"
+        aria-label="Send message"
+      >
+        <ng-icon hlm name="hugeArrowUp02" />
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<button
+  hlmBtn
+  size="lg"
+  class="fixed right-6 bottom-18 z-20 rounded-full px-4 shadow-lg w-10 sm:w-fit bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+  aria-label="Chat with AI"
+  (click)="toggle()"
+>
+  <ng-icon hlm name="hugeAiChat02" class="text-base" />
+  <span class="ml-2 hidden sm:inline">AI Chat</span>
+</button>

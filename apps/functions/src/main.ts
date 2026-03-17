@@ -2,12 +2,15 @@ import { setGlobalOptions } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
 admin.initializeApp();
-admin.firestore();
+admin.firestore().settings({
+  ignoreUndefinedProperties: true,
+});
 
 setGlobalOptions({ maxInstances: 3 });
 
 import { onCallGenkit, onRequest } from 'firebase-functions/https';
 import { chatFlow } from './genkit/chat-flow';
+import { financeAiFlow } from './genkit/finance-ai.flow';
 import { defineSecret } from 'firebase-functions/params';
 import { notificationHandler } from './finance/handlers/notificationHandler';
 import * as balanceHandlers from './finance/handlers/balanceHandler';
@@ -27,6 +30,20 @@ export const chat = onCallGenkit(
     },
   },
   chatFlow,
+);
+
+export const financeAi = onCallGenkit(
+  {
+    secrets: [geminiApiKey],
+    authPolicy: (auth) => {
+      if (!auth) {
+        throw new Error('Unauthorized');
+      }
+
+      return true;
+    },
+  },
+  financeAiFlow,
 );
 
 export const processNotification = onRequest(

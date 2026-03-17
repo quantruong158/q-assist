@@ -8,8 +8,10 @@ import {
   addDoc,
   serverTimestamp,
   limit,
+  doc,
+  updateDoc,
 } from '@angular/fire/firestore';
-import { MoneyTransaction } from '@qos/finance/shared-models';
+import { MoneyTransaction, FinanceCategoryId } from '@qos/finance/shared-models';
 import { convertTimestamp } from '@qos/shared/util-angular';
 
 const RECENT_TRANSACTIONS_LIMIT = 4;
@@ -49,5 +51,17 @@ export class TransactionService {
     });
 
     return docRef.id;
+  }
+
+  async updateTransactionCategory(
+    userId: string,
+    transactionId: string,
+    categoryId: FinanceCategoryId,
+  ): Promise<void> {
+    const transactionRef = doc(this.firestore, `users/${userId}/transactions/${transactionId}`);
+    await updateDoc(transactionRef, {
+      categoryId,
+      updatedAt: serverTimestamp(),
+    });
   }
 }

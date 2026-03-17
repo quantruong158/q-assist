@@ -91,3 +91,41 @@ export interface SubscriptionData {
 export interface Subscription extends SubscriptionData {
   id: string;
 }
+
+export const FINANCE_CATEGORIES = [
+  'shopping',
+  'food',
+  'entertainment',
+  'transport',
+  'bills',
+  'health',
+  'education',
+  'salary',
+  'other',
+] as const;
+
+export type FinanceCategoryId = (typeof FINANCE_CATEGORIES)[number];
+
+export interface FinanceAiRequest {
+  prompt: string;
+  sessionId: string;
+}
+
+export type FinanceAiIntent =
+  | 'add_transaction'
+  | 'update_latest_transaction_category'
+  | 'unsupported';
+
+export interface FinanceAiActionResult {
+  message: string;
+  performedAction: 'added' | 'updated' | 'clarification' | 'unsupported';
+  createdTransactionId?: string;
+  updatedTransactionId?: string;
+  requiresClarification?: boolean;
+  clarificationOptions?: string[];
+}
+
+export interface FinanceAiResponse {
+  text: string;
+  sessionId: string;
+}
