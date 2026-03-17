@@ -6,54 +6,42 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BrnDialogRef } from '@spartan-ng/brain/dialog';
-import { BrnSelectImports } from '@spartan-ng/brain/select';
-
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmLabelImports } from '@spartan-ng/helm/label';
-import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { MoneySourceStore, TransactionService, TransactionStore } from '@qos/finance/data-access';
+import { FinanceAddTransactionForm } from '@qos/finance/ui';
 import { TransactionType } from '@qos/finance/shared-models';
-import { MoneySourceStore } from '@qos/finance/data-access';
-import { TransactionService } from '@qos/finance/data-access';
 import { AuthStore } from '@qos/shared/auth/data-access';
+
+const ADD_TRANSACTION_FORM_ID = 'add-transaction-form';
 
 @Component({
   selector: 'finance-add-transaction-dialog',
-  imports: [
-    ReactiveFormsModule,
-    HlmButtonImports,
-    HlmDialogImports,
-    HlmInputImports,
-    HlmLabelImports,
-    BrnSelectImports,
-    HlmSelectImports,
-  ],
+  imports: [ReactiveFormsModule, HlmButtonImports, HlmDialogImports, FinanceAddTransactionForm],
   templateUrl: './add-transaction-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FinanceAddTransactionDialog {
-  private readonly fb = inject(FormBuilder);
   private readonly authStore = inject(AuthStore);
+  private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(BrnDialogRef<boolean | undefined>);
   private readonly moneySourceStore = inject(MoneySourceStore);
   private readonly transactionService = inject(TransactionService);
+  private readonly transactionStore = inject(TransactionStore);
 
+  readonly formId = ADD_TRANSACTION_FORM_ID;
   readonly sources = this.moneySourceStore.sources;
   readonly hasNoSources = computed(() => this.sources().length === 0);
-
-  readonly form: FormGroup = this.fb.group({
+  readonly isSubmitting = signal(false);
+  readonly form = this.fb.group({
     type: ['expense' as TransactionType, Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]],
     sourceId: ['', Validators.required],
     merchant: [''],
     description: [''],
   });
-
-  readonly isSubmitting = signal(false);
 
   constructor() {
     effect(() => {
@@ -69,7 +57,7 @@ export class FinanceAddTransactionDialog {
     this.dialogRef.close();
   }
 
-  async onSubmit(): Promise<void> {
+  protected async submit(): Promise<void> {
     if (this.form.invalid || this.hasNoSources()) {
       return;
     }
@@ -86,11 +74,13 @@ export class FinanceAddTransactionDialog {
       await this.transactionService.addTransaction(userId, {
         amount: Number(amount),
         currency: 'VND',
-        description: description?.trim() || null,
-        merchant: merchant?.trim() || null,
-        sourceId,
-        type: type as TransactionType,
+        description: description?.trim() || undefined,
+        merchant: merchant?.trim() || undefined,
+        sourceId: sourceId ?? '',
+        type: type ?? 'expense',
       });
+      this.transactionStore.reload();
+      this.moneySourceStore.reload();
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Failed to add transaction:', error);

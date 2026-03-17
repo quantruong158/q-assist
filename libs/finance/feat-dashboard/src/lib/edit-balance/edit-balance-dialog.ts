@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BrnDialogRef, injectBrnDialogContext } from '@spartan-ng/brain/dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { MoneySourceService, MoneySourceStore } from '@qos/finance/data-access';
+import { FinanceEditBalanceForm } from '@qos/finance/ui';
 import { MoneySource } from '@qos/finance/shared-models';
-import { MoneySourceService } from '@qos/finance/data-access';
+
+const EDIT_BALANCE_FORM_ID = 'edit-balance-form';
 
 export interface EditBalanceDialogData {
   source: MoneySource;
@@ -14,41 +15,39 @@ export interface EditBalanceDialogData {
 
 @Component({
   selector: 'finance-edit-balance-dialog',
-  imports: [
-    ReactiveFormsModule,
-    HlmButtonImports,
-    HlmDialogImports,
-    HlmInputImports,
-    HlmLabelImports,
-  ],
+  imports: [ReactiveFormsModule, HlmButtonImports, HlmDialogImports, FinanceEditBalanceForm],
   templateUrl: './edit-balance-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FinanceEditBalanceDialog {
   private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject(BrnDialogRef<boolean | undefined>);
   private readonly moneySourceService = inject(MoneySourceService);
-  private readonly dialogRef = inject(BrnDialogRef);
+  private readonly moneySourceStore = inject(MoneySourceStore);
 
   readonly data = injectBrnDialogContext<EditBalanceDialogData>();
-
-  form: FormGroup = this.fb.group({
+  readonly formId = EDIT_BALANCE_FORM_ID;
+  readonly isSubmitting = signal(false);
+  readonly form = this.fb.group({
     balance: [this.data.source.balance, [Validators.required, Validators.min(0)]],
   });
 
-  isSubmitting = signal(false);
+  protected close(): void {
+    this.dialogRef.close();
+  }
 
-  async onSubmit(): Promise<void> {
-    if (this.form.invalid) return;
+  protected async submit(): Promise<void> {
+    if (this.form.invalid) {
+      return;
+    }
 
     const { source } = this.data;
-    this.isSubmitting.set(true);
+    const { balance } = this.form.getRawValue();
 
+    this.isSubmitting.set(true);
     try {
-      await this.moneySourceService.updateBalance(
-        source.userId,
-        source.id,
-        this.form.value.balance,
-      );
+      await this.moneySourceService.updateBalance(source.userId, source.id, balance ?? 0);
+      this.moneySourceStore.reload();
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Failed to update balance:', error);

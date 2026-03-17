@@ -1,9 +1,4 @@
-<hlm-dialog-header>
-  <h3 hlmDialogTitle>Add Transaction</h3>
-  <p hlmDialogDescription>Log a new income or expense entry for one of your money sources.</p>
-</hlm-dialog-header>
-
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form [id]="formId()" [formGroup]="form()" (ngSubmit)="submitted.emit()">
   <div class="grid gap-4 py-4">
     <div class="grid grid-cols-4 items-center gap-4">
       <label hlmLabel for="type" class="text-right">Type</label>
@@ -80,11 +75,4 @@
       </p>
     }
   </div>
-
-  <hlm-dialog-footer>
-    <button hlmBtn type="button" variant="ghost" (click)="close()">Cancel</button>
-    <button hlmBtn type="submit" [disabled]="isSubmitting() || form.invalid || hasNoSources()">
-      {{ isSubmitting() ? 'Saving...' : 'Add Transaction' }}
-    </button>
-  </hlm-dialog-footer>
 </form>

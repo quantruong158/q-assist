@@ -1,4 +1,4 @@
 export * from './lib/transaction-list/transaction-list';
-export * from './lib/add-money-source/add-money-source-dialog';
-export * from './lib/add-transaction/add-transaction-dialog';
-export * from './lib/edit-balance/edit-balance-dialog';
+export * from './lib/add-money-source-form/add-money-source-form';
+export * from './lib/add-transaction-form/add-transaction-form';
+export * from './lib/edit-balance-form/edit-balance-form';

@@ -1,11 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FinanceTransactionList } from '@qos/finance/ui';
-import {
-  FinanceAddMoneySourceDialog,
-  FinanceAddTransactionDialog,
-  FinanceEditBalanceDialog,
-} from '@qos/finance/ui';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';
@@ -18,20 +13,19 @@ import {
   hugeWallet02,
   hugeCash01,
   hugeEdit02,
+  hugeWalletAdd02,
 } from '@ng-icons/huge-icons';
 import { MoneySourceStore } from '@qos/finance/data-access';
 import { MoneySource } from '@qos/finance/shared-models';
 import { TransactionStore } from '@qos/finance/data-access';
+import { FinanceAddMoneySourceDialog } from '../add-money-source/add-money-source-dialog';
+import { FinanceAddTransactionDialog } from '../add-transaction/add-transaction-dialog';
+import { FinanceEditBalanceDialog } from '../edit-balance/edit-balance-dialog';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 
 @Component({
   selector: 'finance-dashboard',
-  imports: [
-    DecimalPipe,
-    FinanceTransactionList,
-    NgIcon,
-    HlmButtonImports,
-    FinanceAddMoneySourceDialog,
-  ],
+  imports: [DecimalPipe, FinanceTransactionList, NgIcon, HlmButtonImports, HlmTooltipImports],
   providers: [
     provideIcons({
       hugeArrowDownRight01,
@@ -42,6 +36,7 @@ import { TransactionStore } from '@qos/finance/data-access';
       hugeWallet02,
       hugeCash01,
       hugeEdit02,
+      hugeWalletAdd02,
     }),
   ],
   templateUrl: './dashboard.html',
@@ -79,6 +74,10 @@ export class FinanceDashboard {
     this.dialogService.open(FinanceEditBalanceDialog, {
       context: { source },
     });
+  }
+
+  openAddMoneySource(): void {
+    this.dialogService.open(FinanceAddMoneySourceDialog);
   }
 
   openAddTransaction(): void {

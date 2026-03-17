@@ -1,1 +1,1 @@
-export * from './lib/finance-feat-dashboard/dashboard';
+export * from './lib/dashboard/dashboard';
