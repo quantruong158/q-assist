@@ -30,7 +30,10 @@ export const listMoneySourcesOutputSchema = z.array(
 export const createTransactionInputSchema = z.object({
   userId: z.string().describe("Current user's ID"),
   amount: z.number().positive().describe('Amount of the transaction'),
-  currency: z.string().default('VND').describe('3 letter currency code'),
+  currency: z
+    .string()
+    .default('VND')
+    .describe('3 letter currency code, default to "VND" if not provided'),
   type: z.enum(['income', 'expense']).describe('Type of the transaction'),
   sourceId: z.string().describe('Source ID of the transaction'),
   merchant: z

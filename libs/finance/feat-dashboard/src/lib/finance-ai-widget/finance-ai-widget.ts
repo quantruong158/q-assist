@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+  computed,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeAiChat02, hugeArrowUp02, hugeCancel01 } from '@ng-icons/huge-icons';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { ChatMessageList } from '@qos/chat/ui';
+import { ChatMessageItem, ChatIntentCard } from '@qos/chat/ui';
 import { FinanceAiService } from '@qos/finance/data-access';
+import { FinanceAiWelcomeMessage } from '@qos/finance/ui';
 import { TransactionStore, MoneySourceStore } from '@qos/finance/data-access';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -15,7 +24,14 @@ interface WidgetMessage {
 
 @Component({
   selector: 'finance-ai-widget',
-  imports: [ReactiveFormsModule, NgIcon, HlmButtonImports, ChatMessageList],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    HlmButtonImports,
+    ChatMessageItem,
+    ChatIntentCard,
+    FinanceAiWelcomeMessage,
+  ],
   providers: [provideIcons({ hugeAiChat02, hugeArrowUp02, hugeCancel01 })],
   templateUrl: './finance-ai-widget.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,22 +40,37 @@ export class FinanceAiWidget {
   private readonly financeAiService = inject(FinanceAiService);
   private readonly transactionStore = inject(TransactionStore);
   private readonly moneySourceStore = inject(MoneySourceStore);
+  private readonly chatInput = viewChild<ElementRef<HTMLInputElement>>('chatInput');
 
   readonly isOpen = signal(false);
   readonly messages = signal<WidgetMessage[]>([]);
   readonly isLoading = signal(false);
   readonly sessionId = signal<string>('');
 
-  readonly inputControl = new FormControl('');
+  readonly inputControl = new FormControl('', { nonNullable: true });
 
-  private readonly inputValue = toSignal(this.inputControl.valueChanges, { initialValue: '' });
+  private readonly rawInputValue = toSignal(this.inputControl.valueChanges, { initialValue: '' });
+  private readonly inputValue = computed(() => this.rawInputValue().trim());
+
+  private readonly moneySources = computed(() => this.moneySourceStore.sources());
 
   readonly canSend = computed(() => {
     return !!this.inputValue() && !this.isLoading();
   });
 
+  protected readonly samplePrompts = computed(() => [
+    `I just spent 22k for coffee using ${this.moneySources()[0]?.name || 'MoMo'}`,
+    'My last transaction was for shopping',
+    `I just received a salary of 1M into ${this.moneySources()[0]?.name || 'MoMo'}`,
+  ]);
+
   toggle(): void {
     this.isOpen.update((v) => !v);
+  }
+
+  addPrompt(prompt: string): void {
+    this.inputControl.setValue(prompt);
+    this.chatInput()?.nativeElement.focus();
   }
 
   async sendMessage(): Promise<void> {

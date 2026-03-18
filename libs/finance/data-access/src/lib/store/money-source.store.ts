@@ -8,7 +8,7 @@ export class MoneySourceStore {
   private readonly authStore = inject(AuthStore);
   private readonly moneySourceService = inject(MoneySourceService);
 
-  readonly sourcesResource = resource({
+  private readonly sourcesResource = resource({
     params: () => {
       const user = this.authStore.currentUser();
       return user ? { userId: user.uid } : undefined;
