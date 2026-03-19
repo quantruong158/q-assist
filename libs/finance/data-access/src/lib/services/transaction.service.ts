@@ -4,15 +4,16 @@ import {
   collection,
   query,
   orderBy,
-  getDocs,
   addDoc,
   serverTimestamp,
   limit,
   doc,
   updateDoc,
+  collectionData,
 } from '@angular/fire/firestore';
 import { MoneyTransaction, FinanceCategoryId } from '@qos/finance/shared-models';
 import { convertTimestamp } from '@qos/shared/util-angular';
+import { map, Observable } from 'rxjs';
 
 const RECENT_TRANSACTIONS_LIMIT = 4;
 
@@ -20,23 +21,29 @@ const RECENT_TRANSACTIONS_LIMIT = 4;
 export class TransactionService {
   private readonly firestore = inject(Firestore);
 
-  async getTransactions(userId: string): Promise<MoneyTransaction[]> {
+  getRealtimeTransactions(userId: string): Observable<MoneyTransaction[]> {
     const transactionsRef = collection(this.firestore, `users/${userId}/transactions`);
     const q = query(
       transactionsRef,
       orderBy('timestamp', 'desc'),
       limit(RECENT_TRANSACTIONS_LIMIT),
     );
-    const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      return {
-        id: docSnap.id,
-        ...data,
-        timestamp: convertTimestamp(data['timestamp']),
-      } as MoneyTransaction;
-    });
+    return (
+      collectionData(q, {
+        idField: 'id',
+      }) as Observable<MoneyTransaction[]>
+    ).pipe(
+      map((transactions) =>
+        transactions.map(
+          (transaction) =>
+            ({
+              ...transaction,
+              timestamp: convertTimestamp(transaction.timestamp),
+            }) as MoneyTransaction,
+        ),
+      ),
+    );
   }
 
   async addTransaction(

@@ -85,8 +85,7 @@ export class FinanceAiWidget {
 
     try {
       const response = await this.financeAiService.sendPrompt(prompt, this.sessionId());
-      console.log(response.sessionId);
-      if (this.sessionId().length === 0) {
+      if (this.sessionId() !== response.sessionId) {
         this.sessionId.set(response.sessionId);
       }
 

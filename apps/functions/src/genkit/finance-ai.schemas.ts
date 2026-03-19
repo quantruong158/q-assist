@@ -14,9 +14,7 @@ export const FinanceCategories = [
 
 export type FinanceCategoryId = (typeof FinanceCategories)[number];
 
-export const listMoneySourcesInputSchema = z.object({
-  userId: z.string().describe('Current user ID to list money sources for'),
-});
+export const listMoneySourcesInputSchema = z.object({});
 
 export const listMoneySourcesOutputSchema = z.array(
   z.object({
@@ -28,7 +26,6 @@ export const listMoneySourcesOutputSchema = z.array(
 );
 
 export const createTransactionInputSchema = z.object({
-  userId: z.string().describe("Current user's ID"),
   amount: z.number().positive().describe('Amount of the transaction'),
   currency: z
     .string()
@@ -52,7 +49,6 @@ export const createTransactionOutputSchema = z.object({
 });
 
 export const updateLatestTransactionCategoryInputSchema = z.object({
-  userId: z.string().describe("Current user's ID"),
   categoryId: z.enum(FinanceCategories).describe('Updated category ID of the transaction'),
 });
 

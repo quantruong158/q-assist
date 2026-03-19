@@ -11,6 +11,12 @@ import {
   updateLatestTransactionCategoryOutputSchema,
 } from './finance-ai.schemas';
 
+export interface FinanceAiToolContext {
+  auth?: {
+    uid?: string;
+  };
+}
+
 export const listMoneySourcesTool = financeAiGenkit.defineTool(
   {
     name: 'listMoneySources',
@@ -18,7 +24,12 @@ export const listMoneySourcesTool = financeAiGenkit.defineTool(
     inputSchema: listMoneySourcesInputSchema,
     outputSchema: listMoneySourcesOutputSchema,
   },
-  async ({ userId }) => {
+  async (_, { context }) => {
+    const userId = context.auth?.uid;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     const sources = await getUserMoneySources(userId);
     const result = sources.map((source) => ({
       id: source.id,
@@ -39,7 +50,12 @@ export const createTransactionTool = financeAiGenkit.defineTool(
     inputSchema: createTransactionInputSchema,
     outputSchema: createTransactionOutputSchema,
   },
-  async ({ userId, ...data }) => {
+  async ({ ...data }, { context }) => {
+    const userId = context.auth?.uid;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     const transactionId = await createTransaction(userId, {
       amount: data.amount,
       currency: data.currency,
@@ -62,7 +78,12 @@ export const updateLatestTransactionCategoryTool = financeAiGenkit.defineTool(
     inputSchema: updateLatestTransactionCategoryInputSchema,
     outputSchema: updateLatestTransactionCategoryOutputSchema,
   },
-  async ({ userId, categoryId }) => {
+  async ({ categoryId }, { context }) => {
+    const userId = context.auth?.uid;
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     const updatedTransactionId = await updateLatestTransactionCategory(userId, categoryId);
 
     return { updatedTransactionId };

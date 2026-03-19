@@ -111,20 +111,6 @@ export interface FinanceAiRequest {
   sessionId: string;
 }
 
-export type FinanceAiIntent =
-  | 'add_transaction'
-  | 'update_latest_transaction_category'
-  | 'unsupported';
-
-export interface FinanceAiActionResult {
-  message: string;
-  performedAction: 'added' | 'updated' | 'clarification' | 'unsupported';
-  createdTransactionId?: string;
-  updatedTransactionId?: string;
-  requiresClarification?: boolean;
-  clarificationOptions?: string[];
-}
-
 export interface FinanceAiResponse {
   text: string;
   sessionId: string;
