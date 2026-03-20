@@ -1,0 +1,72 @@
+@if (isOpen()) {
+<div
+  class="fixed right-18 bottom-22 sm:right-36 z-30 w-70 sm:w-96 max-w-[calc(100vw-3rem)] bg-background border rounded-4xl shadow-md overflow-hidden"
+>
+  <div class="flex items-center justify-between p-4">
+    <span class="font-medium">Finance AI</span>
+    <button
+      hlmBtn
+      size="icon"
+      variant="ghost"
+      class="h-8 w-8 rounded-full"
+      (click)="toggle()"
+      aria-label="Close AI chat"
+    >
+      <ng-icon hlm name="hugeCancel01" />
+    </button>
+  </div>
+
+  <div class="h-80 overflow-y-auto py-3">
+    @if (messages().length === 0) {
+    <finance-ai-welcome-message />
+    } @for (message of messages(); track $index) {
+    <div>
+      <chat-message [content]="message.content" [role]="message.role"></chat-message>
+    </div>
+    } @if (isLoading()) {
+    <div>
+      <chat-message content="Thinking..." role="assistant" [isStreaming]="true"></chat-message>
+    </div>
+    }
+  </div>
+
+  <div class="p-3 relative border-t">
+    <div class="flex flex-wrap gap-1 absolute -top-31 left-2 max-w-full">
+      @if (messages().length === 0) { @for (prompt of samplePrompts(); track $index) {
+      <chat-intent-card [text]="prompt" (selected)="addPrompt($event)" />
+      } }
+    </div>
+    <div class="flex gap-2">
+      <input
+        #chatInput
+        type="text"
+        [formControl]="inputControl"
+        (keydown)="onKeydown($event)"
+        placeholder="Type a message..."
+        class="flex-1 h-10 px-3 rounded-lg bg-background text-sm focus:outline-none min-w-0"
+      />
+      <button
+        hlmBtn
+        size="icon"
+        class="h-10 w-10 shrink-0 rounded-full"
+        [disabled]="!canSend()"
+        (click)="sendMessage()"
+        aria-label="Send message"
+      >
+        <ng-icon hlm name="hugeArrowUp02" class="text-xl" />
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<button
+  hlmBtn
+  size="lg"
+  class="fixed right-6 bottom-18 z-20 rounded-full px-4 shadow-lg w-10 sm:w-fit bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+  aria-label="Chat with AI"
+  (click)="toggle()"
+>
+  <ng-icon hlm name="hugeAiChat02" class="text-base" />
+  <span class="ml-2 hidden sm:inline">AI Chat</span>
+</button>

@@ -22,10 +22,18 @@ import { FinanceAddMoneySourceDialog } from '../add-money-source/add-money-sourc
 import { FinanceAddTransactionDialog } from '../add-transaction/add-transaction-dialog';
 import { FinanceEditBalanceDialog } from '../edit-balance/edit-balance-dialog';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { FinanceAiWidget } from '../finance-ai-widget/finance-ai-widget';
 
 @Component({
   selector: 'finance-dashboard',
-  imports: [DecimalPipe, FinanceTransactionList, NgIcon, HlmButtonImports, HlmTooltipImports],
+  imports: [
+    DecimalPipe,
+    FinanceTransactionList,
+    NgIcon,
+    HlmButtonImports,
+    HlmTooltipImports,
+    FinanceAiWidget,
+  ],
   providers: [
     provideIcons({
       hugeArrowDownRight01,

@@ -56,7 +56,6 @@ export class FinanceAddMoneySourceDialog {
         currency: 'USD',
         isActive: true,
       });
-      this.moneySourceStore.reload();
       this.dialogRef.close(true);
     } finally {
       this.isSubmitting.set(false);

@@ -1,4 +1,5 @@
-import { computed, Injectable, inject, resource } from '@angular/core';
+import { computed, Injectable, inject } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { AuthStore } from '@qos/shared/auth/data-access';
 import { MoneySourceStore } from '../store/money-source.store';
 import { TransactionService } from '../services/transaction.service';
@@ -10,7 +11,7 @@ export class TransactionStore {
   private readonly moneySourceStore = inject(MoneySourceStore);
   private readonly transactionService = inject(TransactionService);
 
-  private readonly transactionsResource = resource<
+  private readonly transactionsResource = rxResource<
     MoneyTransaction[],
     { userId: string } | undefined
   >({
@@ -18,21 +19,14 @@ export class TransactionStore {
       const user = this.authStore.currentUser();
       return user ? { userId: user.uid } : undefined;
     },
-    loader: async ({ params }) => {
-      return await this.transactionService.getTransactions(params.userId);
-    },
+    stream: ({ params }) => this.transactionService.getRealtimeTransactions(params.userId),
     defaultValue: [],
   });
 
   readonly transactions = computed<TransactionWithSource[]>(() =>
     this.mapTransactions(this.transactionsResource.value(), this.moneySourceStore.sources()),
   );
-
   readonly isLoading = computed(() => this.transactionsResource.isLoading());
-
-  reload(): void {
-    this.transactionsResource.reload();
-  }
 
   private getSourceName(sourceId: string, sources: MoneySource[]): string {
     if (!sourceId || sources.length === 0) {

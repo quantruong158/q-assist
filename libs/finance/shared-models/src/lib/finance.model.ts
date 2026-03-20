@@ -91,3 +91,27 @@ export interface SubscriptionData {
 export interface Subscription extends SubscriptionData {
   id: string;
 }
+
+export const FINANCE_CATEGORIES = [
+  'shopping',
+  'food',
+  'entertainment',
+  'transport',
+  'bills',
+  'health',
+  'education',
+  'salary',
+  'other',
+] as const;
+
+export type FinanceCategoryId = (typeof FINANCE_CATEGORIES)[number];
+
+export interface FinanceAiRequest {
+  prompt: string;
+  sessionId: string;
+}
+
+export interface FinanceAiResponse {
+  text: string;
+  sessionId: string;
+}

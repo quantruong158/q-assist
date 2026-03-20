@@ -79,8 +79,6 @@ export class FinanceAddTransactionDialog {
         sourceId: sourceId ?? '',
         type: type ?? 'expense',
       });
-      this.transactionStore.reload();
-      this.moneySourceStore.reload();
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Failed to add transaction:', error);

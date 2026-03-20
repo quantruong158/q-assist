@@ -47,7 +47,6 @@ export class FinanceEditBalanceDialog {
     this.isSubmitting.set(true);
     try {
       await this.moneySourceService.updateBalance(source.userId, source.id, balance ?? 0);
-      this.moneySourceStore.reload();
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Failed to update balance:', error);
