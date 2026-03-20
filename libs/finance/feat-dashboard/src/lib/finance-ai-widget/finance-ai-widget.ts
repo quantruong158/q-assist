@@ -34,6 +34,78 @@ interface WidgetMessage {
   ],
   providers: [provideIcons({ hugeAiChat02, hugeArrowUp02, hugeCancel01 })],
   templateUrl: './finance-ai-widget.html',
+  styles: `
+    .finance-ai-widget-enter {
+      animation: finance-ai-widget-enter 260ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .finance-ai-widget-leave {
+      animation: finance-ai-widget-leave 180ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    @keyframes finance-ai-widget-enter {
+      from {
+        opacity: 0.01;
+        transform: translateY(18px) scale(0.98);
+        filter: blur(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes finance-ai-widget-leave {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+        filter: blur(6px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .finance-ai-widget-enter,
+      .finance-ai-widget-leave {
+        animation-duration: 140ms;
+      }
+
+      @keyframes finance-ai-widget-enter {
+        from {
+          opacity: 0;
+          transform: none;
+          filter: none;
+        }
+
+        to {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+      }
+
+      @keyframes finance-ai-widget-leave {
+        from {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+
+        to {
+          opacity: 0;
+          transform: none;
+          filter: none;
+        }
+      }
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FinanceAiWidget {
