@@ -1,17 +1,17 @@
 @if (isInitialChat() && !isNative) {
-<div class="mx-4 grid justify-items-center md:pb-12">
-  <ng-container [ngTemplateOutlet]="composerContent" />
-</div>
+  <div class="mx-4 grid justify-items-center md:pb-12">
+    <ng-container [ngTemplateOutlet]="composerContent" />
+  </div>
 } @else {
-<div
-  class="mx-4 fixed bottom-0 left-0 right-0 grid justify-items-center md:transition-[left] md:duration-200 md:ease-linear"
-  [class]="sidebarState() === 'collapsed' ? 'md:left-(--sidebar-width-icon)' : 'md:left-64'"
->
   <div
-    class="pointer-events-none absolute bottom-20 left-1/2 h-40 w-full -translate-x-1/2 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] md:max-w-230"
-  ></div>
-  <ng-container [ngTemplateOutlet]="composerContent" />
-</div>
+    class="mx-4 fixed bottom-0 left-0 right-0 grid justify-items-center md:transition-[left] md:duration-200 md:ease-linear"
+    [class]="sidebarState() === 'collapsed' ? 'md:left-(--sidebar-width-icon)' : 'md:left-64'"
+  >
+    <div
+      class="pointer-events-none absolute bottom-20 left-1/2 h-40 w-full -translate-x-1/2 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] md:max-w-230"
+    ></div>
+    <ng-container [ngTemplateOutlet]="composerContent" />
+  </div>
 }
 
 <ng-template #composerContent>
@@ -23,39 +23,40 @@
       [class.md:max-w-[720px]]="isInitialChat() && !isNative"
     >
       @if (pendingAttachments().length > 0) {
-      <div class="flex flex-wrap gap-2">
-        @for (attachment of pendingAttachments(); track attachment.id) {
-        <div
-          class="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-transparent"
-          [class.border-destructive]="attachment.error"
-        >
-          <img
-            [src]="attachment.previewUrl"
-            [alt]="attachment.file.name"
-            class="h-full w-full object-cover"
-          />
-          @if (attachment.isUploading) {
-          <div class="absolute inset-0 flex items-center justify-center bg-black/50">
-            <hlm-spinner class="text-lg" aria-label="Uploading" />
-          </div>
-          } @if (attachment.error) {
-          <div class="absolute inset-0 flex items-center justify-center bg-black/50">
-            <ng-icon hlm name="hugeAlert02" />
-          </div>
+        <div class="flex flex-wrap gap-2">
+          @for (attachment of pendingAttachments(); track attachment.id) {
+            <div
+              class="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-transparent group"
+              [class.border-destructive]="attachment.error"
+            >
+              <img
+                [src]="attachment.previewUrl"
+                [alt]="attachment.file.name"
+                class="h-full w-full object-cover"
+              />
+              @if (attachment.isUploading) {
+                <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <hlm-spinner class="text-lg" aria-label="Uploading" />
+                </div>
+              }
+              @if (attachment.error) {
+                <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <ng-icon hlm name="hugeAlert02" />
+                </div>
+              }
+              <button
+                hlmBtn
+                size="icon-xs"
+                variant="secondary"
+                class="absolute right-0.5 top-0.5 opacity-0 group-hover:opacity-100 rounded-full"
+                (click)="removeAttachment.emit(attachment.id)"
+                aria-label="Remove attachment"
+              >
+                <ng-icon hlm name="hugeCancel01" size="18px" />
+              </button>
+            </div>
           }
-          <button
-            hlmBtn
-            size="icon-xs"
-            variant="ghost"
-            class="absolute right-0.5 top-0.5 bg-black/60 text-white"
-            (click)="removeAttachment.emit(attachment.id)"
-            aria-label="Remove attachment"
-          >
-            <ng-icon hlm name="hugeCancel01" size="18px" />
-          </button>
         </div>
-        }
-      </div>
       }
 
       <div
@@ -89,26 +90,30 @@
           hlmBtn
           size="icon"
           variant="ghost"
+          class="rounded-full transition-[background-color,color,box-shadow,transform] duration-180 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-120 aria-expanded:bg-[color-mix(in_srgb,var(--muted)_88%,var(--background))] aria-expanded:text-foreground aria-expanded:shadow-[0_4px_14px_rgba(15,23,42,0.08)] aria-expanded:hover:bg-accent aria-expanded:hover:text-accent-foreground dark:aria-expanded:hover:bg-accent/50 aria-expanded:active:scale-[0.97] [&[aria-expanded='true']>ng-icon]:rotate-45"
           [hlmDropdownMenuTrigger]="inputActionsMenu"
           aria-label="Add attachments"
-          class="rounded-full"
         >
-          <ng-icon hlm name="hugeAdd01" />
+          <ng-icon
+            hlm
+            name="hugeAdd01"
+            class="transition-transform duration-180 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-120"
+          />
         </button>
 
         <ng-template #inputActionsMenu>
           <hlm-dropdown-menu class="min-w-50">
             @if (isNative) {
-            <button
-              hlmDropdownMenuItem
-              class="camera-button"
-              (click)="takePhoto.emit()"
-              [disabled]="isStreaming() || pendingAttachments().length >= maxFiles()"
-              aria-label="Take photo"
-            >
-              <ng-icon hlm name="hugeCamera02" />
-              Camera
-            </button>
+              <button
+                hlmDropdownMenuItem
+                class="camera-button"
+                (click)="takePhoto.emit()"
+                [disabled]="isStreaming() || pendingAttachments().length >= maxFiles()"
+                aria-label="Take photo"
+              >
+                <ng-icon hlm name="hugeCamera02" />
+                Camera
+              </button>
             }
             <button
               hlmDropdownMenuItem
@@ -130,18 +135,18 @@
           [compareWith]="compareModels()"
         >
           <hlm-select-trigger
-            class="border-0 shadow-none dark:bg-transparent dark:hover:bg-transparent"
+            class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground aria-expanded:hover:bg-accent aria-expanded:hover:text-accent-foreground dark:bg-transparent dark:hover:bg-accent/50 dark:hover:text-accent-foreground dark:aria-expanded:bg-accent/50 dark:aria-expanded:text-accent-foreground dark:aria-expanded:hover:bg-accent/50 dark:aria-expanded:hover:text-accent-foreground"
           >
             <hlm-select-value />
           </hlm-select-trigger>
           <hlm-select-content>
             @for (group of models() | keyvalue; track group.key) {
-            <div hlmSelectGroup>
-              <div hlmSelectLabel>{{ group.key }}</div>
-              @for (model of group.value; track model.id) {
-              <hlm-option [value]="model">{{ model.label }}</hlm-option>
-              }
-            </div>
+              <div hlmSelectGroup>
+                <div hlmSelectLabel>{{ group.key }}</div>
+                @for (model of group.value; track model.id) {
+                  <hlm-option [value]="model">{{ model.label }}</hlm-option>
+                }
+              </div>
             }
           </hlm-select-content>
         </hlm-select>
