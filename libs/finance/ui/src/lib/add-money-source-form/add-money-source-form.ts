@@ -4,6 +4,7 @@ import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { FinanceMoneyFormatterDirective } from '@qos/shared/util-angular';
 
 @Component({
   selector: 'finance-add-money-source-form',
@@ -13,6 +14,7 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
     HlmInputImports,
     HlmLabelImports,
     HlmSelectImports,
+    FinanceMoneyFormatterDirective,
   ],
   templateUrl: './add-money-source-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

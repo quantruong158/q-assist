@@ -1,89 +1,136 @@
-<div class="sidebar" hlmSidebarContent>
-  <div class="pt-[calc(8px+var(--safe-area-top))]" hlmSidebarHeader>
-    <button hlmSidebarTrigger aria-label="Toggle sidebar" class="ml-0.5"></button>
+<hlm-sidebar
+  side="left"
+  [collapsible]="layoutService.isMobile() ? 'offcanvas' : 'icon'"
+  [variant]="'sidebar'"
+>
+  <div hlmSidebarHeader class="pt-[calc(8px+var(--safe-area-top))]">
+    <button
+      hlmSidebarTrigger
+      aria-label="Toggle sidebar"
+      class="ml-0.5 hover:bg-muted hover:text-foreground"
+    ></button>
   </div>
-  <ul hlmSidebarMenu class="px-1">
-    <li hlmSidebarMenuItem class="ml-2 flex">
-      <a routerLink="/finance" hlmSidebarMenuButton class="w-full justify-start gap-2">
-        <ng-icon hlm name="hugeMoneyBag02" />
-        <span class="flex-1 text-left">Finance</span>
-      </a>
-    </li>
-    <li hlmSidebarMenuItem class="ml-2 flex">
-      <a routerLink="/chat" hlmSidebarMenuButton class="w-full justify-start gap-2">
-        <ng-icon hlm name="hugeAiChat02" />
-        <span class="flex-1 text-left">New Chat</span>
-      </a>
-    </li>
-  </ul>
 
-  <hlm-collapsible [expanded]="true" class="group/collapsible">
-    <div
-      hlmSidebarGroup
-      [class]="sidebarService.state() === 'collapsed' ? 'hidden invisible pointer-events-none' : ''"
-    >
-      <button hlmCollapsibleTrigger hlmSidebarGroupLabel>
-        Conversations
-        <ng-icon
-          hlm
-          name="lucideChevronDown"
-          class="ml-auto group-data-[state=open]/collapsible:rotate-180"
-        />
-      </button>
-      <hlm-collapsible-content>
-        <div hlmSidebarGroupContent class="max-h-full overflow-y-auto px-1 pb-3">
-          @if (conversations().length === 0) {
-            <div
-              class="flex flex-col items-center justify-center p-8 text-center text-muted-foreground"
+  <div hlmSidebarContent class="overflow-x-hidden py-2">
+    <ul hlmSidebarMenu class="px-1">
+      <li hlmSidebarMenuItem class="ml-2 flex">
+        <a routerLink="/finance" hlmSidebarMenuButton class="w-full justify-start gap-2">
+          <ng-icon hlm name="hugeMoneyBag02" />
+          <span class="flex-1 text-left">Finance</span>
+        </a>
+      </li>
+      <li hlmSidebarMenuItem class="ml-2 flex">
+        <a routerLink="/chat" hlmSidebarMenuButton class="w-full justify-start gap-2">
+          <ng-icon hlm name="hugeAiChat02" />
+          <span class="flex-1 text-left">New Chat</span>
+        </a>
+      </li>
+    </ul>
+
+    <hlm-collapsible [expanded]="true" class="group/collapsible">
+      <div
+        hlmSidebarGroup
+        [class]="
+          sidebarService.state() === 'collapsed' ? 'hidden invisible pointer-events-none' : ''
+        "
+      >
+        <button hlmCollapsibleTrigger hlmSidebarGroupLabel>
+          Conversations
+          <ng-icon
+            hlm
+            name="hugeArrowDown01"
+            class="ml-auto transition-transform duration-200 ease-out motion-reduce:transition-none group-data-[state=open]/collapsible:rotate-180"
+          />
+        </button>
+        <hlm-collapsible-content>
+          <div hlmSidebarGroupContent class="max-h-full overflow-y-auto px-1 pb-3">
+            @if (conversations().length === 0) {
+              <div
+                class="flex flex-col items-center justify-center p-8 text-center text-muted-foreground"
+              >
+                <ng-icon hlm name="hugeBubbleChatCancel" />
+                <p class="font-medium">No conversations yet</p>
+                <span class="mt-1 text-sm">Start a new chat to begin</span>
+              </div>
+            } @else {
+              <ul hlmSidebarMenu>
+                @for (conversation of conversations(); track conversation.id) {
+                  <li hlmSidebarMenuItem class="group/conversation">
+                    <a
+                      [routerLink]="['/chat', conversation.id]"
+                      hlmSidebarMenuButton
+                      size="lg"
+                      [isActive]="conversationService.activeConversationId() === conversation.id"
+                    >
+                      <div class="flex w-full flex-col items-start">
+                        <span class="w-full truncate">{{ conversation.title }}</span>
+                        <span class="text-xs text-muted-foreground truncate">
+                          @if (conversation.updatedAt; as date) {
+                            {{ date.toDate() | date: 'short' }}
+                          }
+                        </span>
+                      </div>
+                    </a>
+                    <button
+                      hlmSidebarMenuAction
+                      [hlmDropdownMenuTrigger]="conversationMenu"
+                      aria-label="Conversation actions"
+                      class="opacity-0 transition-opacity group-hover/conversation:opacity-100 aria-expanded:opacity-100"
+                    >
+                      <ng-icon hlm name="hugeMoreVerticalCircle01" />
+                    </button>
+                    <ng-template #conversationMenu>
+                      <hlm-dropdown-menu>
+                        <button
+                          hlmDropdownMenuItem
+                          (click)="openDeleteConversationConfirmation($event, conversation.id)"
+                        >
+                          <ng-icon hlm name="hugeDelete02" />
+                          Delete
+                        </button>
+                      </hlm-dropdown-menu>
+                    </ng-template>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </hlm-collapsible-content>
+      </div>
+    </hlm-collapsible>
+  </div>
+
+  <div hlmSidebarFooter>
+    <ul hlmSidebarMenu>
+      <li hlmSidebarMenuItem>
+        <button
+          hlmSidebarMenuButton
+          [hlmDropdownMenuTrigger]="settingsMenu"
+          class="ml-1 [&[aria-expanded='true']>ng-icon]:rotate-60"
+        >
+          <ng-icon
+            hlm
+            name="hugeSettings02"
+            class="transition-transform duration-200 ease-out motion-reduce:transition-none"
+          />
+          Settings
+        </button>
+        <ng-template #settingsMenu>
+          <hlm-dropdown-menu class="w-60">
+            <button
+              hlmSidebarMenuButton
+              type="button"
+              (click)="onThemeToggle()"
+              [attr.aria-label]="
+                themeService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'
+              "
             >
-              <ng-icon hlm name="hugeBubbleChatCancel" />
-              <p class="font-medium">No conversations yet</p>
-              <span class="mt-1 text-sm">Start a new chat to begin</span>
-            </div>
-          } @else {
-            <ul hlmSidebarMenu>
-              @for (conversation of conversations(); track conversation.id) {
-                <li hlmSidebarMenuItem class="group/conversation">
-                  <a
-                    [routerLink]="['/chat', conversation.id]"
-                    hlmSidebarMenuButton
-                    size="lg"
-                    [isActive]="conversationService.activeConversationId() === conversation.id"
-                  >
-                    <div class="flex w-full flex-col items-start">
-                      <span class="w-full truncate">{{ conversation.title }}</span>
-                      <span class="text-xs text-muted-foreground">
-                        @if (conversation.updatedAt; as date) {
-                          {{ date.toDate() | date: 'short' }}
-                        }
-                      </span>
-                    </div>
-                  </a>
-                  <button
-                    hlmSidebarMenuAction
-                    [hlmDropdownMenuTrigger]="conversationMenu"
-                    aria-label="Conversation actions"
-                    class="opacity-0 transition-opacity group-hover/conversation:opacity-100 aria-expanded:opacity-100"
-                  >
-                    <ng-icon hlm name="hugeMoreVerticalCircle01" />
-                  </button>
-                  <ng-template #conversationMenu>
-                    <hlm-dropdown-menu>
-                      <button
-                        hlmDropdownMenuItem
-                        (click)="openDeleteConversationConfirmation($event, conversation.id)"
-                      >
-                        <ng-icon hlm name="hugeDelete02" />
-                        Delete
-                      </button>
-                    </hlm-dropdown-menu>
-                  </ng-template>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-      </hlm-collapsible-content>
-    </div>
-  </hlm-collapsible>
-</div>
+              <ng-icon hlm [name]="themeService.isDarkMode() ? 'hugeSun03' : 'hugeMoon02'" />
+              <span>Toggle theme</span>
+            </button>
+          </hlm-dropdown-menu>
+        </ng-template>
+      </li>
+    </ul>
+  </div>
+</hlm-sidebar>
