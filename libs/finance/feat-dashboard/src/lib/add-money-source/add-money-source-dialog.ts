@@ -21,14 +21,13 @@ export class FinanceAddMoneySourceDialog {
   private readonly authStore = inject(AuthStore);
   private readonly dialogRef = inject(BrnDialogRef<boolean | undefined>);
   private readonly moneySourceService = inject(MoneySourceService);
-  private readonly moneySourceStore = inject(MoneySourceStore);
 
   readonly formId = ADD_MONEY_SOURCE_FORM_ID;
   readonly isSubmitting = signal(false);
-  readonly form = this.fb.group({
+  readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(1)]],
     type: ['bank' as MoneySourceType, Validators.required],
-    balance: [0, [Validators.required, Validators.min(0)]],
+    balance: [0, [Validators.required, Validators.min(0.1), Validators.pattern('^[0-9]*$')]],
   });
 
   protected close(): void {

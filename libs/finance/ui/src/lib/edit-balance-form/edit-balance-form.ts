@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { FinanceMoneyFormatterDirective } from '@qos/shared/util-angular';
 
 @Component({
   selector: 'finance-edit-balance-form',
-  imports: [ReactiveFormsModule, HlmInputImports, HlmLabelImports],
+  imports: [ReactiveFormsModule, HlmInputImports, HlmLabelImports, FinanceMoneyFormatterDirective],
   templateUrl: './edit-balance-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

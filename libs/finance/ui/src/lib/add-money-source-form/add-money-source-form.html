@@ -14,12 +14,11 @@
     <div class="grid grid-cols-4 items-center gap-4">
       <label hlmLabel for="type" class="text-right">Type</label>
       <hlm-select class="col-span-3" formControlName="type">
-        <hlm-select-trigger id="type">
+        <hlm-select-trigger id="type" class="w-full">
           <hlm-select-value placeholder="Select type" />
         </hlm-select-trigger>
         <hlm-select-content>
           <hlm-select-group>
-            <hlm-select-label>Source Type</hlm-select-label>
             <hlm-option value="bank">Bank</hlm-option>
             <hlm-option value="ewallet">E-Wallet</hlm-option>
             <hlm-option value="cash">Cash</hlm-option>
@@ -33,9 +32,12 @@
       <input
         hlmInput
         id="balance"
-        type="number"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        financeMoneyFormatter
         formControlName="balance"
-        placeholder="0.00"
+        placeholder="0 ₫"
         class="col-span-3"
       />
     </div>
