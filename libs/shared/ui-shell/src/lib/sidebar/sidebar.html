@@ -4,10 +4,14 @@
   [variant]="'sidebar'"
 >
   <div hlmSidebarHeader class="pt-[calc(8px+var(--safe-area-top))]">
-    <button hlmSidebarTrigger aria-label="Toggle sidebar" class="ml-0.5"></button>
+    <button
+      hlmSidebarTrigger
+      aria-label="Toggle sidebar"
+      class="ml-0.5 hover:bg-muted hover:text-foreground"
+    ></button>
   </div>
 
-  <div hlmSidebarContent class="overflow-x-hidden">
+  <div hlmSidebarContent class="overflow-x-hidden py-2">
     <ul hlmSidebarMenu class="px-1">
       <li hlmSidebarMenuItem class="ml-2 flex">
         <a routerLink="/finance" hlmSidebarMenuButton class="w-full justify-start gap-2">
