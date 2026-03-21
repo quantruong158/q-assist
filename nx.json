@@ -3,43 +3,25 @@
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "production",
-        "^production"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     },
     "test": {
       "cache": true,
-      "inputs": [
-        "default",
-        "^production"
-      ]
+      "inputs": ["default", "^production"]
     },
     "lint": {
       "cache": true,
-      "inputs": [
-        "default"
-      ]
+      "inputs": ["default"]
     },
     "@nx/esbuild:esbuild": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "production",
-        "^production"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     },
     "@nx/vitest:test": {
       "cache": true,
-      "inputs": [
-        "default",
-        "^production"
-      ]
+      "inputs": ["default", "^production"]
     },
     "@nx/eslint:lint": {
       "cache": true,
@@ -52,21 +34,13 @@
     },
     "@nx/angular:ng-packagr-lite": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "production",
-        "^production"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "namedInputs": {
     "sharedGlobals": [],
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/.eslintrc.json",
@@ -106,5 +80,6 @@
         "testMode": "watch"
       }
     }
-  ]
+  ],
+  "analytics": false
 }

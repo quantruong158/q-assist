@@ -2,7 +2,6 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
@@ -15,20 +14,24 @@ import {
   hugeDelete02,
   hugeMoneyBag02,
   hugeMoreVerticalCircle01,
+  hugeMoon02,
+  hugeSun03,
+  hugeSettings02,
+  hugeArrowDown01,
 } from '@ng-icons/huge-icons';
-import { lucideChevronDown } from '@ng-icons/lucide';
 import { AuthStore } from '@qos/shared/auth/data-access';
 import { Conversation, ConversationService } from '@qos/chat/data-access';
+import { ThemeService } from '@qos/shared/data-access';
 import { filter } from 'rxjs';
 import { toast } from 'ngx-sonner';
 import { ConfirmationDialog } from '../confirmation-dialog/confirmation-dialog';
+import { LayoutService } from '@qos/shared/data-access';
 
 @Component({
   selector: 'shell-sidebar',
   imports: [
     DatePipe,
     RouterLink,
-    HlmButtonImports,
     HlmCollapsibleImports,
     HlmDropdownMenuImports,
     HlmIconImports,
@@ -42,7 +45,10 @@ import { ConfirmationDialog } from '../confirmation-dialog/confirmation-dialog';
       hugeBubbleChatCancel,
       hugeMoreVerticalCircle01,
       hugeMoneyBag02,
-      lucideChevronDown,
+      hugeMoon02,
+      hugeSun03,
+      hugeArrowDown01,
+      hugeSettings02,
     }),
   ],
   templateUrl: './sidebar.html',
@@ -53,8 +59,10 @@ export class Sidebar {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly themeService = inject(ThemeService);
   protected readonly sidebarService = inject(HlmSidebarService);
   protected readonly conversationService = inject(ConversationService);
+  protected readonly layoutService = inject(LayoutService);
 
   protected readonly conversations = signal<Conversation[]>([]);
 
@@ -79,6 +87,10 @@ export class Sidebar {
       .subscribe(() => {
         void this.deleteConversation(conversationId);
       });
+  }
+
+  protected onThemeToggle(): void {
+    this.themeService.toggleTheme();
   }
 
   private loadConversations(): void {
