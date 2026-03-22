@@ -1,7 +1,6 @@
 import { type BooleanInput } from '@angular/cdk/coercion';
 import { booleanAttribute, computed, Directive, effect, inject, input } from '@angular/core';
-import { BrnTooltip, provideBrnTooltipDefaultOptions } from '@spartan-ng/brain/tooltip';
-import { DEFAULT_TOOLTIP_CONTENT_CLASSES } from '@spartan-ng/helm/tooltip';
+import { provideQTooltipDefaultOptions, QTooltip } from '@spartan-ng/helm/tooltip';
 import { classes } from '@spartan-ng/helm/utils';
 import { cva } from 'class-variance-authority';
 import { HlmSidebarService } from './hlm-sidebar.service';
@@ -32,17 +31,16 @@ const sidebarMenuButtonVariants = cva(
 @Directive({
   selector: 'button[hlmSidebarMenuButton], a[hlmSidebarMenuButton]',
   providers: [
-    provideBrnTooltipDefaultOptions({
+    provideQTooltipDefaultOptions({
       showDelay: 150,
       hideDelay: 0,
-      tooltipContentClasses: DEFAULT_TOOLTIP_CONTENT_CLASSES,
       position: 'right',
     }),
   ],
   hostDirectives: [
     {
-      directive: BrnTooltip,
-      inputs: ['brnTooltip: tooltip'],
+      directive: QTooltip,
+      inputs: ['qTooltip: tooltip', 'position', 'hideDelay', 'showDelay', 'tooltipDisabled'],
     },
   ],
   host: {
@@ -56,7 +54,7 @@ const sidebarMenuButtonVariants = cva(
 export class HlmSidebarMenuButton {
   private readonly _config = injectHlmSidebarConfig();
   private readonly _sidebarService = inject(HlmSidebarService);
-  private readonly _brnTooltip = inject(BrnTooltip);
+  private readonly _qTooltip = inject(QTooltip);
 
   public readonly variant = input<'default' | 'outline'>('default');
   public readonly size = input<'default' | 'sm' | 'lg'>('default');
@@ -72,7 +70,7 @@ export class HlmSidebarMenuButton {
 
   constructor() {
     classes(() => sidebarMenuButtonVariants({ variant: this.variant(), size: this.size() }));
-    effect(() => this._brnTooltip.mutableTooltipDisabled.set(this._isTooltipHidden()));
+    effect(() => this._qTooltip.mutableTooltipDisabled.set(this._isTooltipHidden()));
   }
 
   protected onClick(): void {
