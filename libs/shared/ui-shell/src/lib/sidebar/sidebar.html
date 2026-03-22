@@ -75,7 +75,7 @@
                       hlmSidebarMenuAction
                       [hlmDropdownMenuTrigger]="conversationMenu"
                       aria-label="Conversation actions"
-                      class="opacity-0 transition-opacity group-hover/conversation:opacity-100 aria-expanded:opacity-100"
+                      class="opacity-0 transition-opacity group-hover/conversation:opacity-100 data-[state=open]:opacity-100"
                     >
                       <ng-icon hlm name="hugeMoreVerticalCircle01" />
                     </button>
@@ -106,7 +106,7 @@
         <button
           hlmSidebarMenuButton
           [hlmDropdownMenuTrigger]="settingsMenu"
-          class="ml-1 [&[aria-expanded='true']>ng-icon]:rotate-60"
+          class="ml-1 [&[data-state='open']>ng-icon]:rotate-60"
         >
           <ng-icon
             hlm
