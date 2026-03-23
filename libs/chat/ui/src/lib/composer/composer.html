@@ -90,14 +90,14 @@
           hlmBtn
           size="icon"
           variant="ghost"
-          class="rounded-full transition-[background-color,color,box-shadow,transform] duration-180 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-120 aria-expanded:bg-[color-mix(in_srgb,var(--muted)_88%,var(--background))] aria-expanded:text-foreground aria-expanded:shadow-[0_4px_14px_rgba(15,23,42,0.08)] aria-expanded:hover:bg-accent aria-expanded:hover:text-accent-foreground dark:aria-expanded:hover:bg-accent/50 aria-expanded:active:scale-[0.97] [&[aria-expanded='true']>ng-icon]:rotate-45"
+          class="rounded-full transition-[background-color,color,box-shadow] duration-150 ease-out motion-reduce:transition-none data-[state=open]:bg-[color-mix(in_srgb,var(--muted)_88%,var(--background))] data-[state=open]:text-foreground data-[state=open]:shadow-[0_4px_14px_rgba(15,23,42,0.08)] data-[state=open]:hover:bg-accent data-[state=open]:hover:text-accent-foreground dark:data-[state=open]:hover:bg-accent/50 [&[data-state='open']>ng-icon]:rotate-45"
           [hlmDropdownMenuTrigger]="inputActionsMenu"
           aria-label="Add attachments"
         >
           <ng-icon
             hlm
             name="hugeAdd01"
-            class="transition-transform duration-180 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-120"
+            class="transition-transform duration-100 ease-out motion-reduce:transition-none [backface-visibility:hidden]"
           />
         </button>
 
