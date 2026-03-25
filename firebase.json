@@ -17,7 +17,7 @@
   },
   "hosting": {
     "public": "dist/apps/web-app/browser",
-    "predeploy": ["npx nx build web-app --configuration=production"],
+    "predeploy": ["npx nx build web-app --configuration production"],
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
