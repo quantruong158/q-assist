@@ -9,6 +9,8 @@ import {
   serverTimestamp,
   doc,
   collectionData,
+  writeBatch,
+  deleteDoc,
 } from '@angular/fire/firestore';
 import { MoneySource } from '@qos/finance/shared-models';
 import { convertTimestamp } from '@qos/shared/util-angular';
@@ -20,7 +22,12 @@ export class MoneySourceService {
 
   getRealtimeSources(userId: string): Observable<MoneySource[]> {
     const sourcesRef = collection(this.firestore, `users/${userId}/money-sources`);
-    const q = query(sourcesRef, orderBy('createdAt', 'desc'));
+    const q = query(
+      sourcesRef,
+      orderBy('isPinned', 'desc'),
+      orderBy('order', 'asc'),
+      orderBy('createdAt', 'desc'),
+    );
 
     return (
       collectionData(q, {
@@ -48,6 +55,8 @@ export class MoneySourceService {
     await addDoc(sourcesRef, {
       ...data,
       userId,
+      isPinned: data.isPinned ?? false,
+      order: data.order ?? Date.now(),
       createdAt: serverTimestamp(),
     });
   }
@@ -58,5 +67,43 @@ export class MoneySourceService {
       balance,
       updatedAt: serverTimestamp(),
     });
+  }
+
+  async togglePin(userId: string, sourceId: string, isPinned: boolean): Promise<void> {
+    const sourceRef = doc(this.firestore, `users/${userId}/money-sources/${sourceId}`);
+    await updateDoc(sourceRef, {
+      isPinned,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  async updateSource(
+    userId: string,
+    sourceId: string,
+    data: Partial<Pick<MoneySource, 'name' | 'type' | 'balance' | 'isPinned'>>,
+  ): Promise<void> {
+    const sourceRef = doc(this.firestore, `users/${userId}/money-sources/${sourceId}`);
+    await updateDoc(sourceRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  async deleteSource(userId: string, sourceId: string): Promise<void> {
+    const sourceRef = doc(this.firestore, `users/${userId}/money-sources/${sourceId}`);
+    await deleteDoc(sourceRef);
+  }
+
+  async reorderSources(userId: string, sourceIds: string[], isPinned: boolean): Promise<void> {
+    const batch = writeBatch(this.firestore);
+    sourceIds.forEach((id, index) => {
+      const sourceRef = doc(this.firestore, `users/${userId}/money-sources/${id}`);
+      batch.update(sourceRef, {
+        order: index,
+        isPinned,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
   }
 }

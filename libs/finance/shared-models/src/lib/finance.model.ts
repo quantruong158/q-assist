@@ -24,6 +24,8 @@ export interface MoneySourceData {
   balance: number;
   currency: string;
   isActive: boolean;
+  isPinned: boolean;
+  order: number;
   accountNumber?: string;
   createdAt: string;
   updatedAt?: string;
