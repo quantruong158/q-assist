@@ -1,0 +1,35 @@
+<hlm-dialog-header>
+  <h3 hlmDialogTitle>Edit Money Source</h3>
+  <p hlmDialogDescription>
+    Update the details for <span class="font-semibold">{{ data.source.name }}</span>
+  </p>
+</hlm-dialog-header>
+
+<finance-edit-money-source-form [form]="form" [formId]="formId" (submitted)="submit()" />
+
+<hlm-dialog-footer class="flex-row justify-between sm:justify-between">
+  <button
+    hlmBtn
+    type="button"
+    variant="ghost"
+    class="gap-2 hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/10"
+    (click)="delete()"
+    [disabled]="isSubmitting()"
+  >
+    <ng-icon name="hugeDelete02" />
+    Delete
+  </button>
+  <div class="flex gap-2 justify-end">
+    <button hlmBtn type="button" variant="ghost" (click)="close()" class="hidden md:inline">
+      Cancel
+    </button>
+    <button
+      hlmBtn
+      type="submit"
+      form="edit-money-source-form"
+      [disabled]="isSubmitting() || form.invalid || form.pristine"
+    >
+      {{ isSubmitting() ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </div>
+</hlm-dialog-footer>
