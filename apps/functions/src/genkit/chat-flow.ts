@@ -1,31 +1,30 @@
-import { googleAI } from '@genkit-ai/google-genai';
-import { genkit, Part, z } from 'genkit';
+import { Part, z } from 'genkit/beta';
 import { DEFAULT_MODEL, SUPPORTED_MODELS } from '@qos/shared/models';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-
-const ai = genkit({
-  plugins: [googleAI()],
-});
-
-const AttachmentSchema = z.object({
-  url: z.string(),
-  mimeType: z.string(),
-});
-
-const MessageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
-  content: z.string(),
-  attachments: z.array(AttachmentSchema).optional().nullable(),
-});
+import { FirestoreSessionStore } from './chat-session-store';
+import { FinanceAiToolContext, listMoneySourcesTool } from './finance-ai.tools';
+import { aiGenkit } from './ai.runtime';
+import { logger } from 'firebase-functions/logger';
 
 const ChatInputSchema = z.object({
-  messages: z.array(MessageSchema),
+  prompt: z.string(),
+  sessionId: z.string(),
   model: z.string().optional(),
-  conversationId: z.string().optional(),
+  attachments: z
+    .array(
+      z.object({
+        url: z.string(),
+        mimeType: z.string(),
+      }),
+    )
+    .optional()
+    .nullable(),
+  isRetry: z.boolean().optional(),
 });
 
 const ChatOutputSchema = z.object({
-  response: z.string(),
+  text: z.string(),
+  sessionId: z.string(),
 });
 
 const SYSTEM_PROMPT = `You are a helpful and knowledgeable AI assistant. Your role is to provide clear, accurate, and supportive information to the user.
@@ -40,104 +39,132 @@ Guidelines:
 
 IMPORTANT DISCLAIMER: You are an AI assistant and cannot provide professional, legal, or medical advice. Always encourage users to consult with qualified professionals for specific concerns.`;
 
-export const chatFlow = ai.defineFlow(
+export const chatFlow = aiGenkit.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatInputSchema,
     outputSchema: ChatOutputSchema,
     streamSchema: z.string(),
   },
-  async ({ messages, model, conversationId }, { sendChunk, context }) => {
-    const selectedModel =
-      model && SUPPORTED_MODELS.find((m) => m.id === model) ? model : DEFAULT_MODEL.id;
+  async ({ prompt, sessionId, model, attachments, isRetry }, { sendChunk, context }) => {
+    const userId = context?.auth?.uid;
+    if (!userId) {
+      throw new Error('Unauthorized');
+    }
 
-    const isModelSupportSystemPrompt = SUPPORTED_MODELS.find(
-      (m) => m.id === selectedModel,
-    ).supportSystemPrompt;
+    try {
+      const selectedModel = SUPPORTED_MODELS.find((m) => m.id === model);
+      const targetModel = selectedModel ?? DEFAULT_MODEL;
 
-    const genkitMessages = await Promise.all(
-      messages.map(async (msg) => {
-        const contentParts: Part[] = [{ text: msg.content }];
+      const store = new FirestoreSessionStore(userId);
+      const session =
+        sessionId.length === 0
+          ? aiGenkit.createSession({ store, sessionId })
+          : await aiGenkit.loadSession(sessionId, { store });
 
-        if (msg.attachments && msg.attachments.length > 0) {
-          for (const att of msg.attachments) {
-            const base64Data = await fetchImageAsBase64(att.url);
-            contentParts.push({
-              media: {
-                url: `data:${att.mimeType};base64,${base64Data}`,
-                contentType: att.mimeType,
-              },
-            });
+      if (isRetry && sessionId.length > 0) {
+        const sessionData = await store.get(sessionId);
+        const threads = sessionData?.threads;
+        if (threads && threads.main && threads.main.length > 0) {
+          let lastUserMessageIndex = -1;
+          for (let i = threads.main.length - 1; i >= 0; i--) {
+            if (threads.main[i].role === 'user') {
+              lastUserMessageIndex = i;
+              break;
+            }
+          }
+
+          if (lastUserMessageIndex >= 0) {
+            const slicedMessages = threads.main.slice(0, lastUserMessageIndex);
+            await session.updateMessages('main', slicedMessages);
           }
         }
+      }
 
-        return {
-          role: (msg.role === 'assistant' ? 'model' : 'user') as 'user' | 'model',
-          content: contentParts,
-        };
-      }),
-    );
+      const chatContext: FinanceAiToolContext = {
+        auth: { uid: userId },
+      };
 
-    if (!isModelSupportSystemPrompt) {
-      genkitMessages.unshift({ role: 'user', content: [{ text: SYSTEM_PROMPT }] });
-    }
+      const chat = session.chat({
+        model: targetModel.id,
+        system: SYSTEM_PROMPT,
+        tools: [listMoneySourcesTool],
+        context: chatContext,
+      });
 
-    const { stream, response } = ai.generateStream({
-      model: googleAI.model(selectedModel),
-      system: isModelSupportSystemPrompt ? SYSTEM_PROMPT : undefined,
-      messages: genkitMessages,
-    });
+      const contentParts: Part[] = [{ text: prompt }];
 
-    for await (const chunk of stream) {
-      const text = chunk.text;
+      if (attachments && attachments.length > 0) {
+        for (const att of attachments) {
+          contentParts.push({
+            media: {
+              url: att.url,
+              contentType: att.mimeType,
+            },
+          });
+        }
+      }
+
+      const { stream, response } = chat.sendStream(contentParts);
+
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) {
+          sendChunk(text);
+        }
+      }
+
+      const { text } = await response;
+
       if (text) {
-        sendChunk(text);
+        try {
+          await appendChatMessage(userId, sessionId, 'assistant', text);
+        } catch (error) {
+          logger.error('Error saving assistant message to Firestore:', error);
+        }
       }
-    }
 
-    const { text } = await response;
+      return { text, sessionId };
+    } catch (error) {
+      logger.error('Error while processing chat flow:', error);
 
-    if (text && conversationId && context?.auth) {
-      const userId = context.auth.uid;
-      const db = getFirestore();
+      const fallbackText = 'Sorry, an error occurred while processing your request.';
+
       try {
-        const messagesRef = db.collection(
-          `users/${userId}/conversations/${conversationId}/messages`,
-        );
-        const lastMessageSnapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
-        const order = lastMessageSnapshot.empty
-          ? 0
-          : lastMessageSnapshot.docs[0].data()['order'] + 1;
-
-        await messagesRef.add({
-          role: 'assistant',
-          content: text,
-          order,
-          createdAt: FieldValue.serverTimestamp(),
-        });
-
-        const conversationRef = db.doc(`users/${userId}/conversations/${conversationId}`);
-        await conversationRef.set(
-          {
-            lastMessage: text.substring(0, 100),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true },
-        );
-      } catch (error) {
-        console.error('Error saving assistant message to Firestore:', error);
+        await appendChatMessage(userId, sessionId, 'assistant', fallbackText);
+      } catch (appendError) {
+        logger.error('Error saving fallback assistant message to Firestore:', appendError);
       }
-    }
 
-    return { response: text };
+      return { text: fallbackText, sessionId };
+    }
   },
 );
 
-async function fetchImageAsBase64(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.statusText}`);
-  }
-  const buffer = await response.arrayBuffer();
-  return Buffer.from(buffer).toString('base64');
-}
+const appendChatMessage = async (
+  userId: string,
+  sessionId: string,
+  role: 'user' | 'assistant',
+  content: string,
+) => {
+  const db = getFirestore();
+  const messagesRef = db.collection(`users/${userId}/conversations/${sessionId}/messages`);
+  const conversationRef = db.collection(`users/${userId}/conversations`).doc(sessionId);
+  const lastMessageSnapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
+  const lastOrder = lastMessageSnapshot.empty ? 0 : lastMessageSnapshot.docs[0].data()['order'];
+
+  await messagesRef.add({
+    role,
+    content,
+    order: lastOrder + 1,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
+  await conversationRef.set(
+    {
+      lastMessage: content,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+};

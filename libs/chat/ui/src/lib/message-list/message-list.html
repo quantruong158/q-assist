@@ -1,42 +1,92 @@
 <div [class]="isInitialChat() ? 'md:flex-none md:pb-0' : ''">
   @if (isConversationLoading()) {
-    <div
-      class="relative mx-auto mb-4 flex items-center gap-3 justify-center py-3 text-muted-foreground"
+  <div
+    class="relative mx-auto mb-4 flex items-center gap-3 justify-center py-3 text-muted-foreground"
+  >
+    <hlm-spinner class="text-lg" aria-label="Loading conversation" />
+    <span>Loading conversation...</span>
+  </div>
+  } @if (isInitialChat()) {
+  <div
+    animate.enter="welcome-float-enter"
+    class="mx-auto mt-25 h-[calc(32vh-var(--safe-area-bottom))] max-w-180 content-end px-4 py-4 text-foreground max-[600px]:mt-6 max-[600px]:px-4 max-[600px]:py-6"
+  >
+    <p
+      animate.enter="welcome-line-enter welcome-line-enter--first"
+      class="text-2xl text-muted-foreground"
     >
-      <hlm-spinner class="text-lg" aria-label="Loading conversation" />
-      <span>Loading conversation...</span>
-    </div>
-  }
-
-  @if (isInitialChat()) {
-    <div
-      animate.enter="welcome-float-enter"
-      class="mx-auto mt-25 h-[calc(32vh-var(--safe-area-bottom))] max-w-180 content-end px-4 py-4 text-foreground max-[600px]:mt-6 max-[600px]:px-4 max-[600px]:py-6"
+      Welcome, {{ currentUserDisplayName() }}
+    </p>
+    <p
+      animate.enter="welcome-line-enter welcome-line-enter--second"
+      class="text-[2.5rem] leading-[1.4]"
     >
-      <p
-        animate.enter="welcome-line-enter welcome-line-enter--first"
-        class="text-2xl text-muted-foreground"
-      >
-        Welcome, {{ currentUserDisplayName() }}
-      </p>
-      <p
-        animate.enter="welcome-line-enter welcome-line-enter--second"
-        class="text-[2.5rem] leading-[1.4]"
-      >
-        How can I help you?
-      </p>
-    </div>
-  }
-
-  @for (message of messages(); track $index) {
+      How can I help you?
+    </p>
+  </div>
+  } @else {
+  <div>
+    @for (message of messages(); track $index; let index = $index) {
     <chat-message
       [content]="message.content"
       [role]="message.role"
       [attachments]="message.attachments"
-    />
-  }
-
-  @if (isStreaming()) {
+      [showActions]="true"
+    >
+      @if (index === lastAssistantMessageIndex() && !isStreaming() && !retryActionSuppressed()) {
+      <button
+        chatMessageAssistantActions
+        hlmBtn
+        size="icon"
+        variant="ghost"
+        type="button"
+        (pointerdown)="beginRetry()"
+        (click)="retry.emit()"
+        class="rounded-full"
+        hlmTooltip="Redo"
+        position="bottom"
+        [showDelay]="300"
+        aria-label="Retry message"
+      >
+        <ng-icon hlm name="hugeArrowReloadHorizontal" />
+      </button>
+      } @if (message.role === 'user') {
+      <button
+        chatMessageUserActions
+        hlmBtn
+        size="icon"
+        variant="ghost"
+        type="button"
+        (click)="copyRequested.emit(message.content)"
+        class="rounded-full"
+        hlmTooltip="Copy prompt"
+        position="bottom"
+        [showDelay]="300"
+        aria-label="Copy message"
+      >
+        <ng-icon hlm name="hugeCopy01" />
+      </button>
+      } @else {
+      <button
+        chatMessageAssistantActions
+        hlmBtn
+        size="icon"
+        variant="ghost"
+        type="button"
+        (click)="copyRequested.emit(message.content)"
+        class="rounded-full"
+        hlmTooltip="Copy response"
+        position="bottom"
+        [showDelay]="300"
+        aria-label="Copy message"
+      >
+        <ng-icon hlm name="hugeCopy01" />
+      </button>
+      }
+    </chat-message>
+    } @if (isStreaming()) {
     <chat-message [content]="streamingContent()" role="assistant" [isStreaming]="true" />
+    }
+  </div>
   }
 </div>

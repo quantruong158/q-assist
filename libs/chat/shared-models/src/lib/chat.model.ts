@@ -10,9 +10,14 @@ export interface ChatMessage {
 }
 
 export interface ChatRequest {
-  messages: ChatMessage[];
+  prompt: string;
+  sessionId: string;
   model?: string;
-  conversationId?: string;
+  attachments?: Array<{
+    url: string;
+    mimeType: string;
+  }>;
+  isRetry: boolean;
 }
 
 export interface ChatResponse {

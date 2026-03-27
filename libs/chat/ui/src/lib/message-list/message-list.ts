@@ -1,11 +1,22 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { ChatMessage } from '@qos/chat/shared-models';
 import { ChatMessageItem } from '../message/message';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { hugeCopy01, hugeRefresh, hugeArrowReloadHorizontal } from '@ng-icons/huge-icons';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 
 @Component({
   selector: 'chat-message-list',
-  imports: [HlmSpinnerImports, ChatMessageItem],
+  imports: [HlmSpinnerImports, ChatMessageItem, NgIcon, HlmButtonImports, HlmTooltipImports],
+  providers: [
+    provideIcons({
+      hugeCopy01,
+      hugeRefresh,
+      hugeArrowReloadHorizontal,
+    }),
+  ],
   templateUrl: './message-list.html',
   styles: `
     .welcome-float-enter {
@@ -96,4 +107,44 @@ export class ChatMessageList {
   readonly isConversationLoading = input(false);
   readonly isInitialChat = input(false);
   readonly currentUserDisplayName = input<string | undefined>();
+  readonly retry = output<void>();
+  readonly copyRequested = output<string>();
+  readonly retryActionSuppressed = signal(false);
+  private readonly retryStreamSeen = signal(false);
+
+  readonly lastAssistantMessageIndex = computed(() => {
+    const messages = this.messages();
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'assistant') {
+        return i;
+      }
+    }
+
+    return -1;
+  });
+
+  constructor() {
+    effect(() => {
+      if (this.isStreaming()) {
+        this.retryStreamSeen.set(true);
+        return;
+      }
+
+      if (this.retryStreamSeen()) {
+        this.retryActionSuppressed.set(false);
+        this.retryStreamSeen.set(false);
+      }
+    });
+  }
+
+  beginRetry(): void {
+    this.retryActionSuppressed.set(true);
+    this.retry.emit();
+  }
+
+  resetRetryAction(): void {
+    this.retryActionSuppressed.set(false);
+    this.retryStreamSeen.set(false);
+  }
 }

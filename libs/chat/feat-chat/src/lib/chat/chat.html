@@ -6,6 +6,8 @@
     [isConversationLoading]="isConversationLoading()"
     [isInitialChat]="isInitialChat()"
     [currentUserDisplayName]="currentUser()?.displayName ?? undefined"
+    (retry)="retryLastMessage()"
+    (copyRequested)="copyMessage($event)"
   />
 </div>
 
