@@ -364,17 +364,19 @@ markdown table {
   overflow-x: scroll !important;
   min-width: 0 !important;
   padding: 0 0 0.25rem 0;
+  width: fit-content;
 
   td {
-    padding: 0.5rem 1rem !important;
-    border: 2px solid var(--background);
-    border-bottom: none;
+    padding: 1rem !important;
+    strong {
+      font-weight: 500;
+    }
   }
 
   th {
-    padding: 0.5rem 1rem !important;
-    border: 2px solid var(--background);
-    border-top: none;
+    padding: 1rem !important;
+    font-weight: 500;
+    border-bottom: 2px solid var(--background);
   }
 }
 

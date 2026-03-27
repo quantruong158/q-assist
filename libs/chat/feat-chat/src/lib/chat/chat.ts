@@ -33,8 +33,8 @@ import { throttleTime } from 'rxjs';
 import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
 import { Router } from '@angular/router';
 import { LayoutService } from '@qos/shared/data-access';
+import { toast } from 'ngx-sonner';
 
-const CONTEXT_WINDOW_SIZE = 20;
 const DRAFT_CHAT_KEY = '__draft__';
 
 interface PendingAttachment {
@@ -171,6 +171,7 @@ export class Chat {
   );
 
   protected readonly currentUser = computed(() => this.authStore.currentUser());
+  private readonly messageList = viewChild(ChatMessageList);
 
   protected readonly canSend = computed(() => {
     const hasContent = !!this.userPrompt()?.trim() || this.pendingAttachments().length > 0;
@@ -200,6 +201,19 @@ export class Chat {
 
   protected compareModels(a: AiModel, b: AiModel): boolean {
     return a?.id === b?.id;
+  }
+
+  protected async copyMessage(text: string): Promise<void> {
+    if (!text || !globalThis.navigator?.clipboard?.writeText) {
+      return;
+    }
+
+    try {
+      await globalThis.navigator.clipboard.writeText(text);
+      toast.success('Copied to clipboard');
+    } catch (error) {
+      console.error('Error copying message to clipboard:', error);
+    }
   }
 
   constructor() {
@@ -234,14 +248,21 @@ export class Chat {
     const initialChatKey = this.currentChatKey();
     const currentSession = this.chatStateService.getSession(initialChatKey);
     const attachments = this.pendingAttachments()
-      .filter((a: PendingAttachment) => a.uploadResult && !a.error)
-      .map((a: PendingAttachment) => a.uploadResult!);
+      .filter((a) => !a.error)
+      .map((a) => a.uploadResult)
+      .filter((res) => res !== undefined);
 
     if ((!text && attachments.length === 0) || currentSession.isStreaming || !user) {
       return;
     }
 
     const chatAttachments: ChatAttachment[] = attachments.map((a) => ({
+      url: a.url,
+      mimeType: a.mimeType,
+    }));
+
+    // Prepare attachment URLs to send
+    const attachmentsToSend: Array<{ url: string; mimeType: string }> = attachments.map((a) => ({
       url: a.url,
       mimeType: a.mimeType,
     }));
@@ -291,25 +312,11 @@ export class Chat {
         ...(firestoreAttachments.length > 0 && { attachments: firestoreAttachments }),
       });
 
-      const recentMessages = await this.messageService.getRecentMessages(
-        user.uid,
-        conversationId,
-        CONTEXT_WINDOW_SIZE,
-      );
-
-      const contextMessages: ChatMessage[] = recentMessages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-        attachments: msg.attachments?.map((a: Attachment) => ({
-          url: a.url,
-          mimeType: a.mimeType,
-        })),
-      }));
-
       const { stream, output } = await this.chatService.sendMessage(
-        contextMessages,
-        this.selectedModel.value.id,
+        text || '(Image attached)',
         conversationId,
+        this.selectedModel.value.id,
+        attachmentsToSend.length > 0 ? attachmentsToSend : undefined,
       );
 
       for await (const chunk of stream) {
@@ -329,6 +336,80 @@ export class Chat {
       };
       this.chatStateService.appendMessage(chatKey, errorMessage);
     } finally {
+      this.messageList()?.resetRetryAction();
+      this.chatStateService.stopStreaming(chatKey, streamRequestId);
+      this.scrollToBottom();
+    }
+  }
+
+  protected async retryLastMessage(): Promise<void> {
+    const user = this.currentUser();
+    const chatKey = this.currentChatKey();
+    const messages = this.messages();
+    const conversationId = this.id();
+
+    if (!user || !conversationId || messages.length < 2) {
+      return;
+    }
+
+    let lastUserMessageIndex = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        lastUserMessageIndex = i;
+        break;
+      }
+    }
+
+    if (lastUserMessageIndex === -1) {
+      return;
+    }
+
+    const lastUserMessage = messages[lastUserMessageIndex];
+    const streamRequestId = crypto.randomUUID();
+
+    try {
+      // Remove the last assistant message from UI
+      this.chatStateService.removeLastMessage(chatKey);
+
+      // Delete the last assistant message from Firestore
+      await this.messageService.deleteLastAssistantMessage(user.uid, conversationId);
+
+      this.chatStateService.startStreaming(chatKey, streamRequestId);
+      this.scrollToBottom();
+
+      // Prepare attachments from the last user message
+      const attachmentsToSend = lastUserMessage.attachments?.map((att) => ({
+        url: att.url,
+        mimeType: att.mimeType,
+      }));
+
+      // Resend the last user message with isRetry flag
+      const { stream, output } = await this.chatService.sendMessage(
+        lastUserMessage.content,
+        conversationId,
+        this.selectedModel.value.id,
+        attachmentsToSend && attachmentsToSend.length > 0 ? attachmentsToSend : undefined,
+        true,
+      );
+
+      for await (const chunk of stream) {
+        if (typeof chunk === 'string') {
+          this.chatStateService.appendStreamingChunk(chatKey, chunk, streamRequestId);
+        }
+      }
+
+      await output;
+      this.chatStateService.finishStreaming(chatKey, streamRequestId);
+    } catch (error) {
+      console.error('Error retrying message:', error);
+
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'Sorry, an error occurred while retrying your request.',
+      };
+      this.chatStateService.appendMessage(chatKey, errorMessage);
+    } finally {
+      this.messageList()?.resetRetryAction();
       this.chatStateService.stopStreaming(chatKey, streamRequestId);
       this.scrollToBottom();
     }

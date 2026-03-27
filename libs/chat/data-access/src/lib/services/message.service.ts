@@ -3,6 +3,8 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   Firestore,
   getDocs,
   limit,
@@ -113,5 +115,44 @@ export class MessageService {
 
     const lastMessage = snapshot.docs[0].data() as Message;
     return lastMessage.order + 1;
+  }
+
+  async deleteLastAssistantMessage(userId: string, conversationId: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const messagesRef = collection(
+      this.firestore,
+      `users/${userId}/conversations/${conversationId}/messages`,
+    );
+
+    const q = query(messagesRef, orderBy('order', 'desc'), limit(50));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return;
+    }
+
+    const lastAssistantMessage = snapshot.docs.find((docSnap) => {
+      const message = docSnap.data() as Message;
+      return message.role === 'assistant';
+    });
+
+    if (!lastAssistantMessage) {
+      return;
+    }
+
+    const messageDocRef = doc(
+      this.firestore,
+      `users/${userId}/conversations/${conversationId}/messages`,
+      lastAssistantMessage.id,
+    );
+
+    await deleteDoc(messageDocRef);
+  }
+
+  async deleteLastMessage(userId: string, conversationId: string): Promise<void> {
+    await this.deleteLastAssistantMessage(userId, conversationId);
   }
 }

@@ -29,10 +29,11 @@ export const createTransactionInputSchema = z.object({
   amount: z.number().positive().describe('Amount of the transaction'),
   currency: z
     .string()
+    .length(3)
     .default('VND')
     .describe('3 letter currency code, default to "VND" if not provided'),
   type: z.enum(['income', 'expense']).describe('Type of the transaction'),
-  sourceId: z.string().describe('Source ID of the transaction'),
+  sourceId: z.string().describe('ID of the money source from the database'),
   merchant: z
     .string()
     .optional()

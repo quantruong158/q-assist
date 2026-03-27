@@ -17,10 +17,12 @@ import * as balanceHandlers from './finance/handlers/balanceHandler';
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 const notificationGatewayKey = defineSecret('NOTIFICATION_GATEWAY_KEY');
+const opencodeApiKey = defineSecret('OPENCODE_API_KEY');
+const openrouterApiKey = defineSecret('OPENROUTER_API_KEY');
 
 export const chat = onCallGenkit(
   {
-    secrets: [geminiApiKey],
+    secrets: [geminiApiKey, opencodeApiKey],
     authPolicy: (auth) => {
       if (!auth) {
         throw new Error('Unauthorized');
@@ -34,7 +36,7 @@ export const chat = onCallGenkit(
 
 export const financeAi = onCallGenkit(
   {
-    secrets: [geminiApiKey],
+    secrets: [geminiApiKey, opencodeApiKey, openrouterApiKey],
     authPolicy: (auth) => {
       if (!auth) {
         throw new Error('Unauthorized');

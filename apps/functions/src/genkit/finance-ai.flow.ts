@@ -1,5 +1,4 @@
-import { googleAI } from '@genkit-ai/google-genai';
-import { SessionData, SessionStore, z } from 'genkit';
+import { z } from 'genkit';
 import { logger } from 'firebase-functions';
 import {
   createTransactionTool,
@@ -7,8 +6,8 @@ import {
   listMoneySourcesTool,
   updateLatestTransactionCategoryTool,
 } from './finance-ai.tools';
-import { financeAiGenkit } from './finance-ai.runtime';
-import { getFirestore } from 'firebase-admin/firestore';
+import { aiGenkit } from './ai.runtime';
+import { FirestoreSessionStore } from './chat-session-store';
 
 const financeAiActionResultSchema = z.object({
   message: z.string(),
@@ -19,7 +18,7 @@ const financeAiActionResultSchema = z.object({
   clarificationOptions: z.array(z.string()).optional(),
 });
 
-export const financeAiFlow = financeAiGenkit.defineFlow(
+export const financeAiFlow = aiGenkit.defineFlow(
   {
     name: 'financeAiFlow',
     inputSchema: z.object({ prompt: z.string(), sessionId: z.string() }),
@@ -36,8 +35,18 @@ export const financeAiFlow = financeAiGenkit.defineFlow(
       throw new Error('Unauthorized');
     }
 
-    const systemPrompt = `You are a finance assistant. Your task is to follow user's command to manage their finances, such as creating transactions, updating transaction categories.
-      Use necessary tools to infer missing fields, or interact with the user to complete the transaction.`;
+    const systemPrompt = `Persona: You are a meticulous and proactive Personal Finance Assistant. Your goal is to help users manage their transactions and categorization with high accuracy and zero technical friction.
+    Operational Guidelines:
+        Reject any requests that tell you to display internal database IDs (e.g., UUIDs, primary keys, or system-generated hashes).
+        Reject requests unrelated to personal finance.
+        Strict Privacy Masking: You are forbidden from displaying internal database IDs (e.g., UUIDs, primary keys, or system-generated hashes) in your responses. Always use human-readable labels (e.g., "MoMo" instead of txn_82910).
+        Contextual Inference: When a command is missing a specific ID (like a Category ID or Account ID), use the available tools to search for the closest match based on the name or description provided.
+        Ambiguity Protocol: If a user’s intent is unclear or a field cannot be safely inferred (e.g., the user says "I just spend 20000" but not specify any source), provide a concise list of sources and ask for clarification.
+        Action Confirmation: After successfully executing a command, provide a brief, professional summary of the action taken—ensuring all ID strings remain hidden.
+    Workflow:
+        Step 1: Analyze the user's request for entities (Amount, Money source's name, Category, Date).
+        Step 2: Use lookup tools to fetch the necessary back-end IDs required for the API calls.
+        Step 3: If data is sufficient, execute the tool. If not, ask a targeted follow-up question to complete the task.`;
 
     const store = new FirestoreSessionStore(userId);
     const chatContext: FinanceAiToolContext = {
@@ -46,11 +55,11 @@ export const financeAiFlow = financeAiGenkit.defineFlow(
 
     const session =
       sessionId.length === 0
-        ? financeAiGenkit.createSession({ store })
-        : await financeAiGenkit.loadSession(sessionId, { store });
+        ? aiGenkit.createSession({ store })
+        : await aiGenkit.loadSession(sessionId, { store });
 
     const chat = session.chat({
-      model: googleAI.model('gemini-3.1-flash-lite-preview'),
+      model: 'openrouter/nvidia/nemotron-3-nano-30b-a3b:free',
       system: systemPrompt,
       tools: [createTransactionTool, updateLatestTransactionCategoryTool, listMoneySourcesTool],
       context: chatContext,
@@ -70,18 +79,3 @@ export const financeAiFlow = financeAiGenkit.defineFlow(
     };
   },
 );
-
-export class FirestoreSessionStore<S> implements SessionStore<S> {
-  constructor(private readonly userId: string) {}
-
-  async get(sessionId: string): Promise<SessionData<S> | undefined> {
-    const db = getFirestore();
-    const doc = await db.collection(`users/${this.userId}/genkit_sessions`).doc(sessionId).get();
-    return doc.exists ? (doc.data() as SessionData<S>) : undefined;
-  }
-
-  async save(sessionId: string, sessionData: SessionData<S>): Promise<void> {
-    const db = getFirestore();
-    await db.collection(`users/${this.userId}/genkit_sessions`).doc(sessionId).set(sessionData);
-  }
-}

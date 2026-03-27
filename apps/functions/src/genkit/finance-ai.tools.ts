@@ -1,6 +1,6 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { MoneyTransactionData, MoneySource } from '@qos/finance/shared-models';
-import { financeAiGenkit } from './finance-ai.runtime';
+import { aiGenkit } from './ai.runtime';
 import {
   FinanceCategoryId,
   listMoneySourcesInputSchema,
@@ -17,10 +17,10 @@ export interface FinanceAiToolContext {
   };
 }
 
-export const listMoneySourcesTool = financeAiGenkit.defineTool(
+export const listMoneySourcesTool = aiGenkit.defineTool(
   {
     name: 'listMoneySources',
-    description: "List the current user's money sources from Firestore.",
+    description: "List the current user's money sources from database",
     inputSchema: listMoneySourcesInputSchema,
     outputSchema: listMoneySourcesOutputSchema,
   },
@@ -42,11 +42,11 @@ export const listMoneySourcesTool = financeAiGenkit.defineTool(
   },
 );
 
-export const createTransactionTool = financeAiGenkit.defineTool(
+export const createTransactionTool = aiGenkit.defineTool(
   {
     name: 'createTransaction',
     description:
-      'Create a new transaction in Firestore for the current user. Asks the user for missing fields if necessary.',
+      'Create a new transaction in database for the current user. Asks the user for missing required fields if necessary',
     inputSchema: createTransactionInputSchema,
     outputSchema: createTransactionOutputSchema,
   },
@@ -70,7 +70,7 @@ export const createTransactionTool = financeAiGenkit.defineTool(
   },
 );
 
-export const updateLatestTransactionCategoryTool = financeAiGenkit.defineTool(
+export const updateLatestTransactionCategoryTool = aiGenkit.defineTool(
   {
     name: 'updateLatestTransactionCategory',
     description:

@@ -192,6 +192,19 @@ export class ChatStateStore {
     });
   }
 
+  removeLastMessage(chatKey: string): void {
+    this.updateSession(chatKey, (session) => {
+      if (session.messages.length === 0) {
+        return session;
+      }
+
+      return {
+        ...session,
+        messages: session.messages.slice(0, -1),
+      };
+    });
+  }
+
   private updateSession(
     chatKey: string,
     updater: (session: ChatSessionState) => ChatSessionState,
