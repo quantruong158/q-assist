@@ -2,9 +2,10 @@ import { Part, z } from 'genkit/beta';
 import { DEFAULT_MODEL, SUPPORTED_MODELS } from '@qos/shared/models';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { FirestoreSessionStore } from './chat-session-store';
-import { FinanceAiToolContext, listMoneySourcesTool } from './finance-ai.tools';
+import { FinanceAiToolContext } from './finance-ai.tools';
 import { aiGenkit } from './ai.runtime';
 import { logger } from 'firebase-functions/logger';
+import { financeAgent, searchAgent } from './agents';
 
 const ChatInputSchema = z.object({
   prompt: z.string(),
@@ -36,6 +37,7 @@ Guidelines:
 - Use markdown formatting (lists, bold for emphasis) to improve readability.
 - If you don't know the answer, state it clearly and suggest where the user might find the information.
 - Maintain a neutral and objective perspective.
+- If appropriate, transfer to an agent that can better handle the request. If you cannot help the customer with the available tools, politely explain so.
 
 IMPORTANT DISCLAIMER: You are an AI assistant and cannot provide professional, legal, or medical advice. Always encourage users to consult with qualified professionals for specific concerns.`;
 
@@ -88,7 +90,7 @@ export const chatFlow = aiGenkit.defineFlow(
       const chat = session.chat({
         model: targetModel.id,
         system: SYSTEM_PROMPT,
-        tools: [listMoneySourcesTool],
+        tools: [searchAgent, financeAgent],
         context: chatContext,
       });
 
@@ -131,6 +133,7 @@ export const chatFlow = aiGenkit.defineFlow(
       const fallbackText = 'Sorry, an error occurred while processing your request.';
 
       try {
+        sendChunk(fallbackText);
         await appendChatMessage(userId, sessionId, 'assistant', fallbackText);
       } catch (appendError) {
         logger.error('Error saving fallback assistant message to Firestore:', appendError);

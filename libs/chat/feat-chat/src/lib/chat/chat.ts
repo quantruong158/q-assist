@@ -203,6 +203,21 @@ export class Chat {
     return a?.id === b?.id;
   }
 
+  private finalizeAssistantMessage(
+    chatKey: string,
+    streamRequestId: string,
+    output: { text: string },
+  ): void {
+    const streamedAssistantMessage = this.chatStateService.finishStreaming(chatKey, streamRequestId);
+
+    if (!streamedAssistantMessage && output.text.trim()) {
+      this.chatStateService.appendMessage(chatKey, {
+        role: 'assistant',
+        content: output.text,
+      });
+    }
+  }
+
   protected async copyMessage(text: string): Promise<void> {
     if (!text || !globalThis.navigator?.clipboard?.writeText) {
       return;
@@ -325,8 +340,8 @@ export class Chat {
         }
       }
 
-      await output;
-      this.chatStateService.finishStreaming(chatKey, streamRequestId);
+      const finalOutput = await output;
+      this.finalizeAssistantMessage(chatKey, streamRequestId, finalOutput);
     } catch (error) {
       console.error('Error sending message:', error);
 
@@ -398,8 +413,8 @@ export class Chat {
         }
       }
 
-      await output;
-      this.chatStateService.finishStreaming(chatKey, streamRequestId);
+      const finalOutput = await output;
+      this.finalizeAssistantMessage(chatKey, streamRequestId, finalOutput);
     } catch (error) {
       console.error('Error retrying message:', error);
 
