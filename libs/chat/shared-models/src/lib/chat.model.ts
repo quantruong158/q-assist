@@ -21,7 +21,8 @@ export interface ChatRequest {
 }
 
 export interface ChatResponse {
-  response: string;
+  text: string;
+  sessionId: string;
 }
 
 export interface ChatSessionState {

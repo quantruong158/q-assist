@@ -19,10 +19,11 @@ const geminiApiKey = defineSecret('GEMINI_API_KEY');
 const notificationGatewayKey = defineSecret('NOTIFICATION_GATEWAY_KEY');
 const opencodeApiKey = defineSecret('OPENCODE_API_KEY');
 const openrouterApiKey = defineSecret('OPENROUTER_API_KEY');
+const tavilyApiKey = defineSecret('TAVILY_API_KEY');
 
 export const chat = onCallGenkit(
   {
-    secrets: [geminiApiKey, opencodeApiKey],
+    secrets: [geminiApiKey, opencodeApiKey, openrouterApiKey, tavilyApiKey],
     authPolicy: (auth) => {
       if (!auth) {
         throw new Error('Unauthorized');

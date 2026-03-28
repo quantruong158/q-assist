@@ -22,6 +22,16 @@ export const SUPPORTED_MODELS: AiModel[] = [
     provider: 'Gemini',
   },
   {
+    id: 'openrouter/google/gemini-2.5-flash-lite',
+    label: 'Gemini 2.5 Flash Lite',
+    provider: 'OpenRouter',
+  },
+  {
+    id: 'openrouter/arcee-ai/trinity-large-preview:free',
+    label: 'Trinity Large Preview',
+    provider: 'OpenRouter',
+  },
+  {
     id: 'opencode-go/glm-5',
     label: 'GLM-5',
     provider: 'Opencode Go',

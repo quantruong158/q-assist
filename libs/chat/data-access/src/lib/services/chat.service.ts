@@ -21,7 +21,7 @@ export class ChatService {
         stream: (async function* () {
           //
         })(),
-        output: Promise.resolve({ response: '' } as ChatResponse),
+        output: Promise.resolve({ text: '', sessionId } as ChatResponse),
       };
     }
 
