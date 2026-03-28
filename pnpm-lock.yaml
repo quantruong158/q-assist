@@ -110,6 +110,9 @@ importers:
       firebase-functions:
         specifier: ^7.0.0
         version: 7.1.1(firebase-admin@13.7.0(encoding@0.1.13))
+      hono:
+        specifier: ^4.12.3
+        version: 4.12.3
       genkit:
         specifier: ^1.28.0
         version: 1.29.0(@google-cloud/firestore@7.11.6(encoding@0.1.13))(encoding@0.1.13)(firebase-admin@13.7.0(encoding@0.1.13))(firebase@12.10.0)
