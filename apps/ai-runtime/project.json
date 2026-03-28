@@ -1,0 +1,69 @@
+{
+  "name": "ai-runtime",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/ai-runtime/src",
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{workspaceRoot}/dist/apps/ai-runtime"],
+      "defaultConfiguration": "production",
+      "options": {
+        "platform": "node",
+        "outputPath": "dist/apps/ai-runtime",
+        "format": ["esm"],
+        "bundle": true,
+        "main": "apps/ai-runtime/src/main.ts",
+        "tsConfig": "apps/ai-runtime/tsconfig.app.json",
+        "generatePackageJson": true,
+        "external": ["firebase-admin", "hono"],
+        "esbuildOptions": {
+          "sourcemap": true,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "development": {
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "defaultConfiguration": "development",
+      "options": {
+        "command": "bun apps/ai-runtime/src/main.ts"
+      },
+      "configurations": {
+        "development": {
+          "command": "bun apps/ai-runtime/src/main.ts"
+        },
+        "production": {
+          "command": "bun dist/apps/ai-runtime/main.js"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/ai-runtime/src/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}
