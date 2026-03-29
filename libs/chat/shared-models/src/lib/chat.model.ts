@@ -1,6 +1,13 @@
 export interface ChatAttachment {
   url: string;
   mimeType: string;
+  filename?: string;
+}
+
+export interface ChatRequestAttachment {
+  url: string;
+  mimeType: string;
+  filename?: string;
 }
 
 export interface ChatMessage {
@@ -13,10 +20,7 @@ export interface ChatRequest {
   prompt: string;
   sessionId: string;
   model?: string;
-  attachments?: Array<{
-    url: string;
-    mimeType: string;
-  }>;
+  attachments?: ChatRequestAttachment[];
   isRetry?: boolean;
 }
 

@@ -1,11 +1,16 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { stepCountIs, ToolLoopAgent, type ToolSet } from 'ai';
+import { stepCountIs, ToolLoopAgent, type ModelMessage, type ToolSet } from 'ai';
 
 import { ChatRequest, ChatResponse } from '@qos/chat/shared-models';
 
 import { AiRuntimeConfig } from './config';
 import { CHAT_SYSTEM_PROMPT, TOOL_GUIDANCE } from './prompts';
 import { resolveModel, resolveSupportedModelId } from './providers';
+import {
+  appendConversationMessage,
+  deleteLastAssistantMessage,
+  loadConversationModelMessages,
+} from './chat-persistence';
 import {
   createTransactionTool,
   listMoneySourcesTool,
@@ -40,6 +45,7 @@ type AttachmentPart =
       type: 'file';
       data: string;
       mediaType: string;
+      filename?: string;
     };
 
 type MessagePart =
@@ -110,6 +116,7 @@ const buildUserContent = (request: ChatRequest): string | MessagePart[] => {
         type: 'file',
         data: attachment.url,
         mediaType: attachment.mimeType,
+        filename: attachment.filename,
       });
     }
   }
@@ -117,12 +124,37 @@ const buildUserContent = (request: ChatRequest): string | MessagePart[] => {
   return parts;
 };
 
-const createAgentMessages = (request: ChatRequest) => [
-  {
-    role: 'user' as const,
-    content: buildUserContent(request),
-  },
-];
+const buildFallbackUserMessage = (request: ChatRequest): ModelMessage => ({
+  role: 'user',
+  content: buildUserContent(request),
+});
+
+const prepareConversationMessages = async (input: ChatRuntimeInput): Promise<ModelMessage[]> => {
+  const sessionId = normalizeSessionId(input.request.sessionId);
+
+  if (input.request.isRetry) {
+    await deleteLastAssistantMessage(input.config, input.auth.uid, sessionId);
+
+    const retryHistory = await loadConversationModelMessages(input.auth.uid, sessionId);
+
+    const retryLastMessage = retryHistory[retryHistory.length - 1];
+    if (!retryLastMessage || retryLastMessage.role !== 'user') {
+      return [...retryHistory, buildFallbackUserMessage(input.request)];
+    }
+
+    return retryHistory;
+  }
+
+  await appendConversationMessage({
+    userId: input.auth.uid,
+    sessionId,
+    role: 'user',
+    content: input.request.prompt,
+    attachments: input.request.attachments,
+  });
+
+  return loadConversationModelMessages(input.auth.uid, sessionId);
+};
 
 const createAgent = (input: ChatRuntimeInput) => {
   const modelId = resolveSupportedModelId(input.request.model);
@@ -151,22 +183,45 @@ const runChat = async (
   input: ChatRuntimeInput,
 ): Promise<ChatResponse | AsyncIterable<ChatStreamEvent>> => {
   const agent = createAgent(input);
-  const messages = createAgentMessages(input.request);
+  const sessionId = normalizeSessionId(input.request.sessionId);
+  const messages = await prepareConversationMessages({
+    ...input,
+    request: {
+      ...input.request,
+      sessionId,
+    },
+  });
 
   if (mode === 'generate') {
     try {
       const result = await agent.generate({ messages });
 
+      if (result.text.trim().length > 0) {
+        await appendConversationMessage({
+          userId: input.auth.uid,
+          sessionId,
+          role: 'assistant',
+          content: result.text,
+        });
+      }
+
       return {
         text: result.text,
-        sessionId: normalizeSessionId(input.request.sessionId),
+        sessionId,
       };
     } catch (error) {
       console.error('AI runtime chat generation failed:', error);
 
+      await appendConversationMessage({
+        userId: input.auth.uid,
+        sessionId,
+        role: 'assistant',
+        content: FALLBACK_TEXT,
+      });
+
       return {
         text: FALLBACK_TEXT,
-        sessionId: normalizeSessionId(input.request.sessionId),
+        sessionId,
       };
     }
   }
@@ -174,17 +229,36 @@ const runChat = async (
   return (async function* () {
     try {
       const result = await agent.stream({ messages });
+      let accumulatedText = '';
 
       for await (const delta of result.textStream) {
         if (delta.length > 0) {
+          accumulatedText += delta;
           yield {
             type: 'text',
             payload: delta,
           };
         }
       }
+
+      if (accumulatedText.trim().length > 0) {
+        await appendConversationMessage({
+          userId: input.auth.uid,
+          sessionId,
+          role: 'assistant',
+          content: accumulatedText,
+        });
+      }
     } catch (error) {
       console.error('AI runtime chat stream failed:', error);
+
+      await appendConversationMessage({
+        userId: input.auth.uid,
+        sessionId,
+        role: 'assistant',
+        content: FALLBACK_TEXT,
+      });
+
       yield {
         type: 'text',
         payload: FALLBACK_TEXT,
