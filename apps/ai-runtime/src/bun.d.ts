@@ -3,6 +3,7 @@ declare const Bun: {
     hostname?: string;
     port?: number;
     fetch: (request: Request, server?: unknown) => Response | Promise<Response>;
+    idleTimeout?: number;
   }): {
     stop(): void;
   };

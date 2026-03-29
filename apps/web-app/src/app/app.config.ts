@@ -21,6 +21,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from '@qos/shared/auth/util';
 import { provideNgIconsConfig } from '@ng-icons/core';
 import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
+import { API_BASE_URL } from '@qos/chat/data-access';
 import { connectStorageEmulator, getStorage, provideStorage } from '@angular/fire/storage';
 import { RouteReuseStrategy } from '@angular/router';
 import { CustomRouteReuseStrategy } from './custom-route-reuse';
@@ -78,6 +79,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       inject(ThemeService);
     }),
+    { provide: API_BASE_URL, useValue: environment.apiBaseUrl },
     provideNgIconsConfig({
       strokeWidth: 2,
     }),
