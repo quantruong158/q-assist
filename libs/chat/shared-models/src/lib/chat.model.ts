@@ -17,7 +17,7 @@ export interface ChatRequest {
     url: string;
     mimeType: string;
   }>;
-  isRetry: boolean;
+  isRetry?: boolean;
 }
 
 export interface ChatResponse {

@@ -13,6 +13,7 @@ Bun.serve({
   hostname: config.server.host,
   port: config.server.port,
   fetch: app.fetch,
+  idleTimeout: 255,
 });
 
 console.info(`AI runtime listening on http://${config.server.host}:${config.server.port}`);

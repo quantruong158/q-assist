@@ -208,7 +208,10 @@ export class Chat {
     streamRequestId: string,
     output: { text: string },
   ): void {
-    const streamedAssistantMessage = this.chatStateService.finishStreaming(chatKey, streamRequestId);
+    const streamedAssistantMessage = this.chatStateService.finishStreaming(
+      chatKey,
+      streamRequestId,
+    );
 
     if (!streamedAssistantMessage && output.text.trim()) {
       this.chatStateService.appendMessage(chatKey, {
