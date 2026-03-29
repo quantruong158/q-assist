@@ -126,6 +126,7 @@ export class Chat {
           attachments: msg.attachments?.map((a: Attachment) => ({
             url: a.url,
             mimeType: a.mimeType,
+            filename: a.filename,
           })),
         }));
         this.messages();
@@ -277,13 +278,16 @@ export class Chat {
     const chatAttachments: ChatAttachment[] = attachments.map((a) => ({
       url: a.url,
       mimeType: a.mimeType,
+      filename: a.filename,
     }));
 
     // Prepare attachment URLs to send
-    const attachmentsToSend: Array<{ url: string; mimeType: string }> = attachments.map((a) => ({
-      url: a.url,
-      mimeType: a.mimeType,
-    }));
+    const attachmentsToSend: Array<{ url: string; mimeType: string; filename: string }> =
+      attachments.map((a) => ({
+        url: a.url,
+        mimeType: a.mimeType,
+        filename: a.filename,
+      }));
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -315,20 +319,6 @@ export class Chat {
 
         this.router.navigate(['/chat', conversationId], { replaceUrl: true });
       }
-
-      const firestoreAttachments: Attachment[] = attachments.map((a: UploadResult) => ({
-        url: a.url,
-        mimeType: a.mimeType,
-        filename: a.filename,
-      }));
-
-      const order = await this.messageService.getNextOrder(user.uid, conversationId);
-      await this.messageService.addMessage(user.uid, conversationId, {
-        role: 'user',
-        content: text || '(Image attached)',
-        order,
-        ...(firestoreAttachments.length > 0 && { attachments: firestoreAttachments }),
-      });
 
       const { stream, output } = await this.chatService.sendMessage(
         text || '(Image attached)',
@@ -386,11 +376,7 @@ export class Chat {
     const streamRequestId = crypto.randomUUID();
 
     try {
-      // Remove the last assistant message from UI
       this.chatStateService.removeLastMessage(chatKey);
-
-      // Delete the last assistant message from Firestore
-      await this.messageService.deleteLastAssistantMessage(user.uid, conversationId);
 
       this.chatStateService.startStreaming(chatKey, streamRequestId);
       this.scrollToBottom();
@@ -399,6 +385,7 @@ export class Chat {
       const attachmentsToSend = lastUserMessage.attachments?.map((att) => ({
         url: att.url,
         mimeType: att.mimeType,
+        filename: att.filename,
       }));
 
       // Resend the last user message with isRetry flag

@@ -23,7 +23,7 @@ export class ChatService {
     prompt: string,
     sessionId: string,
     modelId?: string,
-    attachments?: Array<{ url: string; mimeType: string }>,
+    attachments?: Array<{ url: string; mimeType: string; filename?: string }>,
     isRetry = false,
   ) {
     if (!isPlatformBrowser(this.platformId)) {

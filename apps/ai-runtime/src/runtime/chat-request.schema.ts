@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const chatAttachmentSchema = z.object({
   url: z.string().url(),
   mimeType: z.string().min(1),
+  filename: z.string().min(1).optional(),
 });
 
 export const chatRequestSchema = z.object({
