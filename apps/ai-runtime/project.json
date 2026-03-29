@@ -47,11 +47,11 @@
       "executor": "nx:run-commands",
       "defaultConfiguration": "development",
       "options": {
-        "command": "bun apps/ai-runtime/src/main.ts"
+        "command": "bun --watch apps/ai-runtime/src/main.ts"
       },
       "configurations": {
         "development": {
-          "command": "bun apps/ai-runtime/src/main.ts"
+          "command": "bun --watch apps/ai-runtime/src/main.ts"
         },
         "production": {
           "command": "bun dist/apps/ai-runtime/main.js"

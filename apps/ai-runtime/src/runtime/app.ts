@@ -9,6 +9,7 @@ import { UnauthorizedError, verifyFirebaseBearerToken } from './auth';
 import { AiRuntimeConfig } from './config';
 import { ChatRuntimeHandler, createDefaultChatRuntimeHandler } from './chat-handler';
 import { chatRequestSchema } from './chat-request.schema';
+import { RuntimeConfigError } from './errors';
 import { createSseResponse } from './sse';
 
 interface RuntimeVariables {
@@ -68,6 +69,15 @@ export const createAiRuntimeApp = ({
           error: error.message,
         },
         401,
+      );
+    }
+
+    if (error instanceof RuntimeConfigError) {
+      return c.json(
+        {
+          error: error.message,
+        },
+        503,
       );
     }
 

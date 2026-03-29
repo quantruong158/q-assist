@@ -22,13 +22,13 @@ export const SUPPORTED_MODELS: AiModel[] = [
     provider: 'Gemini',
   },
   {
-    id: 'openrouter/google/gemini-2.5-flash-lite',
-    label: 'Gemini 2.5 Flash Lite',
+    id: 'openrouter/arcee-ai/trinity-large-preview:free',
+    label: 'Trinity Large Preview',
     provider: 'OpenRouter',
   },
   {
-    id: 'openrouter/arcee-ai/trinity-large-preview:free',
-    label: 'Trinity Large Preview',
+    id: 'openrouter/nvidia/nemotron-3-nano-30b-a3b:free',
+    label: 'Nemotron 3 Nano 30B',
     provider: 'OpenRouter',
   },
   {
@@ -39,6 +39,16 @@ export const SUPPORTED_MODELS: AiModel[] = [
   {
     id: 'opencode-go/kimi-k2.5',
     label: 'Kimi-K2.5',
+    provider: 'Opencode Go',
+  },
+  {
+    id: 'opencode-go/minimax-m2.5',
+    label: 'MiniMax M2.5',
+    provider: 'Opencode Go',
+  },
+  {
+    id: 'opencode-go/minimax-m2.7',
+    label: 'MiniMax M2.7',
     provider: 'Opencode Go',
   },
   {
