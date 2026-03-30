@@ -167,6 +167,7 @@ const appendChatMessage = async (
     {
       lastMessage: content,
       updatedAt: FieldValue.serverTimestamp(),
+      isTemporary: false,
     },
     { merge: true },
   );
