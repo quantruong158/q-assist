@@ -8,6 +8,7 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { UnauthorizedError, verifyFirebaseBearerToken } from './auth';
 import { AiRuntimeConfig } from './config';
 import { ChatRuntimeHandler, createDefaultChatRuntimeHandler } from './chat-handler';
+import { createFinanceChatHandler } from './finance-chat-handler';
 import { chatRequestSchema } from './chat-request.schema';
 import { RuntimeConfigError } from './errors';
 import { createSseResponse } from './sse';
@@ -33,6 +34,7 @@ export const createAiRuntimeApp = ({
   chatHandler = createDefaultChatRuntimeHandler(),
 }: CreateAiRuntimeAppOptions): Hono<RuntimeAppContext> => {
   const app = new Hono<RuntimeAppContext>();
+  const financeChatHandler = createFinanceChatHandler();
 
   app.use(
     '*',
@@ -133,6 +135,19 @@ export const createAiRuntimeApp = ({
     });
 
     return createSseResponse(stream);
+  });
+
+  app.post('/api/finance/chat', async (c) => {
+    const body = normalizeChatRequest(await c.req.json());
+    const authUserId = c.get('authUserId');
+
+    const response = await financeChatHandler.respond({
+      auth: { uid: authUserId } as DecodedIdToken,
+      request: body,
+      config,
+    });
+
+    return c.json(response);
   });
 
   return app;

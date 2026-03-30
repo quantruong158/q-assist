@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ChatToolContext } from '../tools/context';
 import { createFinanceAgent } from './finance.agent';
 import { createResearchAgent } from './research.agent';
+import { logRequestSummary } from '../util';
 
 export const MAIN_AGENT_PROMPT = `You are a helpful and knowledgeable AI assistant.
 
@@ -75,28 +76,6 @@ export const createMainAgent = (input: CreateMainAgentInput) => {
     stopWhen: stepCountIs(5),
     onFinish: logRequestSummary,
   });
-};
-
-const logRequestSummary = (event: {
-  experimental_context: unknown;
-  steps: Array<{
-    toolCalls: Array<{
-      toolName: string;
-    }>;
-  }>;
-}) => {
-  const context = event.experimental_context as ChatToolContext | undefined;
-  const userId = context?.auth.uid ?? 'unknown';
-  const toolsCalled = [
-    ...new Set(event.steps.flatMap((step) => step.toolCalls.map((toolCall) => toolCall.toolName))),
-  ];
-
-  console.info(
-    JSON.stringify({
-      userId,
-      toolsCalled,
-    }),
-  );
 };
 
 export type ChatAgentUIMessage = InferAgentUIMessage<ReturnType<typeof createMainAgent>>;

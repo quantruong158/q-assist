@@ -21,7 +21,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from '@qos/shared/auth/util';
 import { provideNgIconsConfig } from '@ng-icons/core';
 import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
-import { API_BASE_URL } from '@qos/chat/data-access';
+import { API_BASE_URL } from '@qos/shared/util-angular';
 import { connectStorageEmulator, getStorage, provideStorage } from '@angular/fire/storage';
 import { RouteReuseStrategy } from '@angular/router';
 import { CustomRouteReuseStrategy } from './custom-route-reuse';

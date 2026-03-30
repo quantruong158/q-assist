@@ -1,12 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, InjectionToken, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { ChatRequest, ChatResponse } from '@qos/chat/shared-models';
-
-export const API_BASE_URL = new InjectionToken<string>('apiBaseUrl', {
-  providedIn: 'root',
-  factory: () => '',
-});
+import { API_BASE_URL } from '@qos/shared/util-angular';
 
 interface SendMessageResult {
   stream: AsyncGenerator<string, void, unknown>;
