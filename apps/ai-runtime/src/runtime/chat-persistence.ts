@@ -28,7 +28,7 @@ const getMessagesCollection = (userId: string, sessionId: string) => {
   return db.collection(`users/${userId}/conversations/${sessionId}/messages`);
 };
 
-const syncConversationSummary = async (userId: string, sessionId: string): Promise<void> => {
+const syncConversationSummary = async (userId: string, sessionId: string, isTemporary?: boolean): Promise<void> => {
   const messagesRef = getMessagesCollection(userId, sessionId);
   const snapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
 
@@ -38,6 +38,7 @@ const syncConversationSummary = async (userId: string, sessionId: string): Promi
   if (snapshot.empty) {
     await conversationRef.set(
       {
+        ...(isTemporary !== undefined && { isTemporary }),
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
@@ -49,6 +50,7 @@ const syncConversationSummary = async (userId: string, sessionId: string): Promi
 
   await conversationRef.set(
     {
+      ...(isTemporary !== undefined && { isTemporary }),
       lastMessage: latestMessage.content,
       updatedAt: FieldValue.serverTimestamp(),
     },
