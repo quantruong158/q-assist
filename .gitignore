@@ -70,3 +70,6 @@ firestore-debug.log
 .angular
 
 vitest.config.*.timestamp*
+
+# Worktrees
+.worktrees/
