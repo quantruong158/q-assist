@@ -1,22 +1,16 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
-import { stepCountIs, ToolLoopAgent, type ModelMessage, type ToolSet } from 'ai';
+import { type ModelMessage } from 'ai';
 
 import { ChatRequest, ChatResponse } from '@qos/chat/shared-models';
 
+import { createMainAgent } from './agents';
 import { AiRuntimeConfig } from './config';
-import { CHAT_SYSTEM_PROMPT, TOOL_GUIDANCE } from './prompts';
 import { resolveModel, resolveSupportedModelId } from './providers';
 import {
   appendConversationMessage,
   deleteLastAssistantMessage,
   loadConversationModelMessages,
 } from './chat-persistence';
-import {
-  createTransactionTool,
-  listMoneySourcesTool,
-  updateLatestTransactionCategoryTool,
-  webSearchTool,
-} from './tools';
 import { ChatToolContext } from './tools/context';
 
 export interface ChatRuntimeInput {
@@ -54,37 +48,6 @@ type MessagePart =
       text: string;
     }
   | AttachmentPart;
-
-const ALL_TOOLS: ToolSet = {
-  webSearchTool,
-  listMoneySourcesTool,
-  createTransactionTool,
-  updateLatestTransactionCategoryTool,
-};
-
-const buildInstructions = (): string => [CHAT_SYSTEM_PROMPT, TOOL_GUIDANCE].join('\n\n');
-
-const logRequestSummary = (event: {
-  experimental_context: unknown;
-  steps: Array<{
-    toolCalls: Array<{
-      toolName: string;
-    }>;
-  }>;
-}) => {
-  const context = event.experimental_context as ChatToolContext | undefined;
-  const userId = context?.auth.uid ?? 'unknown';
-  const toolsCalled = [
-    ...new Set(event.steps.flatMap((step) => step.toolCalls.map((toolCall) => toolCall.toolName))),
-  ];
-
-  console.info(
-    JSON.stringify({
-      userId,
-      toolsCalled,
-    }),
-  );
-};
 
 const normalizeSessionId = (sessionId: string): string => {
   const trimmedSessionId = sessionId.trim();
@@ -159,21 +122,11 @@ const prepareConversationMessages = async (input: ChatRuntimeInput): Promise<Mod
 const createAgent = (input: ChatRuntimeInput) => {
   const modelId = resolveSupportedModelId(input.request.model);
   const model = resolveModel(input.config, modelId);
-  const experimentalContext: ChatToolContext = {
+  const context: ChatToolContext = {
     auth: { uid: input.auth.uid },
-    config: {
-      aiSecrets: input.config.aiSecrets,
-    },
   };
 
-  return new ToolLoopAgent({
-    model,
-    instructions: buildInstructions(),
-    tools: ALL_TOOLS,
-    experimental_context: experimentalContext,
-    stopWhen: stepCountIs(5),
-    onFinish: logRequestSummary,
-  });
+  return createMainAgent({ model, context });
 };
 
 const FALLBACK_TEXT = 'Sorry, an error occurred while processing your request.';
