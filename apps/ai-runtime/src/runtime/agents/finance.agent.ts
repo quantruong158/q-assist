@@ -7,6 +7,7 @@ import {
   listMoneySourcesTool,
   updateLatestTransactionCategoryTool,
 } from '../tools';
+import { logRequestSummary } from '../util';
 
 export interface CreateFinanceAgentInput {
   model: LanguageModel;
@@ -23,6 +24,7 @@ export const createFinanceAgent = (input: CreateFinanceAgentInput) => {
       updateLatestTransactionCategory: updateLatestTransactionCategoryTool,
     },
     experimental_context: input.context,
-    stopWhen: stepCountIs(10),
+    stopWhen: stepCountIs(3),
+    onFinish: logRequestSummary,
   });
 };
