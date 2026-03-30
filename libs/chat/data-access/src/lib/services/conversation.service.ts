@@ -12,6 +12,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  where,
 } from '@angular/fire/firestore';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { Conversation, CreateConversationData } from '@qos/chat/shared-models';
@@ -57,7 +58,7 @@ export class ConversationService {
       }
 
       const conversationsRef = collection(this.firestore, `users/${userId}/conversations`);
-      const q = query(conversationsRef, orderBy('updatedAt', 'desc'));
+      const q = query(conversationsRef, where('isTemporary', '==', false), orderBy('updatedAt', 'desc'));
 
       const unsubscribe = onSnapshot(
         q,
