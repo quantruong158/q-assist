@@ -6,6 +6,7 @@ export interface Conversation {
   lastMessage: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  isTemporary?: boolean; // True = finance chat sessions, hidden from sidebar
 }
 
 export interface CreateConversationData {

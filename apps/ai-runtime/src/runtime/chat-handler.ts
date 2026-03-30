@@ -114,6 +114,7 @@ const prepareConversationMessages = async (input: ChatRuntimeInput): Promise<Mod
     role: 'user',
     content: input.request.prompt,
     attachments: input.request.attachments,
+    isTemporary: false,
   });
 
   return loadConversationModelMessages(input.auth.uid, sessionId);
@@ -155,6 +156,7 @@ const runChat = async (
           sessionId,
           role: 'assistant',
           content: result.text,
+          isTemporary: false,
         });
       }
 
@@ -170,6 +172,7 @@ const runChat = async (
         sessionId,
         role: 'assistant',
         content: FALLBACK_TEXT,
+        isTemporary: false,
       });
 
       return {
@@ -200,6 +203,7 @@ const runChat = async (
           sessionId,
           role: 'assistant',
           content: accumulatedText,
+          isTemporary: false,
         });
       }
     } catch (error) {
@@ -210,6 +214,7 @@ const runChat = async (
         sessionId,
         role: 'assistant',
         content: FALLBACK_TEXT,
+        isTemporary: false,
       });
 
       yield {

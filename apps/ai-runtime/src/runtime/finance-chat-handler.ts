@@ -46,6 +46,7 @@ export const createFinanceChatHandler = (): FinanceChatHandler => ({
       role: 'user',
       content: input.request.prompt,
       attachments: input.request.attachments,
+      isTemporary: true,
     });
 
     try {
@@ -57,6 +58,7 @@ export const createFinanceChatHandler = (): FinanceChatHandler => ({
         sessionId,
         role: 'assistant',
         content: text,
+        isTemporary: true,
       });
 
       return { text, sessionId };
@@ -68,6 +70,7 @@ export const createFinanceChatHandler = (): FinanceChatHandler => ({
         sessionId,
         role: 'assistant',
         content: FALLBACK_TEXT,
+        isTemporary: true,
       });
 
       return { text: FALLBACK_TEXT, sessionId };

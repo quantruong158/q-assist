@@ -28,7 +28,7 @@ const getMessagesCollection = (userId: string, sessionId: string) => {
   return db.collection(`users/${userId}/conversations/${sessionId}/messages`);
 };
 
-const syncConversationSummary = async (userId: string, sessionId: string): Promise<void> => {
+const syncConversationSummary = async (userId: string, sessionId: string, isTemporary?: boolean): Promise<void> => {
   const messagesRef = getMessagesCollection(userId, sessionId);
   const snapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
 
@@ -38,6 +38,7 @@ const syncConversationSummary = async (userId: string, sessionId: string): Promi
   if (snapshot.empty) {
     await conversationRef.set(
       {
+        ...(isTemporary !== undefined && { isTemporary }),
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
@@ -49,6 +50,7 @@ const syncConversationSummary = async (userId: string, sessionId: string): Promi
 
   await conversationRef.set(
     {
+      ...(isTemporary !== undefined && { isTemporary }),
       lastMessage: latestMessage.content,
       updatedAt: FieldValue.serverTimestamp(),
     },
@@ -132,6 +134,7 @@ interface AppendMessageInput {
   role: 'user' | 'assistant';
   content: string;
   attachments?: StoredChatAttachment[];
+  isTemporary?: boolean;
 }
 
 export const appendConversationMessage = async ({
@@ -140,6 +143,7 @@ export const appendConversationMessage = async ({
   role,
   content,
   attachments,
+  isTemporary,
 }: AppendMessageInput): Promise<void> => {
   const messagesRef = getMessagesCollection(userId, sessionId);
   const lastMessageSnapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
@@ -155,7 +159,7 @@ export const appendConversationMessage = async ({
     createdAt: FieldValue.serverTimestamp(),
   });
 
-  await syncConversationSummary(userId, sessionId);
+  await syncConversationSummary(userId, sessionId, isTemporary);
 };
 
 export const deleteLastAssistantMessage = async (
