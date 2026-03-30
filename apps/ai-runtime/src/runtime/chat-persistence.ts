@@ -134,6 +134,7 @@ interface AppendMessageInput {
   role: 'user' | 'assistant';
   content: string;
   attachments?: StoredChatAttachment[];
+  isTemporary?: boolean;
 }
 
 export const appendConversationMessage = async ({
@@ -142,6 +143,7 @@ export const appendConversationMessage = async ({
   role,
   content,
   attachments,
+  isTemporary,
 }: AppendMessageInput): Promise<void> => {
   const messagesRef = getMessagesCollection(userId, sessionId);
   const lastMessageSnapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
@@ -157,7 +159,7 @@ export const appendConversationMessage = async ({
     createdAt: FieldValue.serverTimestamp(),
   });
 
-  await syncConversationSummary(userId, sessionId);
+  await syncConversationSummary(userId, sessionId, isTemporary);
 };
 
 export const deleteLastAssistantMessage = async (
