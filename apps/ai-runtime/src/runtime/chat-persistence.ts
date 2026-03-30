@@ -1,5 +1,5 @@
 import type { ModelMessage } from 'ai';
-import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { doc, FieldValue, getFirestore, serverTimestamp, updateDoc } from 'firebase-admin/firestore';
 
 import { AiRuntimeConfig } from './config';
 
@@ -28,33 +28,19 @@ const getMessagesCollection = (userId: string, sessionId: string) => {
   return db.collection(`users/${userId}/conversations/${sessionId}/messages`);
 };
 
-const syncConversationSummary = async (userId: string, sessionId: string): Promise<void> => {
-  const messagesRef = getMessagesCollection(userId, sessionId);
-  const snapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
-
+export async function syncConversationSummary(
+  userId: string,
+  sessionId: string,
+  summary: string,
+  isTemporary?: boolean,
+): Promise<void> {
   const db = getFirestore();
-  const conversationRef = db.collection(`users/${userId}/conversations`).doc(sessionId);
-
-  if (snapshot.empty) {
-    await conversationRef.set(
-      {
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-    return;
-  }
-
-  const latestMessage = snapshot.docs[0].data() as StoredChatMessage;
-
-  await conversationRef.set(
-    {
-      lastMessage: latestMessage.content,
-      updatedAt: FieldValue.serverTimestamp(),
-    },
-    { merge: true },
-  );
-};
+  await updateDoc(doc(db, `users/${userId}/conversations/${sessionId}`), {
+    lastMessage: summary,
+    updatedAt: serverTimestamp(),
+    ...(isTemporary !== undefined && { isTemporary }),
+  });
+}
 
 const buildUserContent = (
   content: string,
@@ -155,7 +141,7 @@ export const appendConversationMessage = async ({
     createdAt: FieldValue.serverTimestamp(),
   });
 
-  await syncConversationSummary(userId, sessionId);
+  await syncConversationSummary(userId, sessionId, content);
 };
 
 export const deleteLastAssistantMessage = async (
@@ -167,7 +153,7 @@ export const deleteLastAssistantMessage = async (
   const snapshot = await messagesRef.orderBy('order', 'desc').limit(50).get();
 
   if (snapshot.empty) {
-    await syncConversationSummary(userId, sessionId);
+    await syncConversationSummary(userId, sessionId, '');
     return false;
   }
 
@@ -177,11 +163,13 @@ export const deleteLastAssistantMessage = async (
   });
 
   if (!lastAssistantMessage) {
-    await syncConversationSummary(userId, sessionId);
+    await syncConversationSummary(userId, sessionId, snapshot.docs[0].data().content as string);
     return false;
   }
 
   await lastAssistantMessage.ref.delete();
-  await syncConversationSummary(userId, sessionId);
+  const newSnapshot = await messagesRef.orderBy('order', 'desc').limit(1).get();
+  const newSummary = newSnapshot.empty ? '' : (newSnapshot.docs[0].data() as StoredChatMessage).content;
+  await syncConversationSummary(userId, sessionId, newSummary);
   return true;
 };
