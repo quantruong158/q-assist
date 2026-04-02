@@ -28,6 +28,11 @@ export const routes: Routes = [
         data: { activeContext: 'chat' },
       },
       {
+        path: 'opencode',
+        loadComponent: () => import('@qos/opencode/data-access').then((m) => m.OpencodePage),
+        data: { activeContext: 'opencode' },
+      },
+      {
         path: '',
         redirectTo: 'chat',
         pathMatch: 'full',

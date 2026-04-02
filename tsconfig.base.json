@@ -76,6 +76,7 @@
       "@qos/chat/data-access": ["libs/chat/data-access/src/index.ts"],
       "@qos/chat/ui": ["libs/chat/ui/src/index.ts"],
       "@qos/chat/feat-chat": ["libs/chat/feat-chat/src/index.ts"],
+      "@qos/opencode/data-access": ["libs/opencode/data-access/src/index.ts"],
       "@qos/shared/auth/util": ["libs/shared/auth/util/src/index.ts"],
       "@qos/shared/auth/ui": ["libs/shared/auth/ui/src/index.ts"],
       "@qos/shared/auth/feat-auth": ["libs/shared/auth/feat-auth/src/index.ts"],
@@ -83,7 +84,7 @@
       "@qos/shared/data-access": ["libs/shared/data-access/src/index.ts"],
       "@qos/shared/util-angular": ["libs/shared/util-angular/src/index.ts"],
       "@qos/shared/util-hardware": ["libs/shared/util-hardware/src/index.ts"],
-      "@qos/shared/models": ["libs/shared/models/src/index.ts"],
-    },
-  },
+      "@qos/shared/models": ["libs/shared/models/src/index.ts"]
+    }
+  }
 }
