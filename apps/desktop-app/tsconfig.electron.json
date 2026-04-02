@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "../../dist/apps/desktop-app",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022"]
+  },
+  "include": ["src/electron/**/*.ts"],
+  "exclude": ["src/app/**/*.ts"]
+}

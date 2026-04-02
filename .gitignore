@@ -52,6 +52,7 @@ Thumbs.db
 # AI agents
 opencode.json
 .vercel
+.claude/settings.local.json
 
 # Capacitor native projects
 android/
