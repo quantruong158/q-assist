@@ -416,3 +416,25 @@ markdown {
     font-size: 1rem !important;
   }
 }
+
+::-webkit-scrollbar {
+  width: 4px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.6);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(136, 136, 136, 0.9);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
