@@ -29,7 +29,8 @@ export const routes: Routes = [
       },
       {
         path: 'opencode',
-        loadComponent: () => import('@qos/opencode/data-access').then((m) => m.OpencodePage),
+        loadComponent: () =>
+          import('@qos/opencode/feat-opencode-client').then((m) => m.OpencodeClient),
         data: { activeContext: 'opencode' },
       },
       {

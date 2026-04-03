@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { OpencodeStateStore } from '../opencode-state.store';
+import { OpencodeStateStore } from '@qos/opencode/data-access';
 
 @Component({
   selector: 'opencode-status-bar',
   imports: [HlmSpinnerImports, HlmButtonImports],
   template: `
-    <div class="flex items-center gap-3 border-b border-border px-4 py-3 h-12">
+    <div class="flex items-center gap-3 border-b border-border px-4 py-3 h-14">
       @switch (store.connectionState()) {
         @case ('connecting') {
           <hlm-spinner class="text-muted-foreground" />
@@ -27,7 +27,7 @@ import { OpencodeStateStore } from '../opencode-state.store';
         @case ('error') {
           <span class="h-2 w-2 rounded-full bg-red-500"></span>
           <span class="flex-1 text-sm text-red-500">{{ store.error() ?? 'Connection error' }}</span>
-          <button hlmBtn size="sm" variant="outline" (click)="retry.emit()">Retry</button>
+          <button hlmBtn size="sm" variant="ghost" (click)="retry.emit()">Retry</button>
         }
       }
     </div>
@@ -35,6 +35,6 @@ import { OpencodeStateStore } from '../opencode-state.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OpencodeStatusBarComponent {
-  readonly store = inject(OpencodeStateStore);
+  protected readonly store = inject(OpencodeStateStore);
   readonly retry = output<void>();
 }

@@ -1,0 +1,16 @@
+{
+  "name": "opencode-feat-opencode-client",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/opencode/feat-opencode-client/src",
+  "prefix": "opencode",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": { "reportsDirectory": "../../../coverage/libs/opencode/feat-opencode-client" }
+    },
+    "lint": { "executor": "@nx/eslint:lint" }
+  }
+}

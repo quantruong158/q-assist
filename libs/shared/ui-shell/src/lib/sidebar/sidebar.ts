@@ -19,6 +19,7 @@ import {
   hugeSettings02,
   hugeArrowDown01,
 } from '@ng-icons/huge-icons';
+import { lobeOpencode } from '@ng-icons/lobe-icons';
 import { AuthStore } from '@qos/shared/auth/data-access';
 import { Conversation, ConversationService } from '@qos/chat/data-access';
 import { ThemeService } from '@qos/shared/data-access';
@@ -49,6 +50,7 @@ import { LayoutService } from '@qos/shared/data-access';
       hugeSun03,
       hugeArrowDown01,
       hugeSettings02,
+      lobeOpencode,
     }),
   ],
   templateUrl: './sidebar.html',

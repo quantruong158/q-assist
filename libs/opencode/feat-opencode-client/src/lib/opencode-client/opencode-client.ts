@@ -6,19 +6,17 @@ import {
   inject,
   OnInit,
 } from '@angular/core';
-import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import { OpencodeClientService } from './opencode-client.service';
-import { OpencodeEventService } from './opencode-event.service';
-import { OpencodeStateStore } from './opencode-state.store';
-import { OpencodeStatusBarComponent } from './components/opencode-status-bar.component';
-import { OpencodeSessionRailComponent } from './components/opencode-session-rail.component';
-import { OpencodeMessageListComponent } from './components/opencode-message-list.component';
+import { OpencodeClientService } from '@qos/opencode/data-access';
+import { OpencodeEventService } from '@qos/opencode/data-access';
+import { OpencodeStateStore } from '@qos/opencode/data-access';
+import { OpencodeMessageListComponent } from '@qos/opencode/ui';
+import { OpencodeSessionRailComponent } from '@qos/opencode/ui';
+import { OpencodeStatusBarComponent } from '@qos/opencode/ui';
 
 @Component({
-  selector: 'opencode-page',
+  selector: 'opencode-client',
   imports: [
-    HlmBadgeImports,
     HlmSpinnerImports,
     OpencodeStatusBarComponent,
     OpencodeSessionRailComponent,
@@ -27,11 +25,9 @@ import { OpencodeMessageListComponent } from './components/opencode-message-list
   template: `
     <div class="flex h-full flex-col bg-background">
       <opencode-status-bar (retry)="onRetry()" />
-
       <div class="flex flex-1 overflow-hidden">
         <opencode-session-rail (select)="onSelectSession($event)" (refresh)="onRefreshSessions()" />
-
-        <main class="flex flex-1 flex-col overflow-y-scroll overflow-x-hidden">
+        <main class="flex flex-1 flex-col overflow-y-auto">
           @if (!store.activeSession()) {
             <div class="flex flex-1 flex-col items-center justify-center text-muted-foreground">
               @if (store.isLoading()) {
@@ -48,56 +44,46 @@ import { OpencodeMessageListComponent } from './components/opencode-message-list
             </div>
           } @else {
             <div
-              class="flex items-center gap-3 border-b border-border px-4 py-3 sticky top-0 bg-background z-10"
+              class="flex flex-1 flex-col overflow-x-hidden overflow-y-scroll pb-[calc(220px+var(--safe-area-bottom))] max-[600px]:pb-[calc(190px+var(--safe-area-bottom))]"
             >
-              <h1 class="truncate text-base font-medium">
-                {{ store.activeSession()?.title || 'Untitled' }}
-              </h1>
-              @if (store.activeSessionStatus().type === 'busy') {
-                <hlm-badge variant="default" class="bg-blue-500">Streaming</hlm-badge>
-              } @else if (store.activeSessionStatus().type === 'idle') {
-                <hlm-badge variant="secondary" class="text-xs">Idle</hlm-badge>
-              }
+              <opencode-message-list />
             </div>
-
-            <opencode-message-list />
           }
         </main>
       </div>
     </div>
   `,
-  host: {
-    class: 'flex-1 overflow-y-auto',
-  },
+  host: { class: 'flex-1 overflow-y-auto' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OpencodePage implements OnInit {
+export class OpencodeClient implements OnInit {
   readonly clientService = inject(OpencodeClientService);
   readonly store = inject(OpencodeStateStore);
   private readonly eventService = inject(OpencodeEventService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    effect(
-      () => {
-        const list = this.store.sessionList();
-        if (list.length > 0 && !this.store.activeSessionId()) {
-          const sorted = [...list].sort((a, b) => b.time.updated - a.time.updated);
-          this.store.setActiveSession(sorted[0].id);
-        }
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      const list = this.store.sessionList();
+      if (list.length > 0 && !this.store.activeSessionId()) {
+        const sorted = [...list].sort((a, b) => b.time.updated - a.time.updated);
+        this.store.setActiveSession(sorted[0].id);
+      }
+    });
+
+    effect(() => {
+      const sessionId = this.store.activeSessionId();
+      if (sessionId) {
+        void this.loadSessionDetails(sessionId);
+      }
+    });
   }
 
   ngOnInit(): void {
     this.store.setConnectionState('connecting');
     void this.loadInitialData();
     void this.eventService.subscribe();
-
-    this.destroyRef.onDestroy(() => {
-      this.eventService.cancel();
-    });
+    this.destroyRef.onDestroy(() => this.eventService.cancel());
   }
 
   private async loadInitialData(): Promise<void> {
@@ -108,26 +94,15 @@ export class OpencodePage implements OnInit {
         this.clientService.listSessions(),
         this.clientService.getAllSessionStatus(),
       ]);
-
-      if (health.healthy) {
-        this.store.setConnectionState('connected', health.version);
-      } else {
+      if (!health.healthy) {
         this.store.setConnectionState('error');
         this.store.setError('OpenCode server is not healthy');
         return;
       }
-
+      this.store.setConnectionState('connected', health.version);
       this.store.setSessions(sessions);
-
-      for (const [sessionId, status] of Object.entries(statusMap)) {
+      for (const [sessionId, status] of Object.entries(statusMap))
         this.store.setSessionStatus(sessionId, status);
-      }
-
-      const sessionList = this.store.sessionList();
-      if (sessionList.length > 0 && !this.store.activeSessionId()) {
-        const sorted = [...sessionList].sort((a, b) => b.time.updated - a.time.updated);
-        await this.loadSessionDetails(sorted[0].id);
-      }
     } catch (err) {
       console.error('Failed to load initial data:', err);
       this.store.setConnectionState('error');
@@ -137,9 +112,8 @@ export class OpencodePage implements OnInit {
     }
   }
 
-  async onSelectSession(sessionId: string): Promise<void> {
+  protected async onSelectSession(sessionId: string): Promise<void> {
     this.store.setActiveSession(sessionId);
-    await this.loadSessionDetails(sessionId);
   }
 
   private async loadSessionDetails(sessionId: string): Promise<void> {
@@ -163,20 +137,15 @@ export class OpencodePage implements OnInit {
       console.error('Failed to load session details:', err);
     }
   }
-
-  async onRefreshSessions(): Promise<void> {
+  protected async onRefreshSessions(): Promise<void> {
     this.store.setLoading(true);
     try {
-      const sessions = await this.clientService.listSessions();
-      this.store.setSessions(sessions);
-    } catch (err) {
-      console.error('Failed to refresh sessions:', err);
+      this.store.setSessions(await this.clientService.listSessions());
     } finally {
       this.store.setLoading(false);
     }
   }
-
-  async onRetry(): Promise<void> {
+  protected async onRetry(): Promise<void> {
     this.eventService.cancel();
     this.store.setConnectionState('connecting');
     await this.loadInitialData();

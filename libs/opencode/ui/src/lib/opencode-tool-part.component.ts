@@ -1,12 +1,11 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
-import type { ToolPart } from '../opencode.types';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeArrowRight01 } from '@ng-icons/huge-icons';
 import { TitleCasePipe } from '@angular/common';
-
+import type { ToolPart } from '@qos/opencode/data-access';
 @Component({
   selector: 'opencode-tool-part',
   imports: [HlmBadgeImports, HlmCollapsibleImports, HlmButtonImports, NgIcon, TitleCasePipe],
@@ -16,9 +15,9 @@ import { TitleCasePipe } from '@angular/common';
       <hlm-collapsible class="flex flex-col gap-2 group/collapsible">
         <div class="flex items-center gap-2">
           <span class="text-sm font-mono text-muted-foreground">{{ tool() | titlecase }}</span>
-          <hlm-badge [variant]="statusVariant()" class="text-xs">
-            {{ status() | titlecase }}
-          </hlm-badge>
+          <hlm-badge [variant]="statusVariant()" class="text-xs">{{
+            status() | titlecase
+          }}</hlm-badge>
           <button
             hlmCollapsibleTrigger
             hlmBtn
@@ -63,31 +62,21 @@ import { TitleCasePipe } from '@angular/common';
 })
 export class OpencodeToolPartComponent {
   readonly part = input.required<ToolPart>();
-
-  tool(): string {
-    return this.part().tool;
-  }
-
-  status(): string {
-    return this.part().state.status;
-  }
-
-  title(): string | undefined {
+  protected readonly tool = computed(() => this.part().tool);
+  protected readonly status = computed(() => this.part().state.status);
+  protected readonly title = computed(() => {
     const state = this.part().state;
     return state.status === 'running' ? state.title : undefined;
-  }
-
-  output(): string {
+  });
+  protected readonly output = computed(() => {
     const state = this.part().state;
     return state.status === 'completed' ? state.output : '';
-  }
-
-  error(): string {
+  });
+  protected readonly error = computed(() => {
     const state = this.part().state;
     return state.status === 'error' ? state.error : '';
-  }
-
-  statusVariant(): 'secondary' | 'destructive' | 'outline' {
+  });
+  protected readonly statusVariant = computed(() => {
     switch (this.part().state.status) {
       case 'completed':
         return 'secondary';
@@ -96,5 +85,5 @@ export class OpencodeToolPartComponent {
       default:
         return 'outline';
     }
-  }
+  });
 }

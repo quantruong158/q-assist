@@ -2,24 +2,23 @@ import { ChangeDetectionStrategy, Component, inject, output } from '@angular/cor
 import { DatePipe } from '@angular/common';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { OpencodeStateStore } from '../opencode-state.store';
-import type { SessionStatus } from '../opencode.types';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeArrowReloadHorizontal } from '@ng-icons/huge-icons';
+import { OpencodeStateStore } from '@qos/opencode/data-access';
+import type { SessionStatus } from '@qos/opencode/data-access';
 
 @Component({
   selector: 'opencode-session-rail',
   imports: [DatePipe, HlmBadgeImports, HlmButtonImports, NgIcon],
   providers: [provideIcons({ hugeArrowReloadHorizontal })],
   template: `
-    <aside class="flex w-64 flex-col border-r border-border h-full">
-      <div class="flex items-center justify-between border-b border-border px-4 py-3">
+    <aside class="flex w-56 flex-col border-r border-border h-full">
+      <div class="flex items-center justify-between border-b border-border px-4 py-3 h-14">
         <h2 class="text-sm font-medium">Sessions</h2>
         <button hlmBtn size="icon" variant="ghost" (click)="refresh.emit()" class="rounded-full">
           <ng-icon name="hugeArrowReloadHorizontal" />
         </button>
       </div>
-
       <div class="flex-1 overflow-y-auto w-full">
         @if (store.sessionList().length === 0) {
           <div
@@ -31,7 +30,7 @@ import { hugeArrowReloadHorizontal } from '@ng-icons/huge-icons';
         } @else {
           @for (session of store.sessionList(); track session.id) {
             <button
-              class="flex w-full flex-col items-start gap-1 border-b border-border px-4 py-3 text-left transition-colors hover:bg-muted/50"
+              class="flex w-full flex-col items-start gap-2 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50"
               [class.bg-muted]="store.activeSessionId() === session.id"
               (click)="select.emit(session.id)"
             >
@@ -39,9 +38,9 @@ import { hugeArrowReloadHorizontal } from '@ng-icons/huge-icons';
                 session.title || 'Untitled'
               }}</span>
               <div class="flex w-full items-center gap-2">
-                <span class="text-xs text-muted-foreground">
-                  {{ session.time.updated | date: 'short' }}
-                </span>
+                <span class="text-xs text-muted-foreground">{{
+                  session.time.updated | date: 'short'
+                }}</span>
                 @if (getStatus(session.id); as status) {
                   @if (status.type === 'busy') {
                     <hlm-badge variant="outline" class="text-xs">Busy</hlm-badge>
@@ -63,7 +62,7 @@ export class OpencodeSessionRailComponent {
   readonly select = output<string>();
   readonly refresh = output<void>();
 
-  getStatus(sessionId: string): SessionStatus | null {
+  protected getStatus(sessionId: string): SessionStatus | null {
     return this.store.sessionStatus()[sessionId] ?? null;
   }
 }
