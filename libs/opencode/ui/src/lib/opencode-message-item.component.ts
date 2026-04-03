@@ -6,6 +6,7 @@ import { OpencodeTextPartComponent } from './opencode-text-part.component';
 import { OpencodeReasoningPartComponent } from './opencode-reasoning-part.component';
 import { OpencodeToolPartComponent } from './opencode-tool-part.component';
 import { OpencodeStepPartComponent } from './opencode-step-part.component';
+import { OpencodeFilePartComponent } from './opencode-file-part.component';
 import type { Message, Part } from '@qos/opencode/data-access';
 
 @Component({
@@ -17,11 +18,12 @@ import type { Message, Part } from '@qos/opencode/data-access';
     OpencodeReasoningPartComponent,
     OpencodeToolPartComponent,
     OpencodeStepPartComponent,
+    OpencodeFilePartComponent,
   ],
   template: `
-    <div class="mb-2">
+    <div>
       @if (message().role === 'assistant') {
-        <div class="mb-2 flex items-center gap-2">
+        <div class="mb-2 flex items-center gap-2 mt-8">
           <span class="text-xs text-muted-foreground">{{
             message().time.created | date: 'medium'
           }}</span>
@@ -35,9 +37,7 @@ import type { Message, Part } from '@qos/opencode/data-access';
           @if (getPart(partId); as part) {
             <div
               [class]="message().role === 'assistant' ? 'px-3' : 'p-0'"
-              [class.hidden]="
-                part.type === 'step-start' || part.type === 'step-finish' || part.type === 'file'
-              "
+              [class.hidden]="part.type === 'step-start' || part.type === 'step-finish'"
               [class.py-2]="message().role === 'assistant' && part.type !== 'reasoning'"
             >
               @switch (part.type) {
@@ -58,8 +58,8 @@ import type { Message, Part } from '@qos/opencode/data-access';
                 @case ('step-finish') {
                   <opencode-step-part [part]="asStepFinish(part)" />
                 }
-                @default {
-                  <p class="text-xs text-muted-foreground">[{{ part.type }}]</p>
+                @case ('file') {
+                  <opencode-file-part [part]="part" />
                 }
               }
             </div>

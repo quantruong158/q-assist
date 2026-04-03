@@ -269,7 +269,11 @@ export interface FilePart {
   mime: string;
   filename?: string;
   url: string;
-  source?: unknown;
+  source?: {
+    text: unknown;
+    type: string;
+    path: string;
+  };
 }
 
 export type Part =

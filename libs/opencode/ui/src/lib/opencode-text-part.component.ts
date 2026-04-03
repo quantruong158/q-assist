@@ -10,7 +10,9 @@ import { MarkdownComponent } from 'ngx-markdown';
         {{ text() }}
       </p>
     } @else {
-      <markdown class="wrap-break-word leading-7" [data]="text()" katex></markdown>
+      <div class="py-5">
+        <markdown class="wrap-break-word leading-7" [data]="text()" katex></markdown>
+      </div>
     }`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
