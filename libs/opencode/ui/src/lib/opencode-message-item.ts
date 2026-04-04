@@ -1,38 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { OpencodeStateStore } from '@qos/opencode/data-access';
-import { OpencodeTextPartComponent } from './opencode-text-part.component';
-import { OpencodeReasoningPartComponent } from './opencode-reasoning-part.component';
-import { OpencodeToolPartComponent } from './opencode-tool-part.component';
-import { OpencodeStepPartComponent } from './opencode-step-part.component';
-import { OpencodeFilePartComponent } from './opencode-file-part.component';
+import { OpencodeTextPartComponent } from './opencode-text-part';
+import { OpencodeReasoningPartComponent } from './opencode-reasoning-part';
+import { OpencodeToolPartComponent } from './opencode-tool-part';
+import { OpencodeStepPartComponent } from './opencode-step-part';
+import { OpencodeFilePartComponent } from './opencode-file-part';
 import type { Message, Part } from '@qos/opencode/data-access';
+import { OpencodeMessageErrorComponent } from './opencode-messsage-error';
 
 @Component({
   selector: 'opencode-message-item',
   imports: [
-    DatePipe,
     HlmBadgeImports,
     OpencodeTextPartComponent,
     OpencodeReasoningPartComponent,
     OpencodeToolPartComponent,
     OpencodeStepPartComponent,
     OpencodeFilePartComponent,
+    OpencodeMessageErrorComponent,
   ],
   template: `
     <div>
-      @if (message().role === 'assistant') {
-        <div class="mb-2 flex items-center gap-2 mt-8">
-          <span class="text-xs text-muted-foreground">{{
-            message().time.created | date: 'medium'
-          }}</span>
-          @if (hasError()) {
-            <hlm-badge variant="destructive" class="text-xs select-none">Error</hlm-badge>
-          }
-        </div>
-      }
-      <div class="flex flex-col">
+      <div class="flex flex-col" [class.mt-8]="message().role === 'assistant'">
         @for (partId of partIds(); track partId) {
           @if (getPart(partId); as part) {
             <div
@@ -47,7 +37,7 @@ import type { Message, Part } from '@qos/opencode/data-access';
                   }
                 }
                 @case ('reasoning') {
-                  <opencode-reasoning-part [text]="part.text" />
+                  <opencode-reasoning-part [part]="part" />
                 }
                 @case ('tool') {
                   <opencode-tool-part [part]="part" />
@@ -66,6 +56,9 @@ import type { Message, Part } from '@qos/opencode/data-access';
           }
         }
       </div>
+      @if (error()) {
+        <opencode-message-error [error]="error()!" />
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,9 +68,9 @@ export class OpencodeMessageItemComponent {
   readonly message = input.required<Message>();
   readonly partIds = input.required<string[]>();
 
-  protected readonly hasError = computed(() => {
+  protected readonly error = computed(() => {
     const msg = this.message();
-    return msg.role === 'assistant' && !!msg.error;
+    return msg.role === 'assistant' ? msg.error : undefined;
   });
 
   protected getPart(partId: string): Part | null {

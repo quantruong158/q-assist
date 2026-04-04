@@ -82,7 +82,7 @@ export class OpencodeClient implements OnInit {
   ngOnInit(): void {
     this.store.setConnectionState('connecting');
     void this.loadInitialData();
-    void this.eventService.subscribe();
+    this.eventService.subscribe();
     this.destroyRef.onDestroy(() => this.eventService.cancel());
   }
 
@@ -145,10 +145,10 @@ export class OpencodeClient implements OnInit {
       this.store.setLoading(false);
     }
   }
-  protected async onRetry(): Promise<void> {
+  protected onRetry(): void {
     this.eventService.cancel();
     this.store.setConnectionState('connecting');
-    await this.loadInitialData();
-    await this.eventService.subscribe();
+    void this.loadInitialData();
+    this.eventService.subscribe();
   }
 }

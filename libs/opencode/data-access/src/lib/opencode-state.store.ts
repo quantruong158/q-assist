@@ -198,6 +198,30 @@ export class OpencodeStateStore {
     });
   }
 
+  applyMessagePartDelta(
+    sessionID: string,
+    messageID: string,
+    partID: string,
+    field: string,
+    delta: string,
+  ): void {
+    this._state.update((s) => {
+      const existing = s.partsById[partID];
+      if (!existing) return { ...s };
+
+      let updated: Part;
+      if (field === 'text' && existing.type === 'text') {
+        updated = { ...existing, text: existing.text + delta } as Part;
+      } else if (field === 'text' && existing.type === 'reasoning') {
+        updated = { ...existing, text: existing.text + delta } as Part;
+      } else {
+        return { ...s };
+      }
+
+      return { ...s, partsById: { ...s.partsById, [partID]: updated } };
+    });
+  }
+
   setSessionStatus(sessionId: string, status: SessionStatus): void {
     this._state.update((s) => ({
       ...s,
