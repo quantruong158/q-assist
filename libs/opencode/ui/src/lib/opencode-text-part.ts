@@ -5,7 +5,7 @@ import { MarkdownComponent } from 'ngx-markdown';
   imports: [MarkdownComponent],
   template: `@if (role() === 'user') {
       <p
-        class="whitespace-pre-wrap relative flex w-fit max-w-[50%] flex-col gap-2 self-end rounded-[calc(var(--radius)*1.5)_calc(var(--radius)/2)_calc(var(--radius)*1.5)_calc(var(--radius)*1.5)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] p-3 ml-auto border border-primary/20"
+        class="whitespace-pre-wrap relative flex w-fit max-w-[80%] md:max-w-[60%] flex-col gap-2 self-end rounded-[calc(var(--radius)*1.5)_calc(var(--radius)/2)_calc(var(--radius)*1.5)_calc(var(--radius)*1.5)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] p-3 ml-auto border border-primary/20"
       >
         {{ text() }}
       </p>
