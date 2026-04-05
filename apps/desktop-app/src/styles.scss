@@ -302,7 +302,6 @@ code[class*='language-'] {
 .token.attr-value,
 .token.keyword {
   color: var(--code-keyword);
-  font-weight: 500;
 }
 
 .token.function,
@@ -414,6 +413,10 @@ markdown {
 
   .katex {
     font-size: 1rem !important;
+  }
+
+  strong {
+    font-weight: 500;
   }
 }
 

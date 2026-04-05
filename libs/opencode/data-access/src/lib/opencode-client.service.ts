@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { createOpencodeClient, OpencodeClient } from '@opencode-ai/sdk/client';
+import { createOpencodeClient, OpencodeClient } from '@opencode-ai/sdk/v2/client';
+import { Observable } from 'rxjs';
 import type {
   Event,
   OpencodeServerHealth,
@@ -13,7 +14,6 @@ const DEFAULT_BASE_URL = 'http://localhost:4096';
 @Injectable({ providedIn: 'root' })
 export class OpencodeClientService {
   private client: OpencodeClient | null = null;
-  private abortController: AbortController | null = null;
   private baseUrl: string;
 
   constructor() {
@@ -46,16 +46,16 @@ export class OpencodeClientService {
 
   async listSessions(): Promise<Session[]> {
     const result = await this.getClient().session.list();
-    return result.data ?? [];
+    return (result.data ?? []).filter((s) => !s.time.archived && !s.parentID);
   }
 
   async getSession(sessionId: string): Promise<Session | null> {
-    const result = await this.getClient().session.get({ path: { id: sessionId } });
+    const result = await this.getClient().session.get({ sessionID: sessionId });
     return result.data ?? null;
   }
 
   async getSessionMessages(sessionId: string): Promise<OpencodeSessionMessagesResult[]> {
-    const result = await this.getClient().session.messages({ path: { id: sessionId } });
+    const result = await this.getClient().session.messages({ sessionID: sessionId });
     return result.data ?? [];
   }
 
@@ -65,33 +65,30 @@ export class OpencodeClientService {
   }
 
   async abortSession(sessionId: string): Promise<boolean> {
-    const result = await this.getClient().session.abort({ path: { id: sessionId } });
+    const result = await this.getClient().session.abort({ sessionID: sessionId });
     return result.data ?? false;
   }
 
-  subscribeToEvents(): EventSubscription {
-    this.abortController = new AbortController();
-    const signal = this.abortController.signal;
-    const result = this.getClient().event.subscribe({
-      signal,
-    }) as unknown as EventSubscriptionResult;
-    return {
-      stream: result.stream as AsyncIterable<Event>,
-      cancel: () => this.abortController?.abort(),
-    };
-  }
+  subscribeToEvents(): Observable<Event> {
+    return new Observable<Event>((subscriber) => {
+      const eventSource = new EventSource(`${this.baseUrl}/event`);
 
-  cancelEventSubscription(): void {
-    this.abortController?.abort();
-    this.abortController = null;
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data) as Event;
+          subscriber.next(data);
+        } catch (err) {
+          console.error('[OpencodeClientService] Failed to parse SSE payload', err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        subscriber.error(err);
+      };
+
+      return () => {
+        eventSource.close();
+      };
+    });
   }
 }
-
-export interface EventSubscription {
-  stream: AsyncIterable<Event>;
-  cancel: () => void;
-}
-
-type EventSubscriptionResult = {
-  stream: AsyncGenerator<Event, void, unknown>;
-};

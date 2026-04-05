@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { OpencodeStateStore } from '@qos/opencode/data-access';
-import { OpencodeMessageItemComponent } from './opencode-message-item.component';
+import { OpencodeMessageItemComponent } from './opencode-message-item';
 
 @Component({
   selector: 'opencode-message-list',
@@ -17,7 +17,7 @@ import { OpencodeMessageItemComponent } from './opencode-message-item.component'
         <p class="text-sm">No messages in this session</p>
       </div>
     } @else {
-      <div class="flex-1 overflow-y-auto p-4 max-w-300 mx-auto">
+      <div class="flex-1 overflow-y-auto p-4 max-w-300 mx-auto text-sm">
         @for (message of store.activeSessionMessages(); track message.id) {
           <opencode-message-item [message]="message" [partIds]="getPartIds(message.id)" />
         }

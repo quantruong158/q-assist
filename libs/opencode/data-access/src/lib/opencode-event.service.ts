@@ -2,6 +2,8 @@ import { inject, Injectable, OnDestroy } from '@angular/core';
 import { OpencodeClientService } from './opencode-client.service';
 import { OpencodeStateStore } from './opencode-state.store';
 import type { Event, Message, Part, Session, SessionStatus } from './opencode.types';
+import { Subscription, timer } from 'rxjs';
+import { retry } from 'rxjs/operators';
 
 const SSE_RECONNECT_DELAY_MS = 3000;
 const SSE_MAX_RETRIES = 5;
@@ -10,30 +12,39 @@ const SSE_MAX_RETRIES = 5;
 export class OpencodeEventService implements OnDestroy {
   private readonly clientService = inject(OpencodeClientService);
   private readonly store = inject(OpencodeStateStore);
-  private subscription: { stream: AsyncIterable<Event>; cancel: () => void } | null = null;
+  private eventSubscription: Subscription | null = null;
   private isSubscribed = false;
   private hasReceivedServerConnected = false;
   private retryCount = 0;
-  private retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  async subscribe(): Promise<void> {
+  subscribe(): void {
     if (this.isSubscribed) return;
     this.isSubscribed = true;
     this.retryCount = 0;
-    await this.startSubscription();
+    this.startSubscription();
   }
 
-  private async startSubscription(): Promise<void> {
-    try {
-      this.subscription = this.clientService.subscribeToEvents();
-
-      for await (const event of this.subscription.stream) {
-        this.handleEvent(event);
-      }
-    } catch {
-      if (!this.isSubscribed) return;
-      this.handleStreamError();
-    }
+  private startSubscription(): void {
+    this.eventSubscription = this.clientService
+      .subscribeToEvents()
+      .pipe(
+        retry({
+          count: SSE_MAX_RETRIES,
+          delay: (error, retryCount) => {
+            if (retryCount >= SSE_MAX_RETRIES || this.hasReceivedServerConnected) {
+              this.handleMaxRetriesReached();
+              throw error;
+            }
+            this.retryCount = retryCount;
+            const delay = Math.min(SSE_RECONNECT_DELAY_MS * retryCount, 30000);
+            return timer(delay);
+          },
+        }),
+      )
+      .subscribe({
+        next: (event) => this.handleEvent(event),
+        error: (err) => this.handleStreamError(err),
+      });
   }
 
   private handleEvent(event: Event): void {
@@ -164,40 +175,52 @@ export class OpencodeEventService implements OnDestroy {
         break;
       }
 
+      case 'message.part.delta': {
+        const { sessionID, messageID, partID, field, delta } = event.properties as {
+          sessionID: string;
+          messageID: string;
+          partID: string;
+          field: string;
+          delta: string;
+        };
+        this.store.applyMessagePartDelta(sessionID, messageID, partID, field, delta);
+        this.store.addTimelineEntry({
+          sessionID,
+          messageID,
+          partID,
+          eventType: event.type,
+          data: { field, delta },
+        });
+        break;
+      }
+
       default:
         break;
     }
   }
 
-  private handleStreamError(): void {
-    this.subscription?.cancel();
-    this.subscription = null;
+  private handleMaxRetriesReached(): void {
+    if (!this.isSubscribed) return;
+    this.store.setConnectionState('error');
+    this.store.setError(
+      'Lost connection to OpenCode server. Please check that the server is running.',
+    );
+  }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handleStreamError(_err: unknown): void {
     if (!this.isSubscribed) return;
 
-    if (!this.hasReceivedServerConnected && this.retryCount < SSE_MAX_RETRIES) {
-      this.retryCount++;
-      const delay = Math.min(SSE_RECONNECT_DELAY_MS * this.retryCount, 30000);
-      this.retryTimeout = setTimeout(() => {
-        void this.startSubscription();
-      }, delay);
-    } else {
-      this.store.setConnectionState('error');
-      this.store.setError(
-        'Lost connection to OpenCode server. Please check that the server is running.',
-      );
+    if (!this.hasReceivedServerConnected) {
+      this.handleMaxRetriesReached();
     }
   }
 
   cancel(): void {
     this.isSubscribed = false;
     this.hasReceivedServerConnected = false;
-    if (this.retryTimeout) {
-      clearTimeout(this.retryTimeout);
-      this.retryTimeout = null;
-    }
-    this.subscription?.cancel();
-    this.subscription = null;
+    this.eventSubscription?.unsubscribe();
+    this.eventSubscription = null;
     this.store.setConnectionState('disconnected');
   }
 
