@@ -28,8 +28,9 @@ import { OpencodeStatusBarComponent } from '@qos/opencode/ui';
 import { CdkScrollable, ScrollDispatcher } from '@angular/cdk/scrolling';
 import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { toast } from 'ngx-sonner';
 
-const MAX_BOTTOM_OFFSET = 10;
+const MAX_BOTTOM_OFFSET = 200;
 
 @Component({
   selector: 'opencode-client',
@@ -57,43 +58,6 @@ const MAX_BOTTOM_OFFSET = 10;
     }),
   ],
   templateUrl: './opencode-client.html',
-  styles: `
-    .scroll-down-button-enter {
-      animation: scroll-down-button-enter 200ms cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .scroll-down-button-leave {
-      animation: scroll-down-button-leave 120ms cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    @keyframes scroll-down-button-enter {
-      from {
-        opacity: 0.01;
-        transform: translateY(18px) scale(0.98);
-        filter: blur(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-      }
-    }
-
-    @keyframes scroll-down-button-leave {
-      from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-      }
-
-      to {
-        opacity: 0;
-        transform: translateY(12px) scale(0.985);
-        filter: blur(6px);
-      }
-    }
-  `,
   host: { class: 'flex-1 overflow-y-auto' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -273,6 +237,16 @@ export class OpencodeClient implements OnInit {
     } catch (err) {
       console.error('Failed to send prompt:', err);
       this.promptControl.setValue(text);
+    }
+  }
+
+  protected async removeSession(sessionId: string): Promise<void> {
+    try {
+      await this.clientService.deleteSession(sessionId);
+      this.store.removeSession(sessionId);
+      toast.success('Session archived', { position: 'bottom-right' });
+    } catch (err) {
+      console.error('Failed to remove session:', err);
     }
   }
 }

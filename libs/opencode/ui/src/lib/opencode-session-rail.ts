@@ -3,14 +3,16 @@ import { DatePipe } from '@angular/common';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { hugeAdd01 } from '@ng-icons/huge-icons';
+import { hugeAdd01, hugeDelete02 } from '@ng-icons/huge-icons';
 import { OpencodeStateStore } from '@qos/opencode/data-access';
 import type { SessionStatus } from '@qos/opencode/data-access';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'opencode-session-rail',
-  imports: [DatePipe, HlmBadgeImports, HlmButtonImports, NgIcon],
-  providers: [provideIcons({ hugeAdd01 })],
+  imports: [DatePipe, HlmBadgeImports, HlmButtonImports, NgIcon, HlmTooltipImports, CommonModule],
+  providers: [provideIcons({ hugeAdd01, hugeDelete02 })],
   template: `
     <aside class="flex w-56 flex-col border-r border-border h-full">
       <div class="flex items-center justify-between border-b border-border px-4 py-3 h-14">
@@ -31,19 +33,35 @@ import type { SessionStatus } from '@qos/opencode/data-access';
         } @else {
           @for (session of store.sessionList(); track session.id) {
             <button
-              class="flex w-full flex-col items-start gap-2 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50"
+              class="group flex w-full items-center gap-2 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50"
               [class.bg-muted]="store.activeSessionId() === session.id"
-              [class.animate-pulse]="getStatus(session.id)?.type === 'busy'"
+              [ngClass]="{
+                'shimmer shimmer-bg shimmer-repeat-delay-0 shimmer-duration-1500 shimmer-color-[color-mix(in_oklab,var(--primary)_20%,transparent)]':
+                  getStatus(session.id)?.type === 'busy',
+              }"
               (click)="select.emit(session.id)"
             >
-              <span class="truncate text-sm font-medium w-full">{{
-                session.title || 'Untitled'
-              }}</span>
-              <div class="flex w-full items-center gap-2">
-                <span class="text-xs text-muted-foreground">{{
-                  session.time.updated | date: 'short'
+              <div class="flex min-w-0 flex-1 flex-col items-start gap-2">
+                <span class="truncate text-sm font-medium w-full">{{
+                  session.title || 'Untitled'
                 }}</span>
+                <div class="flex flex-1 w-full items-center gap-2">
+                  <span class="text-xs text-muted-foreground">{{
+                    session.time.updated | date: 'short'
+                  }}</span>
+                </div>
               </div>
+              <button
+                hlmBtn
+                size="icon"
+                variant="ghost"
+                class="hidden group-hover:flex"
+                hlmTooltip="Archive session"
+                [showDelay]="300"
+                (click)="removeSession.emit(session.id); $event.stopPropagation()"
+              >
+                <ng-icon name="hugeDelete02" />
+              </button>
             </button>
           }
         }
@@ -56,6 +74,7 @@ export class OpencodeSessionRailComponent {
   readonly store = inject(OpencodeStateStore);
   readonly select = output<string>();
   readonly newSession = output<void>();
+  readonly removeSession = output<string>();
 
   protected getStatus(sessionId: string): SessionStatus | null {
     return this.store.sessionStatus()[sessionId] ?? null;

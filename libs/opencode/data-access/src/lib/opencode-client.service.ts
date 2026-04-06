@@ -110,6 +110,11 @@ export class OpencodeClientService {
     return result.data ?? null;
   }
 
+  async deleteSession(sessionId: string): Promise<boolean | null> {
+    const result = await this.getClient().session.delete({ sessionID: sessionId });
+    return result.data ?? null;
+  }
+
   subscribeToEvents(): Observable<Event> {
     return new Observable<Event>((subscriber) => {
       const eventSource = new EventSource(`${this.baseUrl}/event`);

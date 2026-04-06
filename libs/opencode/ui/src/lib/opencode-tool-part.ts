@@ -5,6 +5,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeArrowRight01, hugeCancelCircle } from '@ng-icons/huge-icons';
 import type { ToolPart, ToolStateCompleted } from '@qos/opencode/data-access';
+import stripAnsi from 'strip-ansi';
 
 interface ToolDisplayValue {
   name: string;
@@ -101,7 +102,7 @@ export class OpencodeToolPartComponent {
         return {
           name: 'Skill',
           metadata: `name=${part.state.input['name']}`,
-          collapsibleContent: part.state.status === 'completed' ? part.state.output : '',
+          collapsibleContent: part.state.status === 'completed' ? stripAnsi(part.state.output) : '',
         };
       case 'apply_patch':
         return {
@@ -128,7 +129,7 @@ export class OpencodeToolPartComponent {
               ? (() => {
                   const state = part.state as ToolStateCompleted;
                   const hasOutput = state.output.length > 0;
-                  return `> ${state.input['command'] as string}${hasOutput ? `\n\n${state.output}` : ''}`;
+                  return `> ${state.input['command'] as string}${hasOutput ? `\n\n${stripAnsi(state.output)}` : ''}`;
                 })()
               : `> ${part.state.input['command'] as string}`,
         };
@@ -136,7 +137,7 @@ export class OpencodeToolPartComponent {
         return {
           name: tool,
           metadata: '',
-          collapsibleContent: part.state.status === 'completed' ? part.state.output : '',
+          collapsibleContent: part.state.status === 'completed' ? stripAnsi(part.state.output) : '',
         };
     }
   });
