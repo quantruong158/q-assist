@@ -351,7 +351,7 @@ export class QTooltip {
   public readonly showDelay = input(this._defaults?.showDelay ?? 0, {
     transform: numberAttribute,
   });
-  public readonly hideDelay = input(this._defaults?.hideDelay ?? 200, {
+  public readonly hideDelay = input(this._defaults?.hideDelay ?? 0, {
     transform: numberAttribute,
   });
   public readonly tooltipDisabled = input(false, { transform: booleanAttribute });

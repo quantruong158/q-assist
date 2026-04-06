@@ -22,13 +22,20 @@ import { OpencodeMessageErrorComponent } from './opencode-messsage-error';
   ],
   template: `
     <div>
-      <div class="flex flex-col" [class.mt-8]="message().role === 'assistant'">
+      <div class="flex flex-col" [class.mt-8]="isAssistant()">
+        @if (partIds().length === 0 && isAssistant() && !error()) {
+          <span
+            class="pl-3 shimmer shimmer-spread-150 shimmer-repeat-delay-200 text-muted-foreground shimmer-duration-1000 w-fit"
+          >
+            Thinking...
+          </span>
+        }
         @for (partId of partIds(); track partId) {
           @if (getPart(partId); as part) {
             <div
-              [class]="message().role === 'assistant' ? 'px-3' : 'p-0'"
+              [class]="isAssistant() ? 'px-3' : 'p-0'"
               [class.hidden]="part.type === 'step-start' || part.type === 'step-finish'"
-              [class.py-2]="message().role === 'assistant' && part.type !== 'reasoning'"
+              [class.py-2]="isAssistant() && part.type !== 'reasoning'"
             >
               @switch (part.type) {
                 @case ('text') {
@@ -67,6 +74,10 @@ export class OpencodeMessageItemComponent {
   private readonly store = inject(OpencodeStateStore);
   readonly message = input.required<Message>();
   readonly partIds = input.required<string[]>();
+
+  protected readonly isAssistant = computed(() => {
+    return this.message().role === 'assistant';
+  });
 
   protected readonly error = computed(() => {
     const msg = this.message();

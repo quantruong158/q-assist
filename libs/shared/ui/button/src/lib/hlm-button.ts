@@ -16,7 +16,7 @@ export const buttonVariants = cva(
         outline:
           'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+        ghost: 'hover:bg-muted hover:text-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
@@ -24,8 +24,8 @@ export const buttonVariants = cva(
         xs: `h-6 gap-1 rounded-md px-2 text-xs has-[>ng-icon]:px-1.5 [&_ng-icon:not([class*='text-'])]:text-xs`,
         sm: 'h-8 gap-1.5 rounded-md px-3 has-[>ng-icon]:px-2.5',
         lg: 'h-10 rounded-md px-6 has-[>ng-icon]:px-4',
-        icon: 'size-9',
-        'icon-xs': `size-6 rounded-md [&_ng-icon:not([class*='text-'])]:text-xs`,
+        icon: 'size-9 rounded-full',
+        'icon-xs': `size-6 [&_ng-icon:not([class*='text-'])]:text-xs`,
         'icon-sm': 'size-8',
         'icon-lg': 'size-10',
       },

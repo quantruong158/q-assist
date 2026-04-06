@@ -8,7 +8,9 @@ import type {
   Message,
   MessageAbortedError,
   MessageOutputLengthError,
+  Model,
   Part,
+  Provider,
   ProviderAuthError,
   Session,
   SessionStatus,
@@ -37,6 +39,13 @@ export type MessageError =
   | ContextOverflowError
   | ApiError;
 
+export interface OpencodeModel {
+  id: string;
+  label: string;
+  provider: string;
+  providerId: string;
+}
+
 export {
   type ApiError,
   type AssistantMessage,
@@ -47,7 +56,9 @@ export {
   type Message,
   type MessageAbortedError,
   type MessageOutputLengthError,
+  type Model,
   type Part,
+  type Provider,
   type ProviderAuthError,
   type Session,
   type SessionStatus,
