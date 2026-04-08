@@ -14,7 +14,7 @@ import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { hugeArrowDown02, hugeArrowUp02 } from '@ng-icons/huge-icons';
+import { hugeArrowDown02, hugeArrowUp02, hugeStop } from '@ng-icons/huge-icons';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
@@ -33,6 +33,7 @@ import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { toast } from 'ngx-sonner';
 import { TitleCasePipe } from '@angular/common';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 
 const MAX_BOTTOM_OFFSET = 200;
 
@@ -79,11 +80,13 @@ interface PromptSegment {
     OpencodeMessageListComponent,
     CdkScrollable,
     TitleCasePipe,
+    HlmTooltipImports,
   ],
   providers: [
     provideIcons({
       hugeArrowUp02,
       hugeArrowDown02,
+      hugeStop,
     }),
   ],
   templateUrl: './opencode-client.html',
@@ -547,6 +550,17 @@ export class OpencodeClient implements OnInit {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       void this.sendPrompt();
+    }
+  }
+
+  protected interuptSession(): void {
+    const sessionId = this.store.activeSessionId();
+    if (!sessionId) {
+      return;
+    }
+
+    if (this.store.isStreaming()) {
+      this.clientService.abortSession(sessionId);
     }
   }
 
