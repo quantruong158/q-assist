@@ -22,7 +22,7 @@ import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { OpencodeClientService, OpencodeModel } from '@qos/opencode/data-access';
-import type { FilePartInput, OpencodeAgent } from '@qos/opencode/data-access';
+import type { FilePartInput, OpencodeAgent, OpencodeCommand } from '@qos/opencode/data-access';
 import { OpencodeEventService } from '@qos/opencode/data-access';
 import { OpencodeStateStore } from '@qos/opencode/data-access';
 import { OpencodeMessageListComponent } from '@qos/opencode/ui';
@@ -53,6 +53,11 @@ interface SelectedFileReference {
   path: string;
   start: number;
   end: number;
+}
+
+interface PromptSegment {
+  text: string;
+  highlighted: boolean;
 }
 
 @Component({
@@ -104,7 +109,7 @@ export class OpencodeClient implements OnInit {
   protected readonly selectedVariantControl = new FormControl<string | undefined>(undefined, {
     nonNullable: true,
   });
-  protected readonly commands = signal<import('@qos/opencode/data-access').OpencodeCommand[]>([]);
+  protected readonly commands = signal<OpencodeCommand[]>([]);
 
   protected readonly autocompleteState = signal<{
     visible: boolean;
@@ -112,6 +117,8 @@ export class OpencodeClient implements OnInit {
   }>({ visible: false, type: null });
 
   protected readonly autocompleteItems = signal<AutocompleteItem[]>([]);
+  protected readonly highlightedAutocompleteIndex = signal(0);
+  private readonly autocompleteList = viewChild<ElementRef<HTMLDivElement>>('autocompleteList');
   private readonly activeFileAutocomplete = signal<{
     start: number;
     end: number;
@@ -123,6 +130,48 @@ export class OpencodeClient implements OnInit {
     query: string;
   } | null>(null);
   private readonly selectedFileReferences = signal<SelectedFileReference[]>([]);
+
+  protected readonly highlightedPromptSegments = computed<PromptSegment[]>(() => {
+    const text = this.promptValue() ?? '';
+    if (!text) return [];
+
+    const refs = this.selectedFileReferences();
+    if (refs.length === 0) {
+      return [{ text, highlighted: false }];
+    }
+
+    const sorted = [...refs].sort((a, b) => a.start - b.start);
+    const segments: PromptSegment[] = [];
+    let lastEnd = 0;
+
+    for (const ref of sorted) {
+      const safeStart = Math.max(0, Math.min(ref.start, text.length));
+      const safeEnd = Math.max(safeStart, Math.min(ref.end, text.length));
+      if (safeStart < lastEnd) continue;
+
+      if (safeStart > lastEnd) {
+        segments.push({
+          text: text.substring(lastEnd, safeStart),
+          highlighted: false,
+        });
+      }
+
+      segments.push({
+        text: text.substring(safeStart, safeEnd),
+        highlighted: true,
+      });
+      lastEnd = safeEnd;
+    }
+
+    if (lastEnd < text.length) {
+      segments.push({
+        text: text.substring(lastEnd),
+        highlighted: false,
+      });
+    }
+
+    return segments;
+  });
 
   protected readonly isAtBottom = toSignal(
     this.scrollDispatcher.scrolled().pipe(
@@ -378,10 +427,12 @@ export class OpencodeClient implements OnInit {
     }, 0);
 
     this.autocompleteState.update((s) => ({ ...s, visible: false }));
+    this.highlightedAutocompleteIndex.set(0);
   }
 
   protected onAutocompleteDismiss(): void {
     this.autocompleteState.update((s) => ({ ...s, visible: false }));
+    this.highlightedAutocompleteIndex.set(0);
     this.activeFileAutocomplete.set(null);
     this.activeCommandAutocomplete.set(null);
   }
@@ -433,6 +484,7 @@ export class OpencodeClient implements OnInit {
       this.activeFileAutocomplete.set(fileContext);
       this.activeCommandAutocomplete.set(null);
       this.autocompleteState.set({ visible: true, type: 'file' });
+      this.highlightedAutocompleteIndex.set(0);
       void this.loadFileAutocomplete(fileContext.query);
       return;
     }
@@ -442,6 +494,7 @@ export class OpencodeClient implements OnInit {
       this.activeCommandAutocomplete.set(commandContext);
       this.activeFileAutocomplete.set(null);
       this.autocompleteState.set({ visible: true, type: 'command' });
+      this.highlightedAutocompleteIndex.set(0);
       void this.loadCommandAutocomplete(commandContext.query);
       return;
     }
@@ -455,6 +508,42 @@ export class OpencodeClient implements OnInit {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
+    const state = this.autocompleteState();
+
+    if (state.visible && this.autocompleteItems().length > 0) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const items = this.autocompleteItems();
+        this.highlightedAutocompleteIndex.update((i) => (i + 1) % items.length);
+        this.scrollHighlightedIntoView();
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        const items = this.autocompleteItems();
+        this.highlightedAutocompleteIndex.update((i) => (i <= 0 ? items.length - 1 : i - 1));
+        this.scrollHighlightedIntoView();
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        const index = this.highlightedAutocompleteIndex();
+        const items = this.autocompleteItems();
+        if (index >= 0 && index < items.length) {
+          event.preventDefault();
+          this.onAutocompleteSelect(items[index]);
+          return;
+        }
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.onAutocompleteDismiss();
+        return;
+      }
+    }
+
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       void this.sendPrompt();
@@ -673,6 +762,28 @@ export class OpencodeClient implements OnInit {
 
   private toFileUrl(path: string): string {
     return path.startsWith('file://') ? path : `file://${path}`;
+  }
+
+  private scrollHighlightedIntoView(): void {
+    requestAnimationFrame(() => {
+      const list = this.autocompleteList()?.nativeElement;
+      if (!list) return;
+      const highlighted = list.querySelector('[data-ac-idx].ac-highlighted');
+      if (highlighted) {
+        highlighted.scrollIntoView({ block: 'nearest' });
+      }
+    });
+  }
+
+  protected onPromptScroll(): void {
+    const textarea = this.promptInput().nativeElement;
+    const backdrop = textarea.parentElement?.querySelector(
+      '.prompt-backdrop',
+    ) as HTMLElement | null;
+    if (backdrop) {
+      backdrop.scrollTop = textarea.scrollTop;
+      backdrop.scrollLeft = textarea.scrollLeft;
+    }
   }
 
   protected async removeSession(sessionId: string): Promise<void> {

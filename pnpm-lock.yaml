@@ -96,8 +96,8 @@ importers:
         specifier: ^33.2.0
         version: 33.2.0
       '@opencode-ai/sdk':
-        specifier: ^1.3.13
-        version: 1.3.13
+        specifier: ^1.4.0
+        version: 1.4.0
       '@openrouter/ai-sdk-provider':
         specifier: ^2.3.3
         version: 2.3.3(ai@6.0.141(zod@3.25.76))(zod@3.25.76)
@@ -3318,8 +3318,8 @@ packages:
   '@nx/workspace@22.5.4':
     resolution: {integrity: sha512-TZeuCDy+VN/5zqMYxHw15HKe2Ppcb9WBOebz4bmXE206c8Aop3S9QeLfys00Uobt9ZaYh9QUeN0iFsZm7TNv0w==}
 
-  '@opencode-ai/sdk@1.3.13':
-    resolution: {integrity: sha512-/M6HlNnba+xf1EId6qFb2tG0cvq0db3PCQDug1glrf8wYOU57LYNF8WvHX9zoDKPTMv0F+O4pcP/8J+WvDaxHA==}
+  '@opencode-ai/sdk@1.4.0':
+    resolution: {integrity: sha512-mfa3MzhqNM+Az4bgPDDXL3NdG+aYOHClXmT6/4qLxf2ulyfPpMNHqb9Dfmo4D8UfmrDsPuJHmbune73/nUQnuw==}
 
   '@openrouter/ai-sdk-provider@2.3.3':
     resolution: {integrity: sha512-4fVteGkVedc7fGoA9+qJs4tpYwALezMq14m2Sjub3KmyRlksCbK+WJf67NPdGem8+NZrV2tAN42A1NU3+SiV3w==}
@@ -15897,7 +15897,9 @@ snapshots:
       - '@swc/core'
       - debug
 
-  '@opencode-ai/sdk@1.3.13': {}
+  '@opencode-ai/sdk@1.4.0':
+    dependencies:
+      cross-spawn: 7.0.6
 
   '@openrouter/ai-sdk-provider@2.3.3(ai@6.0.141(zod@3.25.76))(zod@3.25.76)':
     dependencies:
