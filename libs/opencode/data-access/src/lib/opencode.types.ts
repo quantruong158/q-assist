@@ -26,6 +26,9 @@ import type {
   UnknownError,
   UserMessage,
   ReasoningPart,
+  Path,
+  FilePartInput,
+  TextPartInput,
 } from '@opencode-ai/sdk/v2';
 
 export type OpencodeConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -44,6 +47,11 @@ export interface OpencodeModel {
   label: string;
   provider: string;
   providerId: string;
+  variants?: {
+    [key: string]: {
+      [key: string]: unknown;
+    };
+  };
 }
 
 export {
@@ -74,11 +82,36 @@ export {
   type UnknownError,
   type UserMessage,
   type ReasoningPart,
+  type Path,
+  type FilePartInput,
+  type TextPartInput,
 };
 
 export interface OpencodeServerHealth {
   healthy: boolean;
   version: string;
+}
+
+export interface OpencodeCommand {
+  name: string;
+  description?: string;
+  agent?: string;
+  model?: string;
+  source?: 'command' | 'mcp' | 'skill';
+  template: string;
+  hints: Array<string>;
+}
+
+export interface OpencodeAgent {
+  name: string;
+  description?: string;
+  mode: 'subagent' | 'primary' | 'all';
+  color?: string;
+}
+
+export interface OpencodeVariant {
+  key: string;
+  label: string;
 }
 
 export interface OpencodeSessionMessagesResult {

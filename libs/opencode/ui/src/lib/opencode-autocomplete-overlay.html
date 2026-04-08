@@ -1,0 +1,33 @@
+@if (visible()) {
+  <div
+    class="fixed z-50 bg-popover border border-border rounded-xl shadow-lg overflow-hidden w-72"
+    [style.left.px]="trigger()?.x ?? 0"
+    [style.top.px]="trigger()?.y ?? 0"
+    (keydown)="onKeydown($event)"
+  >
+    <div class="p-2 border-b border-border">
+      <input
+        class="w-full bg-transparent border-0 outline-none text-sm px-2 py-1"
+        [formControl]="searchControl"
+        placeholder="Search..."
+      />
+    </div>
+    <div class="max-h-60 overflow-y-auto p-1">
+      @if (filteredItems().length === 0) {
+        <div class="px-3 py-2 text-sm text-muted-foreground">No results</div>
+      }
+      @for (item of filteredItems(); track item.id) {
+        <button
+          type="button"
+          class="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+          (click)="onSelect(item)"
+        >
+          <div class="font-medium">{{ item.label }}</div>
+          @if (item.description) {
+            <div class="text-xs text-muted-foreground truncate">{{ item.description }}</div>
+          }
+        </button>
+      }
+    </div>
+  </div>
+}

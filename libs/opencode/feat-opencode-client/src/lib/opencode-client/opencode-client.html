@@ -97,61 +97,145 @@
   </div>
 
   <ng-template #composerContent>
-    <div
-      class="bg-card flex flex-col gap-2 rounded-2xl border border-border p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
-    >
+    <div class="relative">
+      @if (autocompleteState().visible && autocompleteItems().length > 0) {
       <div
-        hlmInputGroup
-        class="w-full border-0 shadow-none outline-none focus-within:border-transparent focus-within:ring-0 focus-within:ring-offset-0"
+        #autocompleteList
+        class="absolute bottom-full left-0 right-0 mb-2 max-h-60 overflow-y-auto rounded-lg border border-border bg-popover p-1"
       >
-        <textarea
-          cdkTextareaAutosize
-          cdkAutosizeMinRows="1"
-          cdkAutosizeMaxRows="6"
-          rows="1"
-          [formControl]="promptControl"
-          (keydown)="onKeydown($event)"
-          placeholder="Type a message..."
-          aria-label="Type your message"
-          class="min-h-12 flex-1 resize-none rounded-none border-0 bg-transparent px-2 py-1 leading-6 shadow-none outline-none overflow-y-auto focus:outline-none focus-visible:outline-none focus-visible:ring-0 dark:bg-transparent"
-        ></textarea>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <span class="flex-1"></span>
-
-        <hlm-select
-          class="shrink-0"
-          [formControl]="selectedModelControl"
-          [compareWith]="compareModels"
-        >
-          <hlm-select-trigger
-            class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground aria-expanded:hover:bg-accent aria-expanded:hover:text-accent-foreground dark:bg-transparent dark:hover:bg-accent/50 dark:hover:text-accent-foreground dark:aria-expanded:bg-accent/50 dark:aria-expanded:text-accent-foreground dark:aria-expanded:hover:bg-accent/50 dark:aria-expanded:hover:text-accent-foreground"
-          >
-            <hlm-select-value />
-          </hlm-select-trigger>
-          <hlm-select-content class="max-h-80 overflow-y-auto">
-            @for (group of models() | keyvalue; track group.key) {
-            <div hlmSelectGroup>
-              <div hlmSelectLabel>{{ group.key }}</div>
-              @for (model of group.value; track model.id) {
-              <hlm-option [value]="model">{{ model.label }}</hlm-option>
-              }
-            </div>
-            }
-          </hlm-select-content>
-        </hlm-select>
-
+        @for (item of autocompleteItems(); track item.id) {
         <button
-          hlmBtn
-          size="icon"
-          (click)="sendPrompt()"
-          [disabled]="!canSend()"
-          aria-label="Send message"
-          class="rounded-full"
+          type="button"
+          class="w-full text-left px-3 py-2 text-sm rounded-md transition-colors"
+          [class.bg-accent]="highlightedAutocompleteIndex() === $index"
+          [class.text-accent-foreground]="highlightedAutocompleteIndex() === $index"
+          [class.hover:bg-accent]="highlightedAutocompleteIndex() !== $index"
+          [class.hover:text-accent-foreground]="highlightedAutocompleteIndex() !== $index"
+          [attr.data-ac-idx]="$index"
+          [class.ac-highlighted]="highlightedAutocompleteIndex() === $index"
+          (mousedown)="onAutocompleteItemMouseDown($event)"
+          (click)="onAutocompleteSelect(item)"
         >
-          <ng-icon hlm name="hugeArrowUp02" />
+          <div class="font-medium">{{ item.label }}</div>
+          @if (item.description) {
+          <div class="text-xs text-muted-foreground truncate">{{ item.description }}</div>
+          }
         </button>
+        }
+      </div>
+      }
+
+      <div
+        class="bg-card flex flex-col gap-2 rounded-2xl border border-border p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
+      >
+        <div
+          hlmInputGroup
+          class="w-full border-0 shadow-none outline-none focus-within:border-transparent focus-within:ring-0 focus-within:ring-offset-0 relative"
+        >
+          <div
+            class="prompt-backdrop pointer-events-none absolute inset-0 z-0 overflow-hidden whitespace-pre-wrap wrap-break-word px-2 py-1 leading-6"
+          >
+            @for (segment of highlightedPromptSegments(); track $index) {
+            <span [class.text-primary]="segment.highlighted">{{ segment.text }}</span>
+            }
+          </div>
+          <textarea
+            #promptInput
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="1"
+            cdkAutosizeMaxRows="6"
+            [formControl]="promptControl"
+            (keydown)="onKeydown($event)"
+            (keyup)="onPromptCursorActivity()"
+            (input)="onInput()"
+            (click)="onPromptCursorActivity()"
+            (blur)="onPromptBlur()"
+            (scroll)="onPromptScroll()"
+            placeholder="Type a message..."
+            aria-label="Type your message"
+            class="relative z-10 min-h-14 flex-1 resize-none rounded-none border-0 bg-transparent px-2 py-1 leading-6 shadow-none outline-none overflow-y-auto focus:outline-none focus-visible:outline-none focus-visible:ring-0 dark:bg-transparent text-transparent [-webkit-text-fill-color:transparent] caret-(--color-foreground) placeholder:text-muted-foreground placeholder:[-webkit-text-fill-color:initial] placeholder:text-muted-foreground! selection:bg-primary/30"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center gap-2">
+          @if (agents().length > 0) {
+          <hlm-select class="shrink-0" [formControl]="selectedAgentControl">
+            <hlm-select-trigger
+              class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:bg-transparent"
+            >
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content class="max-h-80 overflow-y-auto">
+              @for (agent of agents(); track agent.name) {
+              <hlm-option [value]="agent">{{ agent.name | titlecase }}</hlm-option>
+              }
+            </hlm-select-content>
+          </hlm-select>
+          }
+
+          <span class="flex-1"></span>
+
+          <hlm-select
+            class="shrink-0"
+            [formControl]="selectedModelControl"
+            [compareWith]="compareModels"
+          >
+            <hlm-select-trigger
+              class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground aria-expanded:hover:bg-accent aria-expanded:hover:text-accent-foreground dark:bg-transparent dark:hover:bg-accent/50 dark:hover:text-accent-foreground dark:aria-expanded:bg-accent/50 dark:aria-expanded:text-accent-foreground dark:aria-expanded:hover:bg-accent/50 dark:aria-expanded:hover:text-accent-foreground"
+            >
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content class="max-h-80">
+              @for (group of providers() | keyvalue; track group.key) {
+              <div hlmSelectGroup>
+                <div hlmSelectLabel>{{ group.key }}</div>
+                @for (model of group.value; track model.id) {
+                <hlm-option [value]="model">{{ model.label }}</hlm-option>
+                }
+              </div>
+              }
+            </hlm-select-content>
+          </hlm-select>
+
+          <hlm-select class="shrink-0" [formControl]="selectedVariantControl">
+            <hlm-select-trigger
+              class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:bg-transparent"
+            >
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content class="min-w-fit">
+              <hlm-option [value]="undefined">Default</hlm-option>
+              @for (variant of variants(); track variant) {
+              <hlm-option [value]="variant">{{ (variant | titlecase) ?? 'Default' }}</hlm-option>
+              }
+            </hlm-select-content>
+          </hlm-select>
+
+          @if (this.store.isStreaming()) {
+          <button
+            hlmBtn
+            size="icon"
+            (click)="interuptSession()"
+            aria-label="Interupt streaming"
+            class="rounded-full"
+            hlmTooltip="Interupt"
+            [showDelay]="300"
+          >
+            <ng-icon hlm name="hugeStop" class="animate-pulse" />
+          </button>
+          } @else {
+          <button
+            hlmBtn
+            size="icon"
+            (click)="sendPrompt()"
+            [disabled]="!canSend()"
+            aria-label="Send message"
+            class="rounded-full"
+          >
+            <ng-icon hlm name="hugeArrowUp02" />
+          </button>
+          }
+        </div>
       </div>
     </div>
   </ng-template>

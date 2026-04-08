@@ -15,7 +15,7 @@ import { cva } from 'class-variance-authority';
 import type { ClassValue } from 'clsx';
 
 export const selectTriggerVariants = cva(
-  `border-input [&>ng-icon:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&>ng-icon]:pointer-events-none [&>ng-icon]:size-4 [&>ng-icon]:shrink-0 [&>ng-icon]:transition-transform [&>ng-icon]:duration-200 [&>ng-icon]:ease-out [&>ng-icon]:motion-reduce:transition-none [&[aria-expanded='true']>ng-icon]:!rotate-180 cursor-pointer`,
+  `border-input [&>ng-icon:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&>ng-icon]:pointer-events-none [&>ng-icon]:size-4 [&>ng-icon]:shrink-0 [&>ng-icon]:transition-transform [&>ng-icon]:duration-200 [&>ng-icon]:ease-out [&>ng-icon]:motion-reduce:transition-none [&[aria-expanded='true']>ng-icon]:!-rotate-180 cursor-pointer`,
   {
     variants: {
       error: {
