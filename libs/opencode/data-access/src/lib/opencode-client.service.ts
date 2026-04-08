@@ -3,11 +3,17 @@ import { createOpencodeClient, OpencodeClient } from '@opencode-ai/sdk/v2/client
 import { Observable } from 'rxjs';
 import type {
   Event,
+  FilePartInput,
+  OpencodeAgent,
+  OpencodeCommand,
   OpencodeModel,
   OpencodeServerHealth,
   OpencodeSessionMessagesResult,
+  Path,
+  Provider,
   Session,
   SessionStatus,
+  TextPartInput,
 } from './opencode.types';
 
 const DEFAULT_BASE_URL = 'http://localhost:4096';
@@ -45,6 +51,11 @@ export class OpencodeClientService {
     }
   }
 
+  async getCurrentPath(): Promise<Path | null> {
+    const result = await this.getClient().path.get();
+    return result.data ?? null;
+  }
+
   async listSessions(): Promise<Session[]> {
     const result = await this.getClient().session.list();
     return (result.data ?? []).filter((s) => !s.time.archived && !s.parentID);
@@ -74,11 +85,84 @@ export class OpencodeClientService {
     sessionId: string,
     text: string,
     model?: { providerID: string; modelID: string },
+    options?: {
+      agent?: string;
+      variant?: string;
+      parts?: Array<{ type: 'file'; mime: string; filename?: string; url: string }>;
+    },
   ): Promise<void> {
+    const parts: Array<TextPartInput | FilePartInput> = [{ type: 'text', text }];
+    if (options?.parts) {
+      parts.push(...options.parts);
+    }
+
     await this.getClient().session.prompt({
       sessionID: sessionId,
-      parts: [{ type: 'text', text }],
+      parts,
       model,
+      agent: options?.agent,
+      variant: options?.variant,
+    });
+  }
+
+  async listCommands(): Promise<OpencodeCommand[]> {
+    const result = await this.getClient().command.list();
+    return result.data ?? [];
+  }
+
+  async listAgents(): Promise<OpencodeAgent[]> {
+    const result = await this.getClient().app.agents();
+    return (result.data ?? []).filter((a) => a.mode === 'primary' && !a.hidden);
+  }
+
+  async searchFiles(
+    query: string,
+  ): Promise<Array<{ name: string; type: 'file' | 'directory'; url: string }>> {
+    const [filesResult, dirsResult] = await Promise.all([
+      this.getClient().find.files({ query, type: 'file' }),
+      this.getClient().find.files({ query, type: 'directory' }),
+    ]);
+
+    const items: Array<{ name: string; type: 'file' | 'directory'; url: string }> = [];
+
+    for (const path of filesResult.data ?? []) {
+      items.push({
+        name: path,
+        type: 'file',
+        url: path,
+      });
+    }
+
+    for (const path of dirsResult.data ?? []) {
+      items.push({
+        name: path,
+        type: 'directory',
+        url: path,
+      });
+    }
+
+    return items;
+  }
+
+  async executeCommand(
+    sessionId: string,
+    command: string,
+    options?: {
+      arguments?: string;
+      agent?: string;
+      model?: string;
+      variant?: string;
+      parts?: Array<{ type: 'file'; mime: string; filename?: string; url: string }>;
+    },
+  ): Promise<void> {
+    await this.getClient().session.command({
+      sessionID: sessionId,
+      command,
+      arguments: options?.arguments ?? '',
+      agent: options?.agent,
+      model: options?.model,
+      variant: options?.variant,
+      parts: options?.parts,
     });
   }
 
@@ -98,6 +182,7 @@ export class OpencodeClientService {
         label: m.name,
         provider: provider.name,
         providerId: provider.id,
+        variants: m.variants,
       }));
 
       grouped[provider.name] = opencodeModels;

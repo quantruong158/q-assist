@@ -4,6 +4,7 @@ import type {
   OpencodeConnectionState,
   OpencodeTimelineEntry,
   Part,
+  Path,
   Session,
   SessionStatus,
 } from './opencode.types';
@@ -20,6 +21,7 @@ export interface OpencodeState {
   error: string | null;
   isLoading: boolean;
   isStreaming: boolean;
+  currentPath: Path | null;
 }
 
 const createInitialState = (): OpencodeState => ({
@@ -34,6 +36,7 @@ const createInitialState = (): OpencodeState => ({
   error: null,
   isLoading: false,
   isStreaming: false,
+  currentPath: null,
 });
 
 @Injectable({ providedIn: 'root' })
@@ -51,6 +54,7 @@ export class OpencodeStateStore {
   readonly error = computed(() => this._state().error);
   readonly isLoading = computed(() => this._state().isLoading);
   readonly isStreaming = computed(() => this._state().isStreaming);
+  readonly currentPath = computed(() => this._state().currentPath);
 
   readonly sessionList = computed(() =>
     Object.values(this._state().sessions).sort((a, b) => b.time.updated - a.time.updated),
@@ -75,6 +79,10 @@ export class OpencodeStateStore {
       ? (this._state().sessionStatus[id] ?? { type: 'idle' as const })
       : { type: 'idle' as const };
   });
+
+  setCurrentPath(path: Path | null): void {
+    this._state.update((s) => ({ ...s, currentPath: path }));
+  }
 
   setConnectionState(state: OpencodeConnectionState, version?: string): void {
     this._state.update((s) => ({
