@@ -14,7 +14,13 @@ import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { hugeArrowDown02, hugeArrowUp02, hugeStop } from '@ng-icons/huge-icons';
+import {
+  hugeArrowDown02,
+  hugeArrowUp02,
+  hugeFile01,
+  hugeFolder01,
+  hugeStop,
+} from '@ng-icons/huge-icons';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
@@ -29,11 +35,13 @@ import { OpencodeMessageListComponent } from '@qos/opencode/ui';
 import { OpencodeSessionRailComponent } from '@qos/opencode/ui';
 import { OpencodeStatusBarComponent } from '@qos/opencode/ui';
 import { CdkScrollable, ScrollDispatcher } from '@angular/cdk/scrolling';
-import { filter, map } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ObserversModule } from '@angular/cdk/observers';
+import { asyncScheduler, filter, map, throttleTime } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { toast } from 'ngx-sonner';
 import { TitleCasePipe } from '@angular/common';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { getTokenRangeAtCursor, findTokenOccurrences, toFileUrl } from '@qos/shared/util-angular';
 
 const MAX_BOTTOM_OFFSET = 200;
 
@@ -79,6 +87,7 @@ interface PromptSegment {
     OpencodeSessionRailComponent,
     OpencodeMessageListComponent,
     CdkScrollable,
+    ObserversModule,
     TitleCasePipe,
     HlmTooltipImports,
   ],
@@ -87,6 +96,8 @@ interface PromptSegment {
       hugeArrowUp02,
       hugeArrowDown02,
       hugeStop,
+      hugeFile01,
+      hugeFolder01,
     }),
   ],
   templateUrl: './opencode-client.html',
@@ -176,6 +187,26 @@ export class OpencodeClient implements OnInit {
     return segments;
   });
 
+  private readonly promptScrollTop = signal(0);
+  private readonly promptScrollLeft = signal(0);
+
+  private readonly shouldStickToBottom = signal(false);
+  private readonly scrollMutationVersion = signal(0);
+
+  private readonly throttledScrollMutationVersion = toSignal(
+    toObservable(this.scrollMutationVersion).pipe(
+      throttleTime(50, asyncScheduler, {
+        leading: true,
+        trailing: true,
+      }),
+    ),
+    { initialValue: 0 },
+  );
+
+  protected readonly promptOverlayTransform = computed(
+    () => `translate(${-this.promptScrollLeft()}px, ${-this.promptScrollTop()}px)`,
+  );
+
   protected readonly isAtBottom = toSignal(
     this.scrollDispatcher.scrolled().pipe(
       filter((scrollable) => scrollable === this.scrollContainer()),
@@ -237,6 +268,31 @@ export class OpencodeClient implements OnInit {
     effect(() => {
       if (this.variants()) {
         this.selectedVariantControl.setValue(undefined);
+      }
+    });
+
+    effect(() => {
+      const isStreaming = this.store.isStreaming();
+      const isAtBottom = this.isAtBottom();
+
+      if (!isStreaming) {
+        this.shouldStickToBottom.set(false);
+        return;
+      }
+
+      if (isAtBottom) {
+        this.shouldStickToBottom.set(true);
+      } else if (this.shouldStickToBottom()) {
+        this.shouldStickToBottom.set(false);
+      }
+    });
+
+    effect(() => {
+      const version = this.throttledScrollMutationVersion();
+      if (version === 0) return;
+
+      if (this.store.isStreaming() && this.shouldStickToBottom()) {
+        this.scrollToBottom();
       }
     });
   }
@@ -334,12 +390,14 @@ export class OpencodeClient implements OnInit {
     try {
       const files = await this.clientService.searchFiles(query);
       this.autocompleteItems.set(
-        files.map((f) => ({
-          id: f.url,
-          label: f.name,
-          kind: f.type,
-          description: f.type === 'directory' ? 'Directory' : 'File',
-        })),
+        files
+          .map((f) => ({
+            id: f.url,
+            label: f.name,
+            kind: f.type,
+            icon: f.type === 'directory' ? 'hugeFolder01' : 'hugeFile01',
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label)),
       );
     } catch {
       this.autocompleteItems.set([]);
@@ -396,7 +454,7 @@ export class OpencodeClient implements OnInit {
             item.kind === 'directory' || item.label.endsWith('/')
               ? 'application/x-directory'
               : 'text/plain',
-          url: this.toFileUrl(path),
+          url: toFileUrl(path),
           path,
           start: tokenStart,
           end: tokenEnd,
@@ -471,10 +529,6 @@ export class OpencodeClient implements OnInit {
     this.eventService.subscribe();
   }
 
-  protected compareModels = (a: OpencodeModel, b: OpencodeModel): boolean => {
-    return a?.id === b?.id;
-  };
-
   protected onInput(): void {
     const textarea = this.promptInput().nativeElement;
     const text = textarea.value ?? this.promptControl.value ?? '';
@@ -508,6 +562,10 @@ export class OpencodeClient implements OnInit {
     if (this.autocompleteState().visible) {
       this.autocompleteState.update((s) => ({ ...s, visible: false }));
     }
+
+    requestAnimationFrame(() => {
+      this.syncPromptOverlayScroll();
+    });
   }
 
   protected onKeydown(event: KeyboardEvent): void {
@@ -564,10 +622,20 @@ export class OpencodeClient implements OnInit {
     }
   }
 
+  protected async removeSession(sessionId: string): Promise<void> {
+    try {
+      await this.clientService.deleteSession(sessionId);
+      this.store.removeSession(sessionId);
+      toast.success('Session archived');
+    } catch (err) {
+      console.error('Failed to remove session:', err);
+    }
+  }
+
   protected async sendPrompt(): Promise<void> {
     const rawText = this.promptControl.value ?? '';
-    const text = rawText.trim();
-    if (!text) return;
+    const trimmedText = rawText.trim();
+    if (!trimmedText) return;
     if (this.store.isStreaming()) return;
 
     let sessionId = this.store.activeSessionId();
@@ -594,10 +662,10 @@ export class OpencodeClient implements OnInit {
     const selectedAgent = this.selectedAgentControl.value;
     const selectedVariant = this.selectedVariantControl.value;
 
-    this.syncSelectedFileReferencesWithText(rawText);
+    this.syncSelectedFileReferencesWithText(trimmedText);
     const selectedRefsSnapshot = this.selectedFileReferences().map((ref) => ({ ...ref }));
     const fileRefs = this.toFilePartInputs();
-    const commandMatch = rawText.match(/^\/(\S+)(?:\s+(.*))?$/);
+    const commandMatch = trimmedText.match(/^\/(\S+)(?:\s+(.*))?$/);
 
     this.promptControl.setValue('');
     this.selectedFileReferences.set([]);
@@ -607,6 +675,7 @@ export class OpencodeClient implements OnInit {
 
     try {
       if (commandMatch) {
+        this.scrollToBottom();
         const [, commandName, args] = commandMatch;
         await this.clientService.executeCommand(sessionId, commandName, {
           arguments: args ?? '',
@@ -616,7 +685,8 @@ export class OpencodeClient implements OnInit {
           parts: fileRefs.length > 0 ? fileRefs : undefined,
         });
       } else {
-        await this.clientService.promptSession(sessionId, rawText, model, {
+        this.scrollToBottom();
+        await this.clientService.promptSession(sessionId, trimmedText, model, {
           agent: selectedAgent?.name,
           variant: selectedVariant,
           parts: fileRefs.length > 0 ? fileRefs : undefined,
@@ -624,7 +694,7 @@ export class OpencodeClient implements OnInit {
       }
     } catch (err) {
       console.error('Failed to send prompt:', err);
-      this.promptControl.setValue(rawText);
+      this.promptControl.setValue(trimmedText);
       this.selectedFileReferences.set(selectedRefsSnapshot);
     }
   }
@@ -633,7 +703,7 @@ export class OpencodeClient implements OnInit {
     text: string,
     cursorPos: number,
   ): { start: number; end: number; query: string } | null {
-    const tokenRange = this.getTokenRangeAtCursor(text, cursorPos);
+    const tokenRange = getTokenRangeAtCursor(text, cursorPos);
     if (!tokenRange) return null;
 
     const tokenBeforeCursor = text.substring(tokenRange.start, cursorPos);
@@ -652,7 +722,7 @@ export class OpencodeClient implements OnInit {
     text: string,
     cursorPos: number,
   ): { start: number; end: number; query: string } | null {
-    const tokenRange = this.getTokenRangeAtCursor(text, cursorPos);
+    const tokenRange = getTokenRangeAtCursor(text, cursorPos);
     if (!tokenRange) return null;
 
     if (text.substring(0, tokenRange.start).trim().length > 0) return null;
@@ -667,31 +737,6 @@ export class OpencodeClient implements OnInit {
     };
   }
 
-  private getTokenRangeAtCursor(
-    text: string,
-    cursorPos: number,
-  ): { start: number; end: number } | null {
-    const cursor = Math.max(0, Math.min(cursorPos, text.length));
-
-    let start = cursor;
-    while (start > 0 && !this.isWhitespace(text[start - 1])) {
-      start -= 1;
-    }
-
-    let end = cursor;
-    while (end < text.length && !this.isWhitespace(text[end])) {
-      end += 1;
-    }
-
-    if (start === end) return null;
-
-    return { start, end };
-  }
-
-  private isWhitespace(char: string): boolean {
-    return /\s/.test(char);
-  }
-
   private syncSelectedFileReferencesWithText(text: string): void {
     const refs = this.selectedFileReferences();
     if (refs.length === 0) return;
@@ -701,7 +746,7 @@ export class OpencodeClient implements OnInit {
 
     const sortedRefs = [...refs].sort((a, b) => a.start - b.start);
     for (const ref of sortedRefs) {
-      const occurrences = this.findTokenOccurrences(text, ref.token);
+      const occurrences = findTokenOccurrences(text, ref.token);
       const candidate = occurrences
         .filter(
           (range) =>
@@ -720,30 +765,6 @@ export class OpencodeClient implements OnInit {
     }
 
     this.selectedFileReferences.set(synced.sort((a, b) => a.start - b.start));
-  }
-
-  private findTokenOccurrences(text: string, token: string): Array<{ start: number; end: number }> {
-    if (!token) return [];
-
-    const matches: Array<{ start: number; end: number }> = [];
-    let index = 0;
-    while (index < text.length) {
-      const foundIndex = text.indexOf(token, index);
-      if (foundIndex === -1) break;
-
-      const beforeIndex = foundIndex - 1;
-      const hasValidBoundaryBefore = beforeIndex < 0 || this.isWhitespace(text[beforeIndex]);
-      if (hasValidBoundaryBefore) {
-        matches.push({
-          start: foundIndex,
-          end: foundIndex + token.length,
-        });
-      }
-
-      index = foundIndex + token.length;
-    }
-
-    return matches;
   }
 
   private toFilePartInputs(): FilePartInput[] {
@@ -774,10 +795,6 @@ export class OpencodeClient implements OnInit {
     return `${normalizedCurrentDir}/${normalizedPath}`;
   }
 
-  private toFileUrl(path: string): string {
-    return path.startsWith('file://') ? path : `file://${path}`;
-  }
-
   private scrollHighlightedIntoView(): void {
     requestAnimationFrame(() => {
       const list = this.autocompleteList()?.nativeElement;
@@ -790,23 +807,18 @@ export class OpencodeClient implements OnInit {
   }
 
   protected onPromptScroll(): void {
-    const textarea = this.promptInput().nativeElement;
-    const backdrop = textarea.parentElement?.querySelector(
-      '.prompt-backdrop',
-    ) as HTMLElement | null;
-    if (backdrop) {
-      backdrop.scrollTop = textarea.scrollTop;
-      backdrop.scrollLeft = textarea.scrollLeft;
+    this.syncPromptOverlayScroll();
+  }
+
+  protected onScrollContainerContentMutated(): void {
+    if (this.store.isStreaming() && this.shouldStickToBottom()) {
+      this.scrollMutationVersion.update((version) => version + 1);
     }
   }
 
-  protected async removeSession(sessionId: string): Promise<void> {
-    try {
-      await this.clientService.deleteSession(sessionId);
-      this.store.removeSession(sessionId);
-      toast.success('Session archived', { position: 'bottom-right' });
-    } catch (err) {
-      console.error('Failed to remove session:', err);
-    }
+  private syncPromptOverlayScroll(): void {
+    const textarea = this.promptInput().nativeElement;
+    this.promptScrollTop.set(textarea.scrollTop);
+    this.promptScrollLeft.set(textarea.scrollLeft);
   }
 }

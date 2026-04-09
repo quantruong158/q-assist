@@ -3,15 +3,23 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeFile01, hugeFolder01 } from '@ng-icons/huge-icons';
 import type { FilePart } from '@qos/opencode/data-access';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+
 @Component({
   selector: 'opencode-file-part',
   imports: [HlmBadgeImports, NgIcon],
   providers: [provideIcons({ hugeFile01, hugeFolder01 })],
   template: `
-    <span hlmBadge variant="outline" class="ml-auto flex mt-1 py-3">
-      <ng-icon [name]="isFolder() ? 'hugeFolder01' : 'hugeFile01'" class="mr-1"></ng-icon>
-      {{ sourcePath() }}
-    </span>
+    <div
+      dir="rtl"
+      hlmBadge
+      variant="outline"
+      class="ml-auto flex flex-row-reverse mt-1 py-3 max-w-full min-w-0"
+    >
+      <ng-icon [name]="isFolder() ? 'hugeFolder01' : 'hugeFile01'" class="mr-1 shrink-0"></ng-icon>
+      <span class="shrink block min-w-0 max-w-full truncate">
+        {{ sourcePath() }}
+      </span>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

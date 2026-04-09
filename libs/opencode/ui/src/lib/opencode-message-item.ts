@@ -1,19 +1,21 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { OpencodeStateStore } from '@qos/opencode/data-access';
-import { OpencodeTextPartComponent } from './opencode-text-part';
 import { OpencodeReasoningPartComponent } from './opencode-reasoning-part';
 import { OpencodeToolPartComponent } from './opencode-tool-part';
 import { OpencodeStepPartComponent } from './opencode-step-part';
 import { OpencodeFilePartComponent } from './opencode-file-part';
 import type { Message, Part } from '@qos/opencode/data-access';
 import { OpencodeMessageErrorComponent } from './opencode-messsage-error';
+import { OpencodeUserTextPartComponent } from './opencode-user-text-part';
+import { OpencodeAssistantTextPartComponent } from './opencode-assistant-text-part';
 
 @Component({
   selector: 'opencode-message-item',
   imports: [
     HlmBadgeImports,
-    OpencodeTextPartComponent,
+    OpencodeUserTextPartComponent,
+    OpencodeAssistantTextPartComponent,
     OpencodeReasoningPartComponent,
     OpencodeToolPartComponent,
     OpencodeStepPartComponent,
@@ -30,37 +32,47 @@ import { OpencodeMessageErrorComponent } from './opencode-messsage-error';
             Thinking...
           </span>
         }
-        @for (partId of partIds(); track partId) {
-          @if (getPart(partId); as part) {
-            <div
-              [class]="isAssistant() ? 'px-3' : 'p-0'"
-              [class.hidden]="part.type === 'step-start' || part.type === 'step-finish'"
-              [class.py-2]="isAssistant() && part.type !== 'reasoning'"
-            >
-              @switch (part.type) {
-                @case ('text') {
-                  @if (!part.synthetic) {
-                    <opencode-text-part [text]="part.text" [role]="message().role" />
+        @for (part of parts(); track part.id) {
+          <div
+            [class]="isAssistant() ? 'px-3' : 'p-0'"
+            [class.hidden]="
+              part.type === 'step-start' || part.type === 'step-finish' || part.type === 'patch'
+            "
+            [class.py-2]="isAssistant() && part.type !== 'reasoning'"
+          >
+            @switch (part.type) {
+              @case ('text') {
+                @if (!part.synthetic) {
+                  @if (isAssistant()) {
+                    <opencode-assistant-text-part
+                      [text]="part.text"
+                      [isStreaming]="isStreaming()"
+                    />
+                  } @else {
+                    <opencode-user-text-part
+                      [text]="part.text"
+                      [highlightIndexes]="highlightIndexes()"
+                    />
                   }
                 }
-                @case ('reasoning') {
-                  <opencode-reasoning-part [part]="part" />
-                }
-                @case ('tool') {
-                  <opencode-tool-part [part]="part" />
-                }
-                @case ('step-start') {
-                  <opencode-step-part [part]="asStepStart(part)" />
-                }
-                @case ('step-finish') {
-                  <opencode-step-part [part]="asStepFinish(part)" />
-                }
-                @case ('file') {
-                  <opencode-file-part [part]="part" />
-                }
               }
-            </div>
-          }
+              @case ('reasoning') {
+                <opencode-reasoning-part [part]="part" />
+              }
+              @case ('tool') {
+                <opencode-tool-part [part]="part" />
+              }
+              @case ('step-start') {
+                <opencode-step-part [part]="asStepStart(part)" />
+              }
+              @case ('step-finish') {
+                <opencode-step-part [part]="asStepFinish(part)" />
+              }
+              @case ('file') {
+                <opencode-file-part [part]="part" />
+              }
+            }
+          </div>
         }
       </div>
       @if (error()) {
@@ -82,6 +94,33 @@ export class OpencodeMessageItemComponent {
   protected readonly error = computed(() => {
     const msg = this.message();
     return msg.role === 'assistant' ? msg.error : undefined;
+  });
+
+  protected readonly isStreaming = computed(() => {
+    return this.store.isStreaming();
+  });
+
+  protected readonly parts = computed(() => {
+    return this.partIds()
+      .map((partId) => this.getPart(partId))
+      .filter((part) => part !== null);
+  });
+
+  protected highlightIndexes = computed(() => {
+    if (this.isAssistant()) {
+      return [];
+    }
+
+    return this.parts().reduce<{ start: number; end: number }[]>((acc, part) => {
+      if (part.type === 'file') {
+        if (!part.source) {
+          return acc;
+        }
+
+        acc.push({ start: part.source.text.start, end: part.source.text.end });
+      }
+      return acc;
+    }, []);
   });
 
   protected getPart(partId: string): Part | null {

@@ -6,6 +6,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeArrowRight01, hugeCancelCircle } from '@ng-icons/huge-icons';
 import type { ToolPart, ToolStateCompleted } from '@qos/opencode/data-access';
 import stripAnsi from 'strip-ansi';
+import { CommonModule } from '@angular/common';
 
 interface ToolDisplayValue {
   name: string;
@@ -15,13 +16,20 @@ interface ToolDisplayValue {
 
 @Component({
   selector: 'opencode-tool-part',
-  imports: [HlmBadgeImports, HlmCollapsibleImports, HlmButtonImports, NgIcon],
+  imports: [HlmBadgeImports, HlmCollapsibleImports, HlmButtonImports, NgIcon, CommonModule],
   providers: [provideIcons({ hugeArrowRight01, hugeCancelCircle })],
   template: `
     <div class="flex flex-col gap-1">
       <hlm-collapsible class="flex flex-col gap-2 group/collapsible">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-foreground font-medium">{{ toolDisplayValue().name }}</span>
+        <div class="flex items-center gap-2 min-h-6">
+          <span
+            class="text-sm text-foreground font-medium"
+            [ngClass]="{
+              'shimmer shimmer-spread-150 shimmer-repeat-delay-200 shimmer-duration-1000':
+                status() === 'pending' || status() === 'running',
+            }"
+            >{{ toolDisplayValue().name }}</span
+          >
           @if (toolDisplayValue().metadata !== '') {
             <span class="text-xs text-muted-foreground">{{ toolDisplayValue().metadata }}</span>
           }
@@ -87,7 +95,7 @@ export class OpencodeToolPartComponent {
       case 'read':
         return {
           name: 'Read',
-          metadata: `filePath=${part.state.input['filePath']}`,
+          metadata: part.state.input['filePath'] ? `filePath=${part.state.input['filePath']}` : '',
           collapsibleContent: '',
         };
       case 'edit':
@@ -111,12 +119,9 @@ export class OpencodeToolPartComponent {
           collapsibleContent:
             part.state.status === 'completed'
               ? (() => {
-                  if (this.status() === 'completed') {
-                    const state = part.state as ToolStateCompleted;
-                    const files = state.metadata['files'] as Record<string, string>[];
-                    return files.length === 1 ? files[0]['relativePath'] : `${files.length} files`;
-                  }
-                  return '';
+                  const state = part.state as ToolStateCompleted;
+                  const files = state.metadata['files'] as Record<string, string>[];
+                  return files.length === 1 ? files[0]['relativePath'] : `${files.length} files`;
                 })()
               : '',
         };

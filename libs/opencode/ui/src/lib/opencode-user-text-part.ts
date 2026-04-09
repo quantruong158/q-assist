@@ -1,44 +1,30 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { MarkdownComponent } from 'ngx-markdown';
-import { processStreamingMarkdown } from '@qos/chat/util';
 
 @Component({
-  selector: 'opencode-text-part',
-  imports: [MarkdownComponent],
-  template: `@if (role() === 'user') {
-      <p
-        class="whitespace-pre-wrap relative w-fit max-w-[80%] md:max-w-[60%] flex-col gap-2 self-end rounded-[calc(var(--radius)*1.5)_calc(var(--radius)/2)_calc(var(--radius)*1.5)_calc(var(--radius)*1.5)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] p-3 ml-auto border border-primary/20"
-      >
-        @for (part of userRenderedParts(); track $index) {
-          <span
-            [class.text-primary]="part.isHighlighted"
-            [class.whitespace-nowrap]="part.isHighlighted"
-            >{{ part.text }}</span
-          >
-        }
-      </p>
-    } @else {
-      <div class="py-5">
-        <markdown
-          class="wrap-break-word leading-9"
-          [data]="assistantRenderedContent()"
-          katex
-        ></markdown>
-      </div>
-    }`,
+  selector: 'opencode-user-text-part',
+  imports: [CommonModule],
+  template: `
+    <p
+      class="whitespace-pre-wrap relative w-fit max-w-[80%] md:max-w-[60%] flex-col gap-2 self-end rounded-[calc(var(--radius)*1.5)_calc(var(--radius)/2)_calc(var(--radius)*1.5)_calc(var(--radius)*1.5)] bg-[color-mix(in_oklab,var(--primary)_20%,transparent)] p-3 ml-auto border border-primary/20"
+    >
+      @for (part of userRenderedParts(); track $index) {
+        <span
+          [ngClass]="{
+            'text-primary whitespace-nowrap truncate block': part.isHighlighted,
+          }"
+          >{{ part.text }}</span
+        >
+      }
+    </p>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OpencodeTextPartComponent {
+export class OpencodeUserTextPartComponent {
   readonly text = input.required<string>();
-  readonly role = input.required<'user' | 'assistant'>();
-  readonly isStreaming = input<boolean>(false);
   readonly highlightIndexes = input<{ start: number; end: number }[]>([]);
 
   protected readonly userRenderedParts = computed(() => {
-    if (this.role() !== 'user') {
-      return [];
-    }
-
     const rawText = this.text();
     const textLength = rawText.length;
 
@@ -95,13 +81,5 @@ export class OpencodeTextPartComponent {
     }
 
     return renderedParts;
-  });
-
-  protected readonly assistantRenderedContent = computed(() => {
-    if (this.role() !== 'assistant') {
-      return '';
-    }
-    const raw = this.text();
-    return this.isStreaming() ? processStreamingMarkdown(raw) : raw;
   });
 }

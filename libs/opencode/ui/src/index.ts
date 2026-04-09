@@ -6,4 +6,5 @@ export * from './lib/opencode-text-part';
 export * from './lib/opencode-reasoning-part';
 export * from './lib/opencode-tool-part';
 export * from './lib/opencode-step-part';
-export * from './lib/opencode-autocomplete-overlay';
+export * from './lib/opencode-assistant-text-part';
+export * from './lib/opencode-user-text-part';

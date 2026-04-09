@@ -33,7 +33,7 @@ import { CommonModule } from '@angular/common';
         } @else {
           @for (session of store.sessionList(); track session.id) {
             <button
-              class="group flex w-full items-center gap-2 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50"
+              class="group flex w-full items-center gap-2 border-b px-4 py-3 text-left transition-colors hover:bg-muted/80"
               [class.bg-muted]="store.activeSessionId() === session.id"
               [ngClass]="{
                 'shimmer shimmer-bg shimmer-repeat-delay-0 shimmer-duration-1500 shimmer-color-[color-mix(in_oklab,var(--primary)_20%,transparent)]':

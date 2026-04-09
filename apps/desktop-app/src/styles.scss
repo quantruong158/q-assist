@@ -76,6 +76,8 @@ ng-icon {
   --card-foreground: oklch(0.1884 0.0128 248.5103);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.1884 0.0128 248.5103);
+  --toast: oklch(0 0 0);
+  --toast-foreground: oklch(0.9328 0.0025 228.7857);
   --primary: oklch(0.6723 0.1606 244.9955);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.1884 0.0128 248.5103);
@@ -121,6 +123,8 @@ ng-icon {
   --card-foreground: oklch(0.8853 0 0);
   --popover: oklch(0 0 0);
   --popover-foreground: oklch(0.9328 0.0025 228.7857);
+  --toast: oklch(1 0 0);
+  --toast-foreground: oklch(0.1884 0.0128 248.5103);
   --primary: oklch(0.6692 0.1607 245.011);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.9622 0.0035 219.5331);
@@ -166,8 +170,7 @@ ng-icon {
 }
 
 markdown pre {
-  border-radius: calc(var(--radius) / 2) calc(var(--radius) / 2) calc(var(--radius) * 2)
-    calc(var(--radius) * 2) !important;
+  border-radius: calc(var(--radius) / 2) calc(var(--radius) / 2) var(--radius) var(--radius) !important;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -177,7 +180,7 @@ markdown pre {
 
 markdown code {
   font-family: var(
-    --font-mono,
+    --code-font,
     ui-monospace,
     SFMono-Regular,
     Menlo,
@@ -328,8 +331,7 @@ markdown .code-toolbar {
     display: flex;
     flex-direction: row-reverse;
     background: var(--code-bg);
-    border-radius: calc(var(--radius) * 2) calc(var(--radius) * 2) calc(var(--radius) / 2)
-      calc(var(--radius) / 2);
+    border-radius: var(--radius) var(--radius) calc(var(--radius) / 2) calc(var(--radius) / 2);
     width: 100%;
     height: 3rem;
     padding: 0 1rem;
@@ -361,7 +363,7 @@ markdown .code-toolbar {
 markdown table {
   display: block;
   background-color: var(--code-bg);
-  border-radius: calc(var(--radius) * 2);
+  border-radius: var(--radius);
   margin: 1rem 0;
   overflow-x: scroll !important;
   min-width: 0 !important;

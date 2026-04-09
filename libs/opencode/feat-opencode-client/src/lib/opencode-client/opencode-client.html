@@ -8,90 +8,92 @@
     />
     <main class="relative flex flex-1 flex-col overflow-y-hidden">
       @if (!store.activeSession()) {
-      <div class="flex flex-1 flex-col items-center justify-center">
-        @if (store.isLoading()) {
-        <div class="flex flex-col items-center justify-center text-muted-foreground">
-          <hlm-spinner class="mb-4 text-2xl" />
-          <p class="text-sm">Loading sessions...</p>
-        </div>
-        } @else if (store.connectionState() === 'error') {
-        <div class="flex flex-col items-center justify-center text-muted-foreground">
-          <p class="text-sm">Unable to connect to OpenCode server</p>
-          <p class="mt-1 text-xs">
-            Make sure OpenCode is running at {{ clientService.getBaseUrl() }}
-          </p>
-        </div>
-        } @else {
-        <div
-          class="flex w-full max-w-250 flex-col items-center justify-center gap-8 px-4 -translate-y-20"
-          animate.enter="welcome-float-enter"
-        >
-          <svg
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-            viewBox="0 0 512 512"
-            class="h-32 rounded-lg shadow-2xl shadow-primary/50"
-            animate.enter="welcome-line-enter welcome-line-enter--first"
-          >
-            <svg viewBox="0 0 512 512" fill="none">
-              <rect width="512" height="512" fill="#131010" />
-              <path d="M320 224V352H192V224H320Z" fill="#5A5858" />
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M384 416H128V96H384V416ZM320 160H192V352H320V160Z"
-                fill="white"
-              />
-            </svg>
-          </svg>
-          <div class="flex flex-col items-center gap-2 text-center font-serif">
-            <p class="text-3xl" animate.enter="welcome-line-enter welcome-line-enter--second">
-              What can I help you build?
-            </p>
-          </div>
+        <div class="flex flex-1 flex-col items-center justify-center">
+          @if (store.isLoading()) {
+            <div class="flex flex-col items-center justify-center text-muted-foreground">
+              <hlm-spinner class="mb-4 text-2xl" />
+              <p class="text-sm">Loading sessions...</p>
+            </div>
+          } @else if (store.connectionState() === 'error') {
+            <div class="flex flex-col items-center justify-center text-muted-foreground">
+              <p class="text-sm">Unable to connect to OpenCode server</p>
+              <p class="mt-1 text-xs">
+                Make sure OpenCode is running at {{ clientService.getBaseUrl() }}
+              </p>
+            </div>
+          } @else {
+            <div
+              class="flex w-full max-w-250 flex-col items-center justify-center gap-8 px-4 -translate-y-20"
+              animate.enter="welcome-float-enter"
+            >
+              <svg
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                viewBox="0 0 512 512"
+                class="h-32 rounded-lg shadow-2xl shadow-primary/50"
+                animate.enter="welcome-line-enter welcome-line-enter--first"
+              >
+                <svg viewBox="0 0 512 512" fill="none">
+                  <rect width="512" height="512" fill="#131010" />
+                  <path d="M320 224V352H192V224H320Z" fill="#5A5858" />
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M384 416H128V96H384V416ZM320 160H192V352H320V160Z"
+                    fill="white"
+                  />
+                </svg>
+              </svg>
+              <div class="flex flex-col items-center gap-2 text-center font-serif">
+                <p class="text-3xl" animate.enter="welcome-line-enter welcome-line-enter--second">
+                  What can I help you build?
+                </p>
+              </div>
 
-          <div class="w-full">
-            <ng-container [ngTemplateOutlet]="composerContent" />
-          </div>
+              <div class="w-full">
+                <ng-container [ngTemplateOutlet]="composerContent" />
+              </div>
+            </div>
+          }
         </div>
-        }
-      </div>
       } @else {
-      <div class="relative flex flex-1 flex-col overflow-hidden">
-        <div
-          cdkScrollable
-          #scrollContainer
-          class="absolute inset-0 z-0 overflow-y-auto pb-[calc(100px+var(--safe-area-bottom))] max-[600px]:pb-[calc(80px+var(--safe-area-bottom))]"
-        >
-          <opencode-message-list />
-        </div>
-
-        <div
-          class="pointer-events-none absolute -bottom-16 left-1/2 z-10 h-40 w-full max-w-250 -translate-x-1/2"
-        >
+        <div class="relative flex flex-1 flex-col overflow-hidden">
           <div
-            class="h-full bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)]"
-          ></div>
-        </div>
-        @if (!isAtBottom() && isScrollable()) {
-        <button
-          hlmBtn
-          size="icon"
-          variant="secondary"
-          class="absolute bottom-10 rounded-full right-1/2 translate-x-1/2 z-11"
-          (click)="scrollToBottom()"
-          animate.enter="scroll-down-button-enter"
-          animate.leave="scroll-down-button-leave"
-        >
-          <ng-icon hlm name="hugeArrowDown02" />
-        </button>
-        }
-      </div>
+            cdkScrollable
+            cdkObserveContent
+            #scrollContainer
+            class="absolute inset-0 z-0 overflow-y-auto pb-[calc(100px+var(--safe-area-bottom))] max-[600px]:pb-[calc(80px+var(--safe-area-bottom))]"
+            (cdkObserveContent)="onScrollContainerContentMutated()"
+          >
+            <opencode-message-list />
+          </div>
 
-      <div
-        class="px-3 mx-auto z-10 w-full bg-background pb-[calc(12px+var(--safe-area-bottom))] max-w-250 rounded-t-2xl"
-      >
-        <ng-container [ngTemplateOutlet]="composerContent" />
-      </div>
+          <div
+            class="pointer-events-none absolute -bottom-16 left-1/2 z-10 h-40 w-full max-w-250 -translate-x-1/2"
+          >
+            <div
+              class="h-full bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)]"
+            ></div>
+          </div>
+          @if (!isAtBottom() && isScrollable()) {
+            <button
+              hlmBtn
+              size="icon"
+              variant="secondary"
+              class="absolute bottom-10 rounded-full right-1/2 translate-x-1/2 z-11"
+              (click)="scrollToBottom()"
+              animate.enter="scroll-down-button-enter"
+              animate.leave="scroll-down-button-leave"
+            >
+              <ng-icon hlm name="hugeArrowDown02" />
+            </button>
+          }
+        </div>
+
+        <div
+          class="px-3 mx-auto z-10 w-full bg-background pb-[calc(12px+var(--safe-area-bottom))] max-w-250 rounded-t-2xl"
+        >
+          <ng-container [ngTemplateOutlet]="composerContent" />
+        </div>
       }
     </main>
   </div>
@@ -99,30 +101,28 @@
   <ng-template #composerContent>
     <div class="relative">
       @if (autocompleteState().visible && autocompleteItems().length > 0) {
-      <div
-        #autocompleteList
-        class="absolute bottom-full left-0 right-0 mb-2 max-h-60 overflow-y-auto rounded-lg border border-border bg-popover p-1"
-      >
-        @for (item of autocompleteItems(); track item.id) {
-        <button
-          type="button"
-          class="w-full text-left px-3 py-2 text-sm rounded-md transition-colors"
-          [class.bg-accent]="highlightedAutocompleteIndex() === $index"
-          [class.text-accent-foreground]="highlightedAutocompleteIndex() === $index"
-          [class.hover:bg-accent]="highlightedAutocompleteIndex() !== $index"
-          [class.hover:text-accent-foreground]="highlightedAutocompleteIndex() !== $index"
-          [attr.data-ac-idx]="$index"
-          [class.ac-highlighted]="highlightedAutocompleteIndex() === $index"
-          (mousedown)="onAutocompleteItemMouseDown($event)"
-          (click)="onAutocompleteSelect(item)"
+        <div
+          #autocompleteList
+          class="absolute bottom-full left-0 right-0 mb-1 max-h-60 overflow-y-auto rounded-lg border border-border bg-popover p-2"
         >
-          <div class="font-medium">{{ item.label }}</div>
-          @if (item.description) {
-          <div class="text-xs text-muted-foreground truncate">{{ item.description }}</div>
+          @for (item of autocompleteItems(); track item.id) {
+            <button
+              type="button"
+              class="w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center gap-2"
+              [class.bg-muted]="highlightedAutocompleteIndex() === $index"
+              [class.hover:bg-muted]="highlightedAutocompleteIndex() !== $index"
+              [attr.data-ac-idx]="$index"
+              [class.ac-highlighted]="highlightedAutocompleteIndex() === $index"
+              (mousedown)="onAutocompleteItemMouseDown($event)"
+              (click)="onAutocompleteSelect(item)"
+            >
+              @if (item.icon) {
+                <ng-icon [name]="item.icon" />
+              }
+              <div>{{ item.label }}</div>
+            </button>
           }
-        </button>
-        }
-      </div>
+        </div>
       }
 
       <div
@@ -133,11 +133,16 @@
           class="w-full border-0 shadow-none outline-none focus-within:border-transparent focus-within:ring-0 focus-within:ring-offset-0 relative"
         >
           <div
-            class="prompt-backdrop pointer-events-none absolute inset-0 z-0 overflow-hidden whitespace-pre-wrap wrap-break-word px-2 py-1 leading-6"
+            class="text-sm prompt-backdrop pointer-events-none absolute inset-0 z-0 overflow-hidden"
           >
-            @for (segment of highlightedPromptSegments(); track $index) {
-            <span [class.text-primary]="segment.highlighted">{{ segment.text }}</span>
-            }
+            <div
+              class="resize-none whitespace-pre-wrap wrap-break-word leading-6 will-change-transform"
+              [style.transform]="promptOverlayTransform()"
+            >
+              @for (segment of highlightedPromptSegments(); track $index) {
+                <span [class.text-primary]="segment.highlighted">{{ segment.text }}</span>
+              }
+            </div>
           </div>
           <textarea
             #promptInput
@@ -153,87 +158,78 @@
             (scroll)="onPromptScroll()"
             placeholder="Type a message..."
             aria-label="Type your message"
-            class="relative z-10 min-h-14 flex-1 resize-none rounded-none border-0 bg-transparent px-2 py-1 leading-6 shadow-none outline-none overflow-y-auto focus:outline-none focus-visible:outline-none focus-visible:ring-0 dark:bg-transparent text-transparent [-webkit-text-fill-color:transparent] caret-(--color-foreground) placeholder:text-muted-foreground placeholder:[-webkit-text-fill-color:initial] placeholder:text-muted-foreground! selection:bg-primary/30"
+            class="text-sm relative z-10 min-h-10 flex-1 resize-none rounded-none border-0 bg-transparent leading-6 shadow-none outline-none overflow-y-auto focus:outline-none focus-visible:outline-none focus-visible:ring-0 dark:bg-transparent text-transparent [-webkit-text-fill-color:transparent] caret-(--color-foreground) placeholder:text-muted-foreground placeholder:[-webkit-text-fill-color:initial] placeholder:text-muted-foreground! selection:bg-primary/30"
+            spellcheck="false"
           ></textarea>
         </div>
 
         <div class="flex items-center gap-2">
           @if (agents().length > 0) {
-          <hlm-select class="shrink-0" [formControl]="selectedAgentControl">
-            <hlm-select-trigger
-              class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:bg-transparent"
-            >
-              <hlm-select-value />
-            </hlm-select-trigger>
-            <hlm-select-content class="max-h-80 overflow-y-auto">
-              @for (agent of agents(); track agent.name) {
-              <hlm-option [value]="agent">{{ agent.name | titlecase }}</hlm-option>
-              }
-            </hlm-select-content>
-          </hlm-select>
+            <hlm-select class="shrink-0" [formControl]="selectedAgentControl">
+              <hlm-select-trigger>
+                <hlm-select-value />
+              </hlm-select-trigger>
+              <hlm-select-content class="max-h-80 overflow-y-auto">
+                @for (agent of agents(); track agent.name) {
+                  <hlm-option [value]="agent">{{ agent.name | titlecase }}</hlm-option>
+                }
+              </hlm-select-content>
+            </hlm-select>
           }
 
           <span class="flex-1"></span>
 
-          <hlm-select
-            class="shrink-0"
-            [formControl]="selectedModelControl"
-            [compareWith]="compareModels"
-          >
-            <hlm-select-trigger
-              class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground aria-expanded:hover:bg-accent aria-expanded:hover:text-accent-foreground dark:bg-transparent dark:hover:bg-accent/50 dark:hover:text-accent-foreground dark:aria-expanded:bg-accent/50 dark:aria-expanded:text-accent-foreground dark:aria-expanded:hover:bg-accent/50 dark:aria-expanded:hover:text-accent-foreground"
-            >
+          <hlm-select class="shrink-0" [formControl]="selectedModelControl">
+            <hlm-select-trigger>
               <hlm-select-value />
             </hlm-select-trigger>
             <hlm-select-content class="max-h-80">
               @for (group of providers() | keyvalue; track group.key) {
-              <div hlmSelectGroup>
-                <div hlmSelectLabel>{{ group.key }}</div>
-                @for (model of group.value; track model.id) {
-                <hlm-option [value]="model">{{ model.label }}</hlm-option>
-                }
-              </div>
+                <div hlmSelectGroup>
+                  <div hlmSelectLabel>{{ group.key }}</div>
+                  @for (model of group.value; track model.id) {
+                    <hlm-option [value]="model">{{ model.label }}</hlm-option>
+                  }
+                </div>
               }
             </hlm-select-content>
           </hlm-select>
 
           <hlm-select class="shrink-0" [formControl]="selectedVariantControl">
-            <hlm-select-trigger
-              class="border-0 shadow-none hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:bg-transparent"
-            >
+            <hlm-select-trigger>
               <hlm-select-value />
             </hlm-select-trigger>
             <hlm-select-content class="min-w-fit">
               <hlm-option [value]="undefined">Default</hlm-option>
               @for (variant of variants(); track variant) {
-              <hlm-option [value]="variant">{{ (variant | titlecase) ?? 'Default' }}</hlm-option>
+                <hlm-option [value]="variant">{{ (variant | titlecase) ?? 'Default' }}</hlm-option>
               }
             </hlm-select-content>
           </hlm-select>
 
           @if (this.store.isStreaming()) {
-          <button
-            hlmBtn
-            size="icon"
-            (click)="interuptSession()"
-            aria-label="Interupt streaming"
-            class="rounded-full"
-            hlmTooltip="Interupt"
-            [showDelay]="300"
-          >
-            <ng-icon hlm name="hugeStop" class="animate-pulse" />
-          </button>
+            <button
+              hlmBtn
+              size="icon"
+              (click)="interuptSession()"
+              aria-label="Interupt streaming"
+              class="rounded-full"
+              hlmTooltip="Interupt"
+              [showDelay]="300"
+            >
+              <ng-icon hlm name="hugeStop" class="animate-pulse" />
+            </button>
           } @else {
-          <button
-            hlmBtn
-            size="icon"
-            (click)="sendPrompt()"
-            [disabled]="!canSend()"
-            aria-label="Send message"
-            class="rounded-full"
-          >
-            <ng-icon hlm name="hugeArrowUp02" />
-          </button>
+            <button
+              hlmBtn
+              size="icon"
+              (click)="sendPrompt()"
+              [disabled]="!canSend()"
+              aria-label="Send message"
+              class="rounded-full"
+            >
+              <ng-icon hlm name="hugeArrowUp02" />
+            </button>
           }
         </div>
       </div>
