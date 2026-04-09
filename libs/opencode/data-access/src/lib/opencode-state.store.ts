@@ -53,8 +53,15 @@ export class OpencodeStateStore {
   readonly timeline = computed(() => this._state().timeline);
   readonly error = computed(() => this._state().error);
   readonly isLoading = computed(() => this._state().isLoading);
-  readonly isStreaming = computed(() => this._state().isStreaming);
   readonly currentPath = computed(() => this._state().currentPath);
+
+  readonly isStreaming = computed(() => {
+    const activeSessionId = this._state().activeSessionId;
+    if (!activeSessionId) {
+      return false;
+    }
+    return this.sessionStatus()[activeSessionId]?.type === 'busy';
+  });
 
   readonly sessionList = computed(() =>
     Object.values(this._state().sessions).sort((a, b) => b.time.updated - a.time.updated),

@@ -146,6 +146,7 @@ export class OpencodeEventService implements OnDestroy {
       }
 
       case 'message.part.updated': {
+        console.log('part.updated: ', event.properties);
         const { part, delta } = event.properties as { part: Part; delta?: string };
         this.store.updateMessagePart(part, delta);
         this.store.addTimelineEntry({
@@ -176,6 +177,7 @@ export class OpencodeEventService implements OnDestroy {
       }
 
       case 'message.part.delta': {
+        console.log('delta: ', event.properties);
         const { sessionID, messageID, partID, field, delta } = event.properties as {
           sessionID: string;
           messageID: string;

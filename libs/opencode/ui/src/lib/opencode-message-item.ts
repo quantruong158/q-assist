@@ -46,7 +46,7 @@ import { OpencodeAssistantTextPartComponent } from './opencode-assistant-text-pa
                   @if (isAssistant()) {
                     <opencode-assistant-text-part
                       [text]="part.text"
-                      [isStreaming]="isStreaming()"
+                      [isStreaming]="isMessageStreaming()"
                     />
                   } @else {
                     <opencode-user-text-part
@@ -57,7 +57,7 @@ import { OpencodeAssistantTextPartComponent } from './opencode-assistant-text-pa
                 }
               }
               @case ('reasoning') {
-                <opencode-reasoning-part [part]="part" />
+                <opencode-reasoning-part [part]="part" [isStreaming]="isMessageStreaming()" />
               }
               @case ('tool') {
                 <opencode-tool-part [part]="part" />
@@ -96,8 +96,13 @@ export class OpencodeMessageItemComponent {
     return msg.role === 'assistant' ? msg.error : undefined;
   });
 
-  protected readonly isStreaming = computed(() => {
-    return this.store.isStreaming();
+  protected readonly isMessageStreaming = computed(() => {
+    if (!this.store.isStreaming() || !this.isAssistant()) {
+      return false;
+    }
+
+    const lastMessage = this.store.activeSessionMessages().at(-1);
+    return lastMessage?.role === 'assistant' && lastMessage.id === this.message().id;
   });
 
   protected readonly parts = computed(() => {
