@@ -81,6 +81,7 @@
     "hono": "^4.12.3",
     "katex": "^0.16.33",
     "ngx-markdown": "^21.1.0",
+    "ngx-scrollbar": "^19.1.4",
     "ngx-sonner": ">=3.0.0",
     "prismjs": "^1.30.0",
     "remend": "^1.2.1",

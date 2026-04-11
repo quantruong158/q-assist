@@ -34,16 +34,18 @@ import { OpencodeStateStore } from '@qos/opencode/data-access';
 import { OpencodeMessageListComponent } from '@qos/opencode/ui';
 import { OpencodeSessionRailComponent } from '@qos/opencode/ui';
 import { OpencodeStatusBarComponent } from '@qos/opencode/ui';
-import { CdkScrollable, ScrollDispatcher } from '@angular/cdk/scrolling';
-import { ObserversModule } from '@angular/cdk/observers';
-import { asyncScheduler, filter, map, throttleTime } from 'rxjs';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import {
+  StickyScrollDirective,
+  getTokenRangeAtCursor,
+  findTokenOccurrences,
+  toFileUrl,
+} from '@qos/shared/util-angular';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { toast } from 'ngx-sonner';
 import { TitleCasePipe } from '@angular/common';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
-import { getTokenRangeAtCursor, findTokenOccurrences, toFileUrl } from '@qos/shared/util-angular';
-
-const MAX_BOTTOM_OFFSET = 200;
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbarModule } from 'ngx-scrollbar';
 
 export interface AutocompleteItem {
   id: string;
@@ -86,10 +88,11 @@ interface PromptSegment {
     OpencodeStatusBarComponent,
     OpencodeSessionRailComponent,
     OpencodeMessageListComponent,
-    CdkScrollable,
-    ObserversModule,
+    StickyScrollDirective,
     TitleCasePipe,
     HlmTooltipImports,
+    HlmScrollAreaImports,
+    NgScrollbarModule,
   ],
   providers: [
     provideIcons({
@@ -109,9 +112,8 @@ export class OpencodeClient implements OnInit {
   readonly store = inject(OpencodeStateStore);
   private readonly eventService = inject(OpencodeEventService);
   private readonly destroyRef = inject(DestroyRef);
-  private scrollDispatcher = inject(ScrollDispatcher);
 
-  private readonly scrollContainer = viewChild(CdkScrollable);
+  protected readonly stickyScroll = viewChild<StickyScrollDirective>('stickyScroll');
 
   private readonly promptInput = viewChild.required<ElementRef<HTMLTextAreaElement>>('promptInput');
 
@@ -190,43 +192,8 @@ export class OpencodeClient implements OnInit {
   private readonly promptScrollTop = signal(0);
   private readonly promptScrollLeft = signal(0);
 
-  private readonly shouldStickToBottom = signal(false);
-  private readonly scrollMutationVersion = signal(0);
-
-  private readonly throttledScrollMutationVersion = toSignal(
-    toObservable(this.scrollMutationVersion).pipe(
-      throttleTime(50, asyncScheduler, {
-        leading: true,
-        trailing: true,
-      }),
-    ),
-    { initialValue: 0 },
-  );
-
   protected readonly promptOverlayTransform = computed(
     () => `translate(${-this.promptScrollLeft()}px, ${-this.promptScrollTop()}px)`,
-  );
-
-  protected readonly isAtBottom = toSignal(
-    this.scrollDispatcher.scrolled().pipe(
-      filter((scrollable) => scrollable === this.scrollContainer()),
-      map((scrollable) => {
-        return (scrollable as CdkScrollable).measureScrollOffset('bottom') <= MAX_BOTTOM_OFFSET;
-      }),
-    ),
-    { initialValue: false },
-  );
-
-  protected readonly isScrollable = toSignal(
-    this.scrollDispatcher.scrolled().pipe(
-      filter((scrollable) => scrollable === this.scrollContainer()),
-      map((scrollable) => {
-        const instance = scrollable as CdkScrollable;
-        const element = instance.getElementRef().nativeElement;
-        return element.scrollHeight > element.clientHeight;
-      }),
-    ),
-    { initialValue: false },
   );
 
   protected readonly promptValue = toSignal(this.promptControl.valueChanges, { initialValue: '' });
@@ -270,31 +237,6 @@ export class OpencodeClient implements OnInit {
         this.selectedVariantControl.setValue(undefined);
       }
     });
-
-    effect(() => {
-      const isStreaming = this.store.isStreaming();
-      const isAtBottom = this.isAtBottom();
-
-      if (!isStreaming) {
-        this.shouldStickToBottom.set(false);
-        return;
-      }
-
-      if (isAtBottom) {
-        this.shouldStickToBottom.set(true);
-      } else if (this.shouldStickToBottom()) {
-        this.shouldStickToBottom.set(false);
-      }
-    });
-
-    effect(() => {
-      const version = this.throttledScrollMutationVersion();
-      if (version === 0) return;
-
-      if (this.store.isStreaming() && this.shouldStickToBottom()) {
-        this.scrollToBottom();
-      }
-    });
   }
 
   ngOnInit(): void {
@@ -302,14 +244,6 @@ export class OpencodeClient implements OnInit {
     void this.loadInitialData();
     this.eventService.subscribe();
     this.destroyRef.onDestroy(() => this.eventService.cancel());
-  }
-
-  protected scrollToBottom(): void {
-    requestAnimationFrame(() => {
-      this.scrollContainer()?.scrollTo({
-        bottom: 0,
-      });
-    });
   }
 
   private async loadInitialData(): Promise<void> {
@@ -379,8 +313,7 @@ export class OpencodeClient implements OnInit {
           this.store.upsertPart(part);
         }
       }
-
-      this.scrollToBottom();
+      this.stickyScroll()?.scrollToBottom();
     } catch (err) {
       console.error('Failed to load session details:', err);
     }
@@ -675,7 +608,7 @@ export class OpencodeClient implements OnInit {
 
     try {
       if (commandMatch) {
-        this.scrollToBottom();
+        this.stickyScroll()?.scrollToBottom();
         const [, commandName, args] = commandMatch;
         await this.clientService.executeCommand(sessionId, commandName, {
           arguments: args ?? '',
@@ -685,7 +618,7 @@ export class OpencodeClient implements OnInit {
           parts: fileRefs.length > 0 ? fileRefs : undefined,
         });
       } else {
-        this.scrollToBottom();
+        this.stickyScroll()?.scrollToBottom();
         await this.clientService.promptSession(sessionId, trimmedText, model, {
           agent: selectedAgent?.name,
           variant: selectedVariant,
@@ -808,12 +741,6 @@ export class OpencodeClient implements OnInit {
 
   protected onPromptScroll(): void {
     this.syncPromptOverlayScroll();
-  }
-
-  protected onScrollContainerContentMutated(): void {
-    if (this.store.isStreaming() && this.shouldStickToBottom()) {
-      this.scrollMutationVersion.update((version) => version + 1);
-    }
   }
 
   private syncPromptOverlayScroll(): void {

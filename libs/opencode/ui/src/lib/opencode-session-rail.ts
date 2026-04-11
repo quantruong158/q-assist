@@ -8,10 +8,21 @@ import { OpencodeStateStore } from '@qos/opencode/data-access';
 import type { SessionStatus } from '@qos/opencode/data-access';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { CommonModule } from '@angular/common';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbarModule } from 'ngx-scrollbar';
 
 @Component({
   selector: 'opencode-session-rail',
-  imports: [DatePipe, HlmBadgeImports, HlmButtonImports, NgIcon, HlmTooltipImports, CommonModule],
+  imports: [
+    DatePipe,
+    HlmBadgeImports,
+    HlmButtonImports,
+    NgIcon,
+    HlmTooltipImports,
+    CommonModule,
+    HlmScrollAreaImports,
+    NgScrollbarModule,
+  ],
   providers: [provideIcons({ hugeAdd01, hugeDelete02 })],
   template: `
     <aside class="flex w-56 flex-col border-r border-border h-full">
@@ -22,7 +33,13 @@ import { CommonModule } from '@angular/common';
           <span class="text-xs">New</span>
         </button>
       </div>
-      <div class="flex-1 overflow-y-auto w-full">
+
+      <ng-scrollbar
+        hlm
+        class="flex-1 overflow-y-auto w-full"
+        orientation="vertical"
+        appearance="compact"
+      >
         @if (store.sessionList().length === 0) {
           <div
             class="flex flex-col items-center justify-center p-8 text-center text-muted-foreground"
@@ -65,7 +82,7 @@ import { CommonModule } from '@angular/common';
             </button>
           }
         }
-      </div>
+      </ng-scrollbar>
     </aside>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -369,6 +369,7 @@ markdown table {
   min-width: 0 !important;
   padding: 0 0 0.25rem 0;
   width: fit-content;
+  max-width: 100%;
 
   td {
     padding: 1rem !important;
@@ -427,6 +428,7 @@ markdown {
 
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
   background: transparent;
 }
 
@@ -436,7 +438,7 @@ markdown {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(136, 136, 136, 0.6);
-  border-radius: 10px;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -445,6 +447,10 @@ markdown {
 
 ::-webkit-scrollbar-button {
   display: none;
+}
+
+.ng-scroll-content {
+  max-width: 100%;
 }
 
 .welcome-float-enter {
