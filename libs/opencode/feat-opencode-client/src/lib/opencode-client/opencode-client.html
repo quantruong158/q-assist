@@ -1,14 +1,13 @@
 <div class="flex h-full flex-col bg-background">
-  <opencode-status-bar (retry)="onRetry()" />
   <div class="flex flex-1 overflow-hidden">
     <opencode-session-rail
       (select)="onSelectSession($event)"
       (newSession)="onNewSession()"
       (removeSession)="removeSession($event)"
     />
-    <main class="relative flex flex-1 flex-col overflow-y-hidden">
+    <main class="relative flex flex-1 flex-col overflow-y-hidden items-center">
       @if (!store.activeSession()) {
-      <div class="flex flex-1 flex-col items-center justify-center">
+      <div class="flex flex-1 flex-col items-center justify-center w-full">
         @if (store.isLoading()) {
         <div class="flex flex-col items-center justify-center text-muted-foreground">
           <hlm-spinner class="mb-4 text-2xl" />
@@ -17,9 +16,6 @@
         } @else if (store.connectionState() === 'error') {
         <div class="flex flex-col items-center justify-center text-muted-foreground">
           <p class="text-sm">Unable to connect to OpenCode server</p>
-          <p class="mt-1 text-xs">
-            Make sure OpenCode is running at {{ clientService.getBaseUrl() }}
-          </p>
         </div>
         } @else {
         <div
@@ -49,14 +45,14 @@
             </p>
           </div>
 
-          <div class="w-full">
+          <div class="w-full max-w-250">
             <ng-container [ngTemplateOutlet]="composerContent" />
           </div>
         </div>
         }
       </div>
       } @else {
-      <div class="relative flex flex-1 flex-col overflow-hidden">
+      <div class="relative flex flex-1 flex-col overflow-hidden w-full">
         <ng-scrollbar
           hlm
           class="absolute inset-0 z-0 overflow-y-auto min-w-0 max-w-full"
@@ -81,7 +77,7 @@
           hlmBtn
           size="icon"
           variant="secondary"
-          class="absolute bottom-10 rounded-full right-1/2 translate-x-1/2 z-11"
+          class="absolute bottom-10 rounded-full right-1/2 translate-x-1/2 z-11 opacity-50 hover:opacity-100"
           (click)="stickyScroll.scrollToBottom()"
           animate.enter="scroll-down-button-enter"
           animate.leave="scroll-down-button-leave"
@@ -90,9 +86,8 @@
         </button>
         }
       </div>
-
       <div
-        class="px-3 mx-auto z-10 w-full bg-background pb-[calc(12px+var(--safe-area-bottom))] max-w-250 rounded-t-2xl"
+        class="z-10 px-3 w-full max-w-250 bg-transparent pb-[calc(12px+var(--safe-area-bottom))]"
       >
         <ng-container [ngTemplateOutlet]="composerContent" />
       </div>
@@ -165,49 +160,54 @@
           ></textarea>
         </div>
 
-        <div class="flex items-center gap-2">
-          @if (agents().length > 0) {
-          <hlm-select class="shrink-0" [formControl]="selectedAgentControl">
-            <hlm-select-trigger>
-              <hlm-select-value />
-            </hlm-select-trigger>
-            <hlm-select-content class="max-h-80 overflow-y-auto">
-              @for (agent of agents(); track agent.name) {
-              <hlm-option [value]="agent">{{ agent.name | titlecase }}</hlm-option>
-              }
-            </hlm-select-content>
-          </hlm-select>
-          }
-
-          <span class="flex-1"></span>
-
-          <hlm-select class="shrink-0" [formControl]="selectedModelControl">
-            <hlm-select-trigger>
-              <hlm-select-value />
-            </hlm-select-trigger>
-            <hlm-select-content class="max-h-80">
-              @for (group of providers() | keyvalue; track group.key) {
-              <div hlmSelectGroup>
-                <div hlmSelectLabel>{{ group.key }}</div>
-                @for (model of group.value; track model.id) {
-                <hlm-option [value]="model">{{ model.label }}</hlm-option>
+        <div class="flex justify-between flex-col-reverse items-end min-[360px]:flex-row gap-2">
+          <div class="flex items-center justify-between flex-wrap self-start flex-1">
+            @if (agents().length > 0) {
+            <hlm-select class="shrink-0" [formControl]="selectedAgentControl">
+              <hlm-select-trigger class="text-xs">
+                <hlm-select-value />
+              </hlm-select-trigger>
+              <hlm-select-content class="max-h-80 overflow-y-auto">
+                @for (agent of agents(); track agent.name) {
+                <hlm-option [value]="agent" class="text-xs"
+                  >{{ agent.name | titlecase }}</hlm-option
+                >
                 }
-              </div>
-              }
-            </hlm-select-content>
-          </hlm-select>
+              </hlm-select-content>
+            </hlm-select>
+            }
+            <div class="flex items-center">
+              <hlm-select class="shrink-0" [formControl]="selectedModelControl">
+                <hlm-select-trigger class="text-xs">
+                  <hlm-select-value />
+                </hlm-select-trigger>
+                <hlm-select-content class="max-h-80">
+                  @for (group of providers() | keyvalue; track group.key) {
+                  <div hlmSelectGroup>
+                    <div hlmSelectLabel>{{ group.key }}</div>
+                    @for (model of group.value; track model.id) {
+                    <hlm-option [value]="model" class="text-xs">{{ model.label }}</hlm-option>
+                    }
+                  </div>
+                  }
+                </hlm-select-content>
+              </hlm-select>
 
-          <hlm-select class="shrink-0" [formControl]="selectedVariantControl">
-            <hlm-select-trigger>
-              <hlm-select-value />
-            </hlm-select-trigger>
-            <hlm-select-content class="min-w-fit">
-              <hlm-option [value]="undefined">Default</hlm-option>
-              @for (variant of variants(); track variant) {
-              <hlm-option [value]="variant">{{ (variant | titlecase) ?? 'Default' }}</hlm-option>
-              }
-            </hlm-select-content>
-          </hlm-select>
+              <hlm-select class="shrink-0" [formControl]="selectedVariantControl">
+                <hlm-select-trigger class="text-xs">
+                  <hlm-select-value />
+                </hlm-select-trigger>
+                <hlm-select-content class="min-w-fit">
+                  <hlm-option [value]="undefined" class="text-xs">Default</hlm-option>
+                  @for (variant of variants(); track variant) {
+                  <hlm-option [value]="variant" class="text-xs"
+                    >{{ (variant | titlecase) ?? 'Default' }}</hlm-option
+                  >
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </div>
+          </div>
 
           @if (this.store.isStreaming()) {
           <button

@@ -69,6 +69,8 @@ ng-icon {
 
   --font-serif: 'Merriweather', serif;
 
+  --font-mono: 'JetBrains Mono', monospace;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.1884 0.0128 248.5103);
@@ -362,8 +364,7 @@ markdown .code-toolbar {
 
 markdown table {
   display: block;
-  background-color: var(--code-bg);
-  border-radius: var(--radius);
+  background-color: var(--background);
   margin: 1rem 0;
   overflow-x: scroll !important;
   min-width: 0 !important;
@@ -376,12 +377,13 @@ markdown table {
     strong {
       font-weight: 500;
     }
+    border-bottom: 1px solid var(--muted-foreground);
   }
 
   th {
     padding: 1rem !important;
     font-weight: 500;
-    border-bottom: 2px solid var(--background);
+    border-bottom: 1px solid var(--muted-foreground);
   }
 }
 
@@ -548,7 +550,7 @@ markdown {
   }
 
   to {
-    opacity: 1;
+    opacity: 0.5;
     transform: translateY(0) scale(1);
     filter: blur(0);
   }
@@ -556,7 +558,7 @@ markdown {
 
 @keyframes scroll-down-button-leave {
   from {
-    opacity: 1;
+    opacity: 0.8;
     transform: translateY(0) scale(1);
     filter: blur(0);
   }

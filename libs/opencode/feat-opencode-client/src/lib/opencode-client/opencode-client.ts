@@ -33,7 +33,6 @@ import { OpencodeEventService } from '@qos/opencode/data-access';
 import { OpencodeStateStore } from '@qos/opencode/data-access';
 import { OpencodeMessageListComponent } from '@qos/opencode/ui';
 import { OpencodeSessionRailComponent } from '@qos/opencode/ui';
-import { OpencodeStatusBarComponent } from '@qos/opencode/ui';
 import {
   StickyScrollDirective,
   getTokenRangeAtCursor,
@@ -85,7 +84,6 @@ interface PromptSegment {
     KeyValuePipe,
     NgIcon,
     NgTemplateOutlet,
-    OpencodeStatusBarComponent,
     OpencodeSessionRailComponent,
     OpencodeMessageListComponent,
     StickyScrollDirective,
@@ -453,13 +451,6 @@ export class OpencodeClient implements OnInit {
     if (state.type === 'command' && this.getCommandAutocompleteContext(text, cursorPos)) return;
 
     this.onAutocompleteDismiss();
-  }
-
-  protected onRetry(): void {
-    this.eventService.cancel();
-    this.store.setConnectionState('connecting');
-    void this.loadInitialData();
-    this.eventService.subscribe();
   }
 
   protected onInput(): void {

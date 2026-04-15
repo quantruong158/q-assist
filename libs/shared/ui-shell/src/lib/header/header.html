@@ -23,43 +23,120 @@
       fill="oklch(0.6723 0.1606 244.9955)"
     />
   </svg>
-  <span class="flex-1"></span>
 
-  @if (authStore.currentUser(); as user) {
-    <button
-      hlmBtn
-      size="icon-lg"
-      variant="ghost"
-      [hlmDropdownMenuTrigger]="menu"
-      aria-label="User menu"
-      class="rounded-full"
-    >
-      @if (user.photoURL) {
-        <img
-          [src]="user.photoURL"
-          alt="Profile"
-          class="h-8 w-8 rounded-full object-cover"
-          referrerpolicy="no-referrer"
-        />
-      } @else {
-        <ng-icon hlm name="hugeUserCircle" />
-      }
-    </button>
+  @if (showOpencodeStatus()) {
+  <div class="mx-3 flex min-w-0 flex-1 items-center justify-center gap-2">
+    @switch (opencodeStore.connectionState()) { @case ('connecting') {
+    <hlm-spinner class="text-muted-foreground" />
+    <span class="truncate text-sm text-muted-foreground">Connecting to OpenCode server...</span>
+    } @case ('connected') {
+    <span class="h-2 w-2 rounded-full bg-green-500"></span>
+    <span class="text-sm">Connected</span>
+    @if (opencodeStore.serverVersion()) {
+    <span class="text-xs text-muted-foreground">v{{ opencodeStore.serverVersion() }}</span>
+    } } @case ('disconnected') {
+    <span class="h-2 w-2 rounded-full bg-muted"></span>
+    <span class="text-sm text-muted-foreground">Disconnected</span>
+    } @case ('error') {
+    <span class="h-2 w-2 rounded-full bg-red-500"></span>
+    <span class="truncate text-sm text-red-500">
+      {{ opencodeStore.error() ?? 'Connection error' }}
+    </span>
+    } }
 
-    <ng-template #menu>
-      <hlm-dropdown-menu class="p-2">
-        <div class="flex min-w-50 flex-col px-4 py-3">
-          <span class="font-medium text-foreground">{{ user.displayName || 'User' }}</span>
-          <span class="text-sm text-muted-foreground">{{ user.email }}</span>
+    <hlm-sheet side="bottom">
+      <button
+        hlmBtn
+        hlmSheetTrigger
+        type="button"
+        side="bottom"
+        size="icon"
+        variant="ghost"
+        class="shrink-0 md:hidden rounded-full"
+        aria-label="Open sessions"
+      >
+        <ng-icon name="hugeChatting01" />
+      </button>
+
+      <hlm-sheet-content
+        *hlmSheetPortal="let ctx"
+        class="max-h-[75vh] rounded-t-2xl p-0"
+        side="bottom"
+      >
+        <hlm-sheet-header>
+          <h3 hlmSheetTitle>Sessions</h3>
+        </hlm-sheet-header>
+
+        <div class="max-h-[calc(75vh-56px)] overflow-y-auto p-2">
+          <button
+            hlmBtn
+            hlmSheetClose
+            type="button"
+            variant="ghost"
+            class="mb-2 w-full justify-start gap-2"
+            (click)="onNewOpencodeSession()"
+          >
+            <ng-icon hlm name="hugeAdd01" />
+            <span>New session</span>
+          </button>
+
+          @if (opencodeStore.sessionList().length === 0) {
+          <div class="px-3 py-2 text-xs text-muted-foreground">No sessions available</div>
+          } @else { @for (session of opencodeStore.sessionList(); track session.id) {
+          <button
+            hlmSheetClose
+            type="button"
+            class="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+            [class.bg-muted]="opencodeStore.activeSessionId() === session.id"
+            (click)="onSelectOpencodeSession(session.id)"
+          >
+            <span class="truncate font-medium">{{ session.title || 'Untitled' }}</span>
+            <span class="shrink-0 text-xs text-muted-foreground"
+              >{{ session.time.updated | date: 'short' }}</span
+            >
+          </button>
+          } }
         </div>
+      </hlm-sheet-content>
+    </hlm-sheet>
+  </div>
+  } @else {
+  <span class="flex-1"></span>
+  } @if (authStore.currentUser(); as user) {
+  <button
+    hlmBtn
+    size="icon-lg"
+    variant="ghost"
+    [hlmDropdownMenuTrigger]="menu"
+    aria-label="User menu"
+    class="rounded-full"
+  >
+    @if (user.photoURL) {
+    <img
+      [src]="user.photoURL"
+      alt="Profile"
+      class="h-8 w-8 rounded-full object-cover"
+      referrerpolicy="no-referrer"
+    />
+    } @else {
+    <ng-icon hlm name="hugeUserCircle" />
+    }
+  </button>
 
-        <div hlmDropdownMenuSeparator></div>
+  <ng-template #menu>
+    <hlm-dropdown-menu class="p-2">
+      <div class="flex min-w-50 flex-col px-4 py-3">
+        <span class="font-medium text-foreground">{{ user.displayName || 'User' }}</span>
+        <span class="text-sm text-muted-foreground">{{ user.email }}</span>
+      </div>
 
-        <button hlmDropdownMenuItem (click)="onLogout()">
-          <ng-icon hlm name="hugeLogout03" />
-          <span>Sign out</span>
-        </button>
-      </hlm-dropdown-menu>
-    </ng-template>
+      <div hlmDropdownMenuSeparator></div>
+
+      <button hlmDropdownMenuItem (click)="onLogout()">
+        <ng-icon hlm name="hugeLogout03" />
+        <span>Sign out</span>
+      </button>
+    </hlm-dropdown-menu>
+  </ng-template>
   }
 </header>

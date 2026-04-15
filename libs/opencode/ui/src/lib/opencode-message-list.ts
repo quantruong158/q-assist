@@ -8,7 +8,7 @@ import { OpencodeMessageItemComponent } from './opencode-message-item';
   imports: [HlmSpinnerImports, OpencodeMessageItemComponent],
   template: `
     <div
-      class="flex-1 overflow-y-auto p-4 pb-[calc(100px+var(--safe-area-bottom))] max-[600px]:pb-[calc(80px+var(--safe-area-bottom))] max-w-250 mx-auto text-sm"
+      class="flex-1 overflow-y-auto p-3 pb-[calc(100px+var(--safe-area-bottom))] max-[600px]:pb-[calc(80px+var(--safe-area-bottom))] max-w-250 mx-auto text-sm"
     >
       @for (message of store.activeSessionMessages(); track message.id) {
         <opencode-message-item [message]="message" [partIds]="getPartIds(message.id)" />

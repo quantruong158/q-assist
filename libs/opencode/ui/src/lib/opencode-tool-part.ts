@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -6,7 +7,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { hugeArrowRight01, hugeCancelCircle } from '@ng-icons/huge-icons';
 import type { ToolPart, ToolStateCompleted } from '@qos/opencode/data-access';
 import stripAnsi from 'strip-ansi';
-import { CommonModule } from '@angular/common';
+import { OpencodeApplyPatchDiffComponent } from './opencode-apply-patch-diff';
 
 interface ToolDisplayValue {
   name: string;
@@ -14,27 +15,46 @@ interface ToolDisplayValue {
   collapsibleContent: string;
 }
 
+interface ApplyPatchFileMetadata {
+  relativePath: string;
+}
+
 @Component({
   selector: 'opencode-tool-part',
-  imports: [HlmBadgeImports, HlmCollapsibleImports, HlmButtonImports, NgIcon, CommonModule],
+  imports: [
+    HlmBadgeImports,
+    HlmCollapsibleImports,
+    HlmButtonImports,
+    NgIcon,
+    CommonModule,
+    OpencodeApplyPatchDiffComponent,
+  ],
   providers: [provideIcons({ hugeArrowRight01, hugeCancelCircle })],
   template: `
     <div class="flex flex-col gap-1">
       <hlm-collapsible class="flex flex-col gap-2 group/collapsible">
-        <div class="flex items-center gap-2 min-h-6">
+        <div class="flex items-center gap-2 min-h-6 font-medium">
           <span
-            class="text-sm text-foreground font-medium"
+            class="text-sm text-foreground"
             [ngClass]="{
               'shimmer shimmer-spread-150 shimmer-repeat-delay-200 shimmer-duration-1000':
                 status() === 'pending' || status() === 'running',
             }"
             >{{ toolDisplayValue().name }}</span
           >
-          @if (toolDisplayValue().metadata !== '') {
-            <span class="text-xs text-muted-foreground">{{ toolDisplayValue().metadata }}</span>
+          @if (toolDisplayValue().metadata.length > 0) {
+            <span
+              class="box-border text-xs text-muted-foreground whitespace-pre-wrap wrap-break-word truncate"
+              >{{ toolDisplayValue().metadata }}</span
+            >
           }
           @if (status() === 'error') {
-            <ng-icon name="hugeCancelCircle" class="text-destructive" size="20" strokeWidth="1.5" />
+            <ng-icon
+              name="hugeCancelCircle"
+              class="text-destructive shrink-0"
+              size="20"
+              strokeWidth="1.5"
+            />
           }
           <button
             hlmCollapsibleTrigger
@@ -51,17 +71,22 @@ interface ToolDisplayValue {
             <span class="sr-only">Toggle</span>
           </button>
         </div>
+
         @if (isCollapsible()) {
           <div
             hlmCollapsibleContent
             class="border-l-3 text-xs"
             [class.border-destructive]="status() === 'error'"
           >
-            <div class="py-1 flex flex-col gap-1 pl-5">
-              <pre class="whitespace-pre-wrap text-muted-foreground">{{
-                toolDisplayValue().collapsibleContent
-              }}</pre>
-            </div>
+            @if (applyPatchState(); as state) {
+              <opencode-apply-patch-diff [state]="state" />
+            } @else {
+              <div class="py-1 flex flex-col gap-1 pl-5">
+                <pre class="whitespace-pre-wrap text-muted-foreground">{{
+                  toolDisplayValue().collapsibleContent
+                }}</pre>
+              </div>
+            }
           </div>
         }
       </hlm-collapsible>
@@ -114,16 +139,16 @@ export class OpencodeToolPartComponent {
         };
       case 'apply_patch':
         return {
-          name: 'Apply Patch',
-          metadata: '',
-          collapsibleContent:
+          name: 'Patch',
+          metadata:
             part.state.status === 'completed'
               ? (() => {
                   const state = part.state as ToolStateCompleted;
-                  const files = state.metadata['files'] as Record<string, string>[];
-                  return files.length === 1 ? files[0]['relativePath'] : `${files.length} files`;
+                  const files = this.getApplyPatchMetadataFiles(state.metadata['files']);
+                  return files.length === 1 ? files[0].relativePath : `${files.length} files`;
                 })()
               : '',
+          collapsibleContent: '',
         };
       case 'bash':
         return {
@@ -148,6 +173,31 @@ export class OpencodeToolPartComponent {
   });
 
   protected readonly isCollapsible = computed(() => {
+    const applyPatchState = this.applyPatchState();
+    if (applyPatchState) {
+      const diff = applyPatchState.metadata['diff'];
+      return typeof diff === 'string' && diff.length > 0;
+    }
+
     return this.toolDisplayValue().collapsibleContent.length > 0;
   });
+
+  protected readonly applyPatchState = computed<ToolStateCompleted | null>(() => {
+    const part = this.part();
+    return part.tool === 'apply_patch' && part.state.status === 'completed'
+      ? (part.state as ToolStateCompleted)
+      : null;
+  });
+
+  private getApplyPatchMetadataFiles(value: unknown): ApplyPatchFileMetadata[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .filter((file): file is Record<string, unknown> => typeof file === 'object' && file !== null)
+      .map((file) => ({
+        relativePath: typeof file['relativePath'] === 'string' ? file['relativePath'] : 'unknown',
+      }));
+  }
 }

@@ -71,6 +71,7 @@
     "class-variance-authority": "^0.7.0",
     "clipboard": "^2.0.11",
     "clsx": "^2.1.1",
+    "diff": "^9.0.0",
     "electron-log": "^5.4.3",
     "embla-carousel-angular": "^20.0.0",
     "express": "^5.2.1",

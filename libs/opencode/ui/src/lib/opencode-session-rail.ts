@@ -25,7 +25,7 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
   ],
   providers: [provideIcons({ hugeAdd01, hugeDelete02 })],
   template: `
-    <aside class="flex w-56 flex-col border-r border-border h-full">
+    <aside class="hidden h-full w-56 flex-col border-r border-border md:flex">
       <div class="flex items-center justify-between border-b border-border px-4 py-3 h-14">
         <h2 class="text-sm font-medium">Sessions</h2>
         <button hlmBtn variant="ghost" (click)="newSession.emit()" class="rounded-full px-3 gap-2">
