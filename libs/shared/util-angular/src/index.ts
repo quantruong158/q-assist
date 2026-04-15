@@ -6,3 +6,4 @@ export * from './lib/highlight-by-indexes.pipe';
 export * from './lib/string';
 export * from './lib/streaming-text-pacer';
 export * from './lib/sticky-scroll.directive';
+export * from './lib/code-highlight';

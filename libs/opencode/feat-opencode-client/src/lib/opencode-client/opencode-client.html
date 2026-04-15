@@ -19,7 +19,7 @@
         </div>
         } @else {
         <div
-          class="flex w-full max-w-250 flex-col items-center justify-center gap-8 px-4 -translate-y-20"
+          class="flex w-full max-w-220 flex-col items-center justify-center gap-8 px-4 -translate-y-20"
           animate.enter="welcome-float-enter"
         >
           <svg
@@ -45,7 +45,7 @@
             </p>
           </div>
 
-          <div class="w-full max-w-250">
+          <div class="w-full max-w-220">
             <ng-container [ngTemplateOutlet]="composerContent" />
           </div>
         </div>
@@ -66,7 +66,7 @@
         </ng-scrollbar>
 
         <div
-          class="pointer-events-none absolute -bottom-16 left-1/2 z-10 h-40 w-full max-w-250 -translate-x-1/2"
+          class="pointer-events-none absolute -bottom-16 left-1/2 z-10 h-40 w-full max-w-220 -translate-x-1/2"
         >
           <div
             class="h-full bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_30%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)] dark:bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--background),transparent_40%)_75%,color-mix(in_srgb,var(--background),transparent_0%)_100%)]"
@@ -87,7 +87,7 @@
         }
       </div>
       <div
-        class="z-10 px-3 w-full max-w-250 bg-transparent pb-[calc(12px+var(--safe-area-bottom))]"
+        class="z-10 px-3 w-full max-w-220 bg-transparent pb-[calc(12px+var(--safe-area-bottom))]"
       >
         <ng-container [ngTemplateOutlet]="composerContent" />
       </div>
@@ -164,12 +164,12 @@
           <div class="flex items-center justify-between flex-wrap self-start flex-1">
             @if (agents().length > 0) {
             <hlm-select class="shrink-0" [formControl]="selectedAgentControl">
-              <hlm-select-trigger class="text-xs">
+              <hlm-select-trigger class="text-xs font-medium">
                 <hlm-select-value />
               </hlm-select-trigger>
               <hlm-select-content class="max-h-80 overflow-y-auto">
                 @for (agent of agents(); track agent.name) {
-                <hlm-option [value]="agent" class="text-xs"
+                <hlm-option [value]="agent" class="text-xs font-medium"
                   >{{ agent.name | titlecase }}</hlm-option
                 >
                 }
@@ -178,7 +178,7 @@
             }
             <div class="flex items-center">
               <hlm-select class="shrink-0" [formControl]="selectedModelControl">
-                <hlm-select-trigger class="text-xs">
+                <hlm-select-trigger class="text-xs font-medium">
                   <hlm-select-value />
                 </hlm-select-trigger>
                 <hlm-select-content class="max-h-80">
@@ -186,7 +186,9 @@
                   <div hlmSelectGroup>
                     <div hlmSelectLabel>{{ group.key }}</div>
                     @for (model of group.value; track model.id) {
-                    <hlm-option [value]="model" class="text-xs">{{ model.label }}</hlm-option>
+                    <hlm-option [value]="model" class="text-xs font-medium"
+                      >{{ model.label }}</hlm-option
+                    >
                     }
                   </div>
                   }
@@ -194,13 +196,13 @@
               </hlm-select>
 
               <hlm-select class="shrink-0" [formControl]="selectedVariantControl">
-                <hlm-select-trigger class="text-xs">
+                <hlm-select-trigger class="text-xs font-medium">
                   <hlm-select-value />
                 </hlm-select-trigger>
                 <hlm-select-content class="min-w-fit">
-                  <hlm-option [value]="undefined" class="text-xs">Default</hlm-option>
+                  <hlm-option [value]="undefined" class="text-xs font-medium">Default</hlm-option>
                   @for (variant of variants(); track variant) {
-                  <hlm-option [value]="variant" class="text-xs"
+                  <hlm-option [value]="variant" class="text-xs font-medium"
                     >{{ (variant | titlecase) ?? 'Default' }}</hlm-option
                   >
                   }
